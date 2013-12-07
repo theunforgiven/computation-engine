@@ -1,0 +1,7 @@
+.gradle/
+.idea/
+build/
+computation-engine.iml
+computation-engine.ipr
+computation-engine.iws
+out/

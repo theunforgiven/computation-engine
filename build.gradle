@@ -1,0 +1,62 @@
+apply plugin: 'scala'
+apply plugin: 'maven-publish'
+apply plugin: 'idea'
+apply plugin: 'clojure'
+
+version = projectVersion
+group = artifactGroup
+
+buildscript {               // For Clojure plugin
+
+    repositories {
+        mavenRepo name: 'clojars', urls: 'http://clojars.org/repo'
+    }
+
+    dependencies {
+        classpath "clojuresque:clojuresque:1.5.8"
+    }
+}
+
+tasks.withType(ScalaCompile) {
+    scalaCompileOptions.fork = true
+    scalaCompileOptions.useAnt = false
+    scalaCompileOptions.deprecation = true
+    scalaCompileOptions.unchecked = true
+
+    configure(scalaCompileOptions.forkOptions) {
+      memoryMaximumSize = '1g'
+      jvmArgs = ['-XX:MaxPermSize=512m']
+    }
+}
+
+dependencies {
+    compile "org.scala-lang:scala-library:$scalaVersion"
+    compile "org.clojure:clojure:1.5.1"
+    compile "clojail:clojail:1.0.6"
+
+    testCompile 'junit:junit:4.11'
+    testCompile 'org.scalatest:scalatest_2.10:2.0.M5b'
+}
+
+repositories {
+    mavenLocal()
+    mavenCentral()
+    clojarsRepo()
+}
+
+aotCompile = true
+
+publishToMavenLocal.dependsOn test
+
+test {
+    jvmArgs '-XX:MaxPermSize=256m'
+    systemProperties = System.getProperties()
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            from components.java
+        }
+    }
+}
