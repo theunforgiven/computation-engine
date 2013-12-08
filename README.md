@@ -17,28 +17,26 @@ maps of `Any -> Any` which are converted to untyped Clojure maps.
 
 ### How to use it:
 
-1. Instantiate your rules. A Rule has:
-
+1. Instantiate your rules. A `Rule` has:
     * A namespace - This is used to identify groups of rules that all belong to the same computation.
     * A name - An ordinary-language identifier for the rule.
     * An ordering - Rules in a particular computation are executed in a deterministic sequence, following
     the ordering specified in this field.
     * A transformation expression - A string containing a Clojure expression. This expression should define
-    a function that takes an `IPersistentMap` (i.e., a Clojure map) and returns an IPersistentMap. This is
+    a function that takes an `IPersistentMap` (i.e., a Clojure map) and returns an `IPersistentMap`. This is
     the expression defining the rule.
     * A flag indicating whether or not the computation should stop if this rule applies. "Applies" means
     that the rule generates a non-empty `IPersistentMap` when applied to a given `IPersistentMap`.
     * A flag indicating whether the rule should throw an exception if it fails to compile or if there is
     an exception when the rule is being applied. Currently this field is not used (see "To Do" below).
-
-2. Instantiate your computation. A computation is instantiated with a list of rules that will be the
+2. Instantiate your computation. A `Computation` is instantiated with a list of rules that will be the
 steps in the computation.
 
-3. Prepare your data. Your data should be in the form of a Scala immutable Map. This will get converted
+3. Prepare your data. Your data should be in the form of a Scala immutable `Map`. This will get converted
 to an `IPersistentMap` upon which the Clojure rules will operate. Convenience methods are included in the
 `ClojureConversions` object for generating Clojure keywords, lists, and maps.
 
-4. Call your computation's `compute` method. When the `compute`is called with a Scala Map, it converts
+4. Call your computation's `compute` method. When the `compute`is called with a Scala `Map`, it converts
 the map to an IPersistentMap and runs the rules on that map in sequence until the computation terminates,
 either by arriving at the final rule or by applying a rule that sets a termination flag. The application
 of each rule results in a new `IPersistentMap` which is the result of combining the existing map with the
