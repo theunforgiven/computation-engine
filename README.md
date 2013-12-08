@@ -29,8 +29,11 @@ maps of `Any -> Any` which are converted to untyped Clojure maps.
     that the rule generates a non-empty `IPersistentMap` when applied to a given `IPersistentMap`.
     * A flag indicating whether the rule should throw an exception if it fails to compile or if there is
     an exception when the rule is being applied. Currently this field is not used (see "To Do" below).
-2. Instantiate your computation. A `Computation` is instantiated with a list of rules that will be the
-steps in the computation.
+2. Instantiate your computation. A `SimpleComputation` is instantiated with a list of rules that will be the
+steps in the computation. An `IterativeComputation` also takes a rule for partitioning parts of the initial
+domain into subdomains, a key for identifying the extracted subdomains, and a list of subcomputations to
+apply. The rule to extract subdomains in an `IterativeComputation` applies first, then the subcomputations,
+and then finally the list of other rules.
 
 3. Prepare your data. Your data should be in the form of a Scala immutable `Map`. This will get converted
 to an `IPersistentMap` upon which the Clojure rules will operate. Convenience methods are included in the
