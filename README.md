@@ -17,39 +17,40 @@ maps of `Any -> Any` which are converted to untyped Clojure maps.
 
 ### How to use it:
 
-1. Instantiate your rules. A `Rule` has:
-    * A namespace - This is used to identify groups of rules that all belong to the same computation.
-    * A name - An ordinary-language identifier for the rule.
-    * An ordering - Rules in a particular computation are executed in a deterministic sequence, following
+1. Instantiate your simple computations. A `SimpleComputation` has:
+    * A namespace - This is used to identify groups of computations that all belong to the same sequence
+    of computations.
+    * A name - An ordinary-language identifier for the computation.
+    * An ordering - Computations in a particular sequence are executed in a deterministic order, following
     the ordering specified in this field.
     * A transformation expression - A string containing a Clojure expression. This expression should define
     a function that takes an `IPersistentMap` (i.e., a Clojure map) and returns an `IPersistentMap`. This is
-    the expression defining the rule.
-    * A flag indicating whether or not the computation should stop if this rule applies. "Applies" means
-    that the rule generates a non-empty `IPersistentMap` when applied to a given `IPersistentMap`.
-    * A flag indicating whether the rule should throw an exception if it fails to compile or if there is
-    an exception when the rule is being applied. Currently this field is not used (see "To Do" below).
-2. Instantiate your computation. A `SimpleComputation` is instantiated with a list of rules that will be the
-steps in the computation. An `IterativeComputation` also takes a rule for partitioning parts of the initial
-domain into subdomains, a key for identifying the extracted subdomains, and a list of subcomputations to
-apply. The rule to extract subdomains in an `IterativeComputation` applies first, then the subcomputations,
-and then finally the list of other rules.
+    the expression defining the computation.
+    * A flag indicating whether or not the computation should stop if this computation applies. "Applies" means
+    that the computation generates a non-empty `IPersistentMap` when applied to a given `IPersistentMap`.
+    * A flag indicating whether the computation should throw an exception if the expression fails to compile or
+    if there is an exception when the computation is being applied. Currently this field is not used (see "To Do" below).
+2. Instantiate your computation. A `SequentialComputation` is instantiated with a list of computations that
+will be the steps in the sequence. An `IterativeComputation` also takes a rule for partitioning parts of the
+initial domain into a sequence of subdomains, as well as a key for identifying the extracted subdomains and a
+list of subcomputations to apply after the subcomputations are complete. The rule to extract subdomains in an
+`IterativeComputation` applies first, then the subcomputations, and then finally the list of other computations.
 
 3. Prepare your data. Your data should be in the form of a Scala immutable `Map`. This will get converted
-to an `IPersistentMap` upon which the Clojure rules will operate. Convenience methods are included in the
+to an `IPersistentMap` upon which the Clojure computations will operate. Convenience methods are included in the
 `ClojureConversions` object for generating Clojure keywords, lists, and maps.
 
-4. Call your computation's `compute` method. When the `compute`is called with a Scala `Map`, it converts
-the map to an IPersistentMap and runs the rules on that map in sequence until the computation terminates,
-either by arriving at the final rule or by applying a rule that sets a termination flag. The application
-of each rule results in a new `IPersistentMap` which is the result of combining the existing map with the
-new map generated from the Clojure expression. When the computation ends, the final `IPersistentMap` is
-converted back to a Scala immutable map.
+4. Call your computation's `compute` method. When the `compute` method is called on a `SequentialComputation` with a
+Scala `Map`, it converts the map to an IPersistentMap and applies the computation steps on that map in sequence
+until the computation terminates, either by arriving at the final computation or by applying a computation that sets a
+termination flag. The application of each computation results in a new `IPersistentMap` which is the result of
+combining the existing map with the new map generated from the Clojure expression. When the computation ends,
+the final `IPersistentMap` is converted back to a Scala immutable map.
 
 5. Extract your results. You will need to identify the values in the resulting map that contain the final
 results of the application of your rules.
 
-To get a better idea of how this all works, look at the test in the `ComputationTests` class.
+To get a better idea of how this all works, look at the tests in the `ComputationTests` class.
 
 ### Working with the source code
 
@@ -58,22 +59,22 @@ if the `gradle idea` command is run.
 
 One wrinkle: In IDEA, Scala compiles before Clojure. This causes build failures in
 the Scala code that references the Clojail class. In order to build successfully, follow the instructions
-in the comments in the `Rule` class for commenting out the Clojail reference to obtain successful Scala and
-Clojure builds, and then reenabling the Clojail reference.
+in the comments in the `SimpleComputation` class for commenting out the Clojail reference to obtain successful
+Scala and Clojure builds, and then reenabling the Clojail reference.
 
 ### To Do:
 
-1. Implement exception handling when a rule fails to compile or throws an exception
+1. Implement exception handling when a computation fails to compile or throws an exception
 while it is being evaluated. Exception handling should use the switch indicating whether
-the exception should be propagated or whether the rule should simply inactivate itself
-when an exception is being thrown.
+the exception should be propagated or whether the computation should simply inactivate itself
+(and log) when an exception is being thrown.
 
 2. The sandbox isn't particularly safe, since it has to allow for defining a Clojure
 function. In addition, the function isn't evaluated inside a sandboxed environment.
-Additional checks could be implement using regular expressions on the Clojure string
-to ensure that it specified a function definition with type hints indicating that it
+Additional checks could be implemented using regular expressions on the Clojure string
+to ensure that it specifies a function definition with type hints indicating that it
 takes an `IPersistentMap` and returns an `IPersistentMap`.
 
-3. Currently there is no mechanism for testing rules, and when the engine is run in the
-debugger it is quite difficult to see how a rule is being evaluated. Ideally there would
+3. Currently there is no mechanism for testing computations, and when the engine is run in the
+debugger it is quite difficult to see how a computation is being evaluated. Ideally there would
 be some sort of test harness useful for generating test data and validating rules quickly.
