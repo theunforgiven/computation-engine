@@ -1,10 +1,9 @@
 package com.cyrusinnovation.computation
 
+import clojure.lang.{IPersistentMap, Var}
 import ClojureConversions._
-import clojure.lang.{ISeq, IPersistentMap}
 
 trait Computation {
-  def rules : List[Rule]
 
   def compute(facts: Map[Any, Any]) : Map[Any, Any] = {
     val domain = new Domain(facts, true)
@@ -12,46 +11,37 @@ trait Computation {
     results.facts
   }
 
-  def compute(domain: Domain): Domain = {
-    rules.foldLeft(domain) {
-      (domainSoFar: Domain, rule: Rule) => {
-        val newDomain = rule(domainSoFar)
-        if (!newDomain.continue) return newDomain else newDomain
-      }
-    }
-  }
+  def compute(domain: Domain): Domain
 }
 
-class SimpleComputation(val rules: List[Rule]) extends Computation
+class SimpleComputation(namespace: String,
+            name: String,
+            ordering: Int,
+            transformationExpression: String,
+            shouldContinueIfThisComputationApplies: Boolean = true,
+            shouldPropagateExceptions: Boolean = true) extends Computation {
 
-class IterativeComputation(val rules: List[Rule], ruleForExtractingSubdomains: Rule, keyForSubdomainSequence: Any, subcomputation: Computation) extends Computation {
+  private val clojureExpression = s"$transformationExpression"
 
-  override def compute(facts: Map[Any, Any]) : Map[Any, Any] = {
-    val domain = new Domain(facts, true)
-    val subdomains = extractDomainsForSubcomputation(domain)
-    val newDomain = applySubcomputations(domain, subdomains)
-    val results = compute(newDomain)
-    results.facts
+  /* If you rebuild (clean build) this project in IntelliJ, scala compiles before clojure.
+     This results in a compilation failure since Clojail isn't compiled when the scala compiles.
+     Workaround: First, comment out the line below that references Clojail, and then uncomment
+     the commented line below binding transformationFunction to ??? in order to make both the
+     scala and the clojure compile. Then uncomment the Clojail line and recomment the line below. */
+  // private val transformationFunction: Var = ???
+
+  // TODO Put in try block and deactivate rule if compilation fails
+  // TODO This sandbox isn't particularly safe - allows Compiler etc.
+  private val transformationFunction = Clojail.safeEval(clojureExpression).asInstanceOf[Var]
+
+  def compute(domain: Domain) : Domain = {
+    // TODO Invoke in sandbox somehow? Right now a function definition can contain println and it works.
+    // TODO Put in try block and deactivate rule if invocation fails
+    val newFacts = transformationFunction.invoke(domain.facts).asInstanceOf[IPersistentMap]
+
+    val continue = newFacts.count == 0 || shouldContinueIfThisComputationApplies
+    Domain.combine(newFacts, domain, continue)
   }
 
-  private def extractDomainsForSubcomputation(domain: Domain): List[Domain] = {
-    val domainIncludingSubdomains: Domain = ruleForExtractingSubdomains(domain)
-    val subdomainSequence = domainIncludingSubdomains.facts.valAt(keyForSubdomainSequence).asInstanceOf[ISeq]
-    toList(subdomainSequence)
-  }
-
-  private def applySubcomputations(originalDomain: Domain, subdomains: List[Domain]): Domain = {
-    subdomains.foldLeft(originalDomain) {
-        (domainSoFar: Domain, subdomain: Domain) => {
-          val newDomain = subcomputation.compute(subdomain)
-          Domain.combine(newDomain.facts, domainSoFar, true) //TODO can't halt iterative computation early. Is that ok?
-        }
-    }
-  }
-
-  private def toList(subdomainSequence: ISeq) : List[Domain] = (subdomainSequence.first, subdomainSequence.next) match {
-    case (x, null) => List(Domain(x.asInstanceOf[IPersistentMap], true))
-    case (head, tail) => Domain(head.asInstanceOf[IPersistentMap], true) :: toList(tail)
-    case _ => List()
-  }
 }
+

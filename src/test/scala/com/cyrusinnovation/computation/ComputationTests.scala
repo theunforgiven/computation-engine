@@ -8,7 +8,7 @@ import ClojureConversions._
 class ComputationTests extends FlatSpec with ShouldMatchers{
 
   "the computation" should "apply the clojure rule to get the test entity with the maximum test value" in {
-    val rule = new Rule("test.rules", "maximumTestValueRule", 1,
+    val step = new SimpleComputation("test.rules", "maximumTestValueRule", 1,
       """
         (defn transformation ^clojure.lang.IPersistentMap [^clojure.lang.IPersistentMap domain-facts]
             (let [test-values (seq (domain-facts '(:testEntity :testValue)))]
@@ -17,11 +17,11 @@ class ComputationTests extends FlatSpec with ShouldMatchers{
                 {})
           ))
       """,
-      shouldContinueIfThisRuleApplies = true,
+      shouldContinueIfThisComputationApplies = true,
       shouldPropagateExceptions = true
     )
-    val rules = List(rule)
-    val computation = new SimpleComputation(rules)
+    val steps = List(step)
+    val computation = new SequentialComputation(steps)
 
     val key = entityValueKeyFor("testEntity", "testValue")
     val innerMap = toClojureMap(Map("1" -> 2, "2" -> 5))
@@ -36,7 +36,7 @@ class ComputationTests extends FlatSpec with ShouldMatchers{
   }
 
   "an iterative computation" should "apply the clojure rule to get the test entity with the maximum test value" in {
-    val rule = new Rule("test.rules", "maximumTestValueRule", 1,
+    val step = new SimpleComputation("test.rules", "maximumTestValueRule", 1,
       """
         (defn transformation ^clojure.lang.IPersistentMap [^clojure.lang.IPersistentMap domain-facts]
             (let [test-values (seq (domain-facts '(:testEntity :testValue)))]
@@ -45,13 +45,13 @@ class ComputationTests extends FlatSpec with ShouldMatchers{
                 {})
           ))
       """,
-      shouldContinueIfThisRuleApplies = true,
+      shouldContinueIfThisComputationApplies = true,
       shouldPropagateExceptions = true
     )
-    val rules = List(rule)
-    val simpleComputation = new SimpleComputation(rules)
+    val steps = List(step)
+    val simpleComputation = new SequentialComputation(steps)
 
-    val extractSubdomainsRule = new Rule("test.rules", "groupTestValuesRule", 1,
+    val extractSubdomainsRule = new SimpleComputation("test.rules", "groupTestValuesRule", 1,
       """
         (defn extract-test-value-subdomains ^clojure.lang.IPersistentMap [^clojure.lang.IPersistentMap domain-facts]
           (let [test-values (domain-facts '(:testEntity :testValue))
@@ -61,10 +61,10 @@ class ComputationTests extends FlatSpec with ShouldMatchers{
             {:subdomains (map (fn [inner-map] {'(:testEntity :testValue) inner-map}) sequence-of-maps) }
           ))
       """,
-      shouldContinueIfThisRuleApplies = true,
+      shouldContinueIfThisComputationApplies = true,
       shouldPropagateExceptions = true
     )
-    val groupRule = new Rule("test.rules", "groupMaximumTestValuesRule", 1,
+    val groupRule = new SimpleComputation("test.rules", "groupMaximumTestValuesRule", 1,
       """
         (defn group-max-values ^clojure.lang.IPersistentMap [^clojure.lang.IPersistentMap domain-facts]
           (let [max-values (domain-facts '(:testEntity :maxTestValue))
@@ -76,7 +76,7 @@ class ComputationTests extends FlatSpec with ShouldMatchers{
         	  (assoc domain-facts '(:testGroup :maxTestValue) groups-to-max-values)
         ))
       """,
-      shouldContinueIfThisRuleApplies = true,
+      shouldContinueIfThisComputationApplies = true,
       shouldPropagateExceptions = true
     )
 
