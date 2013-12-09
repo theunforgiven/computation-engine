@@ -11,11 +11,13 @@ class ComputationTests extends FlatSpec with ShouldMatchers{
     val step = new SimpleComputation("test.rules", "maximumTestValueRule", 1,
       """
         (fn ^clojure.lang.IPersistentMap [^clojure.lang.IPersistentMap domain-facts]
-            (let [test-values (seq (domain-facts '(:testEntity :testValue)))]
-              (if (not (empty? test-values))
-                (-> (apply max-key (fn [x] (x 1)) test-values) ((fn [arr] { '(:testEntity :maxTestValue) (apply hash-map (flatten arr)) })))
-                {})
-          ))
+           (let [test-values (domain-facts '(:testEntity :testValue))]
+             (if (not (empty? test-values))
+              (let [test-value-seq (seq test-values)
+                    max-keys (->> test-value-seq (apply max-key (fn [x] (x 1))) (flatten) (apply hash-map))]
+                { '(:testEntity :maxTestValue) max-keys})
+              {})
+           ))
       """,
       shouldContinueIfThisComputationApplies = true,
       shouldPropagateExceptions = true
