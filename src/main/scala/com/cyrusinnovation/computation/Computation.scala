@@ -15,13 +15,16 @@ trait Computation {
 }
 
 class SimpleComputation(namespace: String,
-            name: String,
-            ordering: Int,
-            transformationExpression: String,
-            shouldContinueIfThisComputationApplies: Boolean = true,
-            shouldPropagateExceptions: Boolean = true) extends Computation {
+                        ordering: Int,
+                        name: String,
+                        description: String,
+                        transformationExpression: String,
+                        inputMap: Map[String, String],
+                        outputMap: Map[String, String],
+                        shouldContinueIfThisComputationApplies: Boolean = true,
+                        shouldPropagateExceptions: Boolean = true) extends Computation {
 
-  private val clojureExpression = s"$transformationExpression"
+  private val clojureExpression = SimpleComputation.createClojureFunctionString(transformationExpression, inputMap, outputMap)
 
   /* If you rebuild (clean build) this project in IntelliJ, Scala compiles before Clojure.
      This results in a compilation failure since Clojail isn't compiled when the scala compiles.
@@ -31,16 +34,52 @@ class SimpleComputation(namespace: String,
   //private val transformationFunction: IFn = ???
 
   // TODO Put in try block and deactivate rule if compilation fails
-  // TODO This sandbox isn't particularly safe - allows Compiler etc.
+  // TODO Test the safety of the sandbox
   private val transformationFunction = Clojail.safeEval(clojureExpression).asInstanceOf[IFn]
 
   def compute(domain: Domain) : Domain = {
-    // TODO Invoke in sandbox somehow? Right now a function definition can contain println and it works.
-    // TODO Put in try block and deactivate rule if invocation fails
-    val newFacts = transformationFunction.invoke(domain.facts).asInstanceOf[IPersistentMap]
-    val continue = newFacts.count == 0 || shouldContinueIfThisComputationApplies
-    Domain.combine(newFacts, domain, continue)
+    // TODO Test error handling
+    try {
+      val newFacts = transformationFunction.invoke(domain.facts).asInstanceOf[IPersistentMap]
+      val continue = newFacts.count == 0 || shouldContinueIfThisComputationApplies
+      Domain.combine(newFacts, domain, continue)
+    }
+    catch {
+      case e: Throwable => if(shouldPropagateExceptions) throw e else {
+        // TODO Figure out some kind of logging
+        System.err.println(e.getMessage)
+        e.printStackTrace(System.err)
+        domain
+      }
+    }
   }
+}
 
+object SimpleComputation {
+  def createClojureFunctionString(transformationExpression: String, inputMap: Map[String, String], outputMap: Map[String, String]) = {
+    val letMappings  = inputMap.foldLeft("") {
+      (soFar, keyValuePair) => {
+        val binding = keyValuePair._1
+        val domainKey = keyValuePair._2
+        soFar + s"""$binding (domain-facts $domainKey) """
+      }
+    }
+    val emptyChecks = inputMap.keys.foldLeft("") {
+      (soFar: String, binding: String) => {
+        soFar + s"""(empty? $binding) """
+      }
+    }
+    val emptyCheckExpression = if(inputMap.keys.size > 1) s"(and $emptyChecks)" else emptyChecks
+
+    val outputBinding = outputMap.head._1
+    val outputDomainKey = outputMap.head._2
+
+    s"""(fn ^clojure.lang.IPersistentMap [^clojure.lang.IPersistentMap domain-facts]
+          (let [$letMappings]
+           (if $emptyCheckExpression
+            {}
+            (let [$outputBinding $transformationExpression]
+              (hash-map $outputDomainKey $outputBinding)))))"""
+  }
 }
 
