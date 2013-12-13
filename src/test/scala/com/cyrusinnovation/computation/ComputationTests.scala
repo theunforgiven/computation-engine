@@ -8,8 +8,10 @@ class ComputationTests extends FlatSpec with ShouldMatchers{
   "The computation" should "apply the Scala computation to get the test entity with the maximum test value" in {
     val inputKey = 'testValues
     val resultKey = 'maxTestValue
+    val primer = ""
     val step = new SimpleComputation("test.computations", 1, "MaximumTestValueComputation",
       "Take the maximum of the testValue attribute of the testEntity entity",
+      primer,
       """{  val maxTuple = testValues.maxBy(aTuple => aTuple._2)
             Map(maxTuple) }
       """,
@@ -33,6 +35,7 @@ class ComputationTests extends FlatSpec with ShouldMatchers{
     val expression = "identity"
     val inputMap = Map("a: Int" -> "'foo")
     val outputMap = Map("result" -> "'A")
+    val primer = ""
 
     val expectedFunctionString =
       """if(domainFacts.get('foo).isEmpty) Map() else {
@@ -41,7 +44,7 @@ class ComputationTests extends FlatSpec with ShouldMatchers{
             Map('A -> result)
          }"""
 
-    val actualOutput = SimpleComputation.createFunctionBody(expression, inputMap, outputMap)
+    val actualOutput = SimpleComputation.createFunctionBody(expression, primer, inputMap, outputMap)
 
     normalizeSpace(actualOutput) should be(normalizeSpace(expectedFunctionString))
   }
@@ -50,6 +53,7 @@ class ComputationTests extends FlatSpec with ShouldMatchers{
     val expression = "identity"
     val inputMap = Map("a: Int" -> "'foo", "b: String" -> "'bar")
     val outputMap = Map("result" -> "'A")
+    val primer = ""
 
     val expectedFunctionString =
       """if(domainFacts.get('foo).isEmpty || domainFacts.get('bar).isEmpty) Map() else {
@@ -59,7 +63,7 @@ class ComputationTests extends FlatSpec with ShouldMatchers{
             Map('A -> result)
          }"""
 
-    val actualOutput = SimpleComputation.createFunctionBody(expression, inputMap, outputMap)
+    val actualOutput = SimpleComputation.createFunctionBody(expression, primer, inputMap, outputMap)
 
     normalizeSpace(actualOutput) should be(normalizeSpace(expectedFunctionString))
   }

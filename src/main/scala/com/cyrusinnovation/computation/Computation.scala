@@ -15,13 +15,14 @@ class SimpleComputation(namespace: String,
                         ordering: Int,
                         name: String,
                         description: String,
+                        primer: String,
                         transformationExpression: String,
                         inputMapWithTypes: Map[String, String],
                         outputMapWithoutType: Map[String, String],
                         shouldContinueIfThisComputationApplies: Boolean = true,
                         shouldPropagateExceptions: Boolean = true) extends Computation {
 
-  private val completeExpression = SimpleComputation.createFunctionBody(transformationExpression, inputMapWithTypes, outputMapWithoutType)
+  private val completeExpression = SimpleComputation.createFunctionBody(transformationExpression, primer, inputMapWithTypes, outputMapWithoutType)
 
   // TODO Put in try block and deactivate rule if compilation fails
   // TODO Test the safety of the sandbox
@@ -50,9 +51,9 @@ class SimpleComputation(namespace: String,
 
 object SimpleComputation {
   
-  
-  def createFunctionBody(transformationExpression: String, inputMap: Map[String, String], outputMap: Map[String, String]) = {
-    val inputMappings  = inputMap.foldLeft("") {
+
+  def createFunctionBody(transformationExpression: String, primer: String, inputMap: Map[String, String], outputMap: Map[String, String]) = {
+    val inputMappings  = inputMap.foldLeft(primer) {
       (soFar, keyValuePair) => {
         val valWithType = keyValuePair._1
         val domainKey = keyValuePair._2
