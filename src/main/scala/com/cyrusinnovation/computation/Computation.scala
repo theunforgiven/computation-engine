@@ -11,9 +11,26 @@ trait Computation {
   def compute(domain: Domain): Domain
 }
 
-class SimpleComputation(namespace: String,
-                        ordering: Int,
-                        name: String,
+/*
+  name: A name for the computation. This should follow Java camel case style and contain no spaces.
+  description: Free text describing the rule.
+  transformationExpression: A string that is a valid Scala expression, inside curly braces, containing
+                            free variables which will be bound by the keys in the input and output maps.
+  inputMapWithTypes: A map whose keys are the free variables in the transformationExpression, with their
+                     types, separated by a colon as in a Scala type annotation (space allowed). The values
+                     of the map are the keys that will be applied to the incoming domain of facts in order
+                     to select the values with which to bind the variables.
+  outputMapWithoutType: A map with a single entry, whose key is the name of the free variable in the
+                        transformationExpression that will carry the value to be returned from the computation.
+                        The value is the key that will be used to identify the returned value in the outgoing
+                        domain of facts.
+  shouldComtinueIfThisComputationApplies: Indicates whether a sequence of computations containing this computation
+                                          should stop if this rule returns a nonempty map.
+  shouldPropagateExceptions: If a computation fails to compile or if it throws an exception on application, it
+                             can throw an exception up the stack, or simply log and return the domain it was passed.
+
+ */
+class SimpleComputation(name: String,
                         description: String,
                         transformationExpression: String,
                         inputMapWithTypes: Map[String, String],
@@ -25,7 +42,8 @@ class SimpleComputation(namespace: String,
 
   // TODO Put in try block and deactivate rule if compilation fails
   // TODO Test the safety of the sandbox
-  private val transformationFunction = EvalCode.with1Arg[Map[Any, Any], Map[Any, Any]]("domainFacts",
+  private val transformationFunction = EvalCode.with1Arg[Map[Any, Any], Map[Any, Any]](name,
+                                                                                       "domainFacts",
                                                                                        "Map[Any, Any]",
                                                                                        completeExpression,
                                                                                        "Map[Any, Any]").newInstance
@@ -49,8 +67,7 @@ class SimpleComputation(namespace: String,
 }
 
 object SimpleComputation {
-  
-  
+
   def createFunctionBody(transformationExpression: String, inputMap: Map[String, String], outputMap: Map[String, String]) = {
     val inputMappings  = inputMap.foldLeft("") {
       (soFar, keyValuePair) => {
@@ -69,8 +86,11 @@ object SimpleComputation {
 
     s"""if($emptyCheckExpression) Map() else {
           $inputMappings
-          val $outputVal = $transformationExpression
-          Map($outputDomainKey -> $outputVal)
+          val $outputVal: Option[Any] = $transformationExpression
+          $outputVal match {
+            case Some(value) => Map($outputDomainKey -> value)
+            case None => Map()
+          }
         }"""
   }
 }

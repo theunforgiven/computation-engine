@@ -8,10 +8,10 @@ class ComputationTests extends FlatSpec with ShouldMatchers{
   "The computation" should "apply the Scala computation to get the test entity with the maximum test value" in {
     val inputKey = 'testValues
     val resultKey = 'maxTestValue
-    val step = new SimpleComputation("test.computations", 1, "MaximumTestValueComputation",
+    val step = new SimpleComputation("MaximumTestValueComputation",
       "Take the maximum of the testValue attribute of the testEntity entity",
       """{  val maxTuple = testValues.maxBy(aTuple => aTuple._2)
-            Map(maxTuple) }
+            Some(Map(maxTuple)) }
       """,
       Map("testValues: Map[String, Int]" -> "'testValues"),
       Map("maxValues" -> "'maxTestValue"),
@@ -30,15 +30,18 @@ class ComputationTests extends FlatSpec with ShouldMatchers{
   }
 
   "The computation" should "construct a Scala function from the given expression and the input and output maps" in {
-    val expression = "identity"
+    val expression = "Some(a)"
     val inputMap = Map("a: Int" -> "'foo")
     val outputMap = Map("result" -> "'A")
 
     val expectedFunctionString =
       """if(domainFacts.get('foo).isEmpty) Map() else {
             val a: Int = domainFacts.get('foo).get.asInstanceOf[Int]
-            val result = identity
-            Map('A -> result)
+            val result: Option[Any] = Some(a)
+            result match {
+              case Some(value) => Map('A -> value)
+              case None => Map()
+            }
          }"""
 
     val actualOutput = SimpleComputation.createFunctionBody(expression, inputMap, outputMap)
@@ -47,7 +50,7 @@ class ComputationTests extends FlatSpec with ShouldMatchers{
   }
 
   "The computation" should "correctly construct a Scala function with multiple values in the input map" in {
-    val expression = "identity"
+    val expression = "Some(a,b)"
     val inputMap = Map("a: Int" -> "'foo", "b: String" -> "'bar")
     val outputMap = Map("result" -> "'A")
 
@@ -55,8 +58,11 @@ class ComputationTests extends FlatSpec with ShouldMatchers{
       """if(domainFacts.get('foo).isEmpty || domainFacts.get('bar).isEmpty) Map() else {
             val a: Int = domainFacts.get('foo).get.asInstanceOf[Int]
             val b: String = domainFacts.get('bar).get.asInstanceOf[String]
-            val result = identity
-            Map('A -> result)
+            val result: Option[Any] = Some(a,b)
+            result match {
+              case Some(value) => Map('A -> value)
+              case None => Map()
+            }
          }"""
 
     val actualOutput = SimpleComputation.createFunctionBody(expression, inputMap, outputMap)
