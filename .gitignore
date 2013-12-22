@@ -1,6 +1,7 @@
 .gradle/
 .idea/
 build/
+classes/
 computation-engine.iml
 computation-engine.ipr
 computation-engine.iws
