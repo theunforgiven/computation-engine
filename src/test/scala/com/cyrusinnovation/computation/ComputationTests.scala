@@ -8,15 +8,19 @@ class ComputationTests extends FlatSpec with ShouldMatchers{
   "The computation" should "apply the Scala computation to get the test entity with the maximum test value" in {
     val inputKey = 'testValues
     val resultKey = 'maxTestValue
-    val step = new SimpleComputation("MaximumTestValueComputation",
-      "Take the maximum of the testValue attribute of the testEntity entity",
-      """{  val maxTuple = testValues.maxBy(aTuple => aTuple._2)
-            Some(Map(maxTuple)) }
-      """,
-      Map("testValues: Map[String, Int]" -> "'testValues"),
-      Map("maxValues" -> "'maxTestValue"),
-      shouldContinueIfThisComputationApplies = true,
-      shouldPropagateExceptions = true
+    val step = new SimpleComputation( "test.computations",
+                                      "MaximumTestValueComputation",
+                                      "Take the maximum of the testValue attribute of the testEntity entity",
+                                      List("scala.collection.mutable.{Map => MutableMap}", "scala.collection.mutable.{Set => MutableSet}"),
+                                      """
+                                        |{  val toTestImports = MutableSet()
+                                        |   val maxTuple = testValues.maxBy(aTuple => aTuple._2)
+                                        |   Some(MutableMap(maxTuple)) }
+                                      """.stripMargin,
+                                      Map("testValues: Map[String, Int]" -> "'testValues"),
+                                      Map("maxValues" -> "'maxTestValue"),
+                                      shouldContinueIfThisComputationApplies = true,
+                                      shouldPropagateExceptions = true
     )
     val steps = List(step)
     val computation = new SequentialComputation(steps)

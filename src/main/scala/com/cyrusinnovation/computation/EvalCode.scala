@@ -6,7 +6,7 @@ import java.io.FileWriter
 import com.googlecode.scalascriptengine.{Config, SSESecurityManager, ClassLoaderConfig, ScalaScriptEngine}
 
 /**
- * Based on code by kostantinos.kougios for ScalaScriptEngine, hacked to support parameterized types
+ * Based on code by kostantinos.kougios for ScalaScriptEngine, hacked to support parameterized types, imports, etc.
  */
 
 /**
@@ -21,21 +21,14 @@ trait EvalCode[T]
 	def newInstance: T
 }
 
-object EvalCode
-{
-	def apply[T](clz: java.lang.Class[T], computationName: String, typeArgs: List[String], argNames: List[String], body: String): EvalCode[T] =
-		new EvalCodeImpl(clz, computationName, typeArgs, argNames, body)
-
-	def with1Arg[A1, R](
-    computationName: String,
-		arg1Var: String,
-    arg1Type: String,
-		body: String,
-    returnType: String) =
-		apply(classOf[A1 => R], computationName: String, List(arg1Type, returnType), List(arg1Var), body)
+object EvalCode {
+	def apply[A1, R](packageName: String, imports: List[String], computationName: String, argVar: String, argType: String, body: String, returnType: String): EvalCode[A1 => R] =
+		new EvalCodeImpl(classOf[A1 => R], packageName, imports, computationName, List(argType, returnType), List(argVar), body)
 }
 
 private class EvalCodeImpl[T](clz: java.lang.Class[T],
+                              packageName: String,
+                              imports: List[String],
                               computationName: String,
                               typeArgs: List[String],
                               argNames: List[String],
@@ -47,19 +40,35 @@ private class EvalCodeImpl[T](clz: java.lang.Class[T],
   private lazy val classBlacklist = blacklistedFullyQualifiedClassNames
 
   def allowedPackageNames: Set[String] = Set("java.lang",
+                                             "java.math",
+                                             "java.text",
+                                             "java.util",
+                                             "java.util.regex",
                                              "scala",
                                              "scala.collection",
+                                             "scala.collection.generic",
                                              "scala.collection.immutable",
                                              "scala.collection.mutable",
                                              "scala.math",
                                              "scala.runtime",
-                                             "com.cyrusinnovation.computation"
+                                             "scala.util",
+                                             "scala.util.matching",
+                                             packageName
                                             )
 
-
-
-  def blacklistedFullyQualifiedClassNames: Set[String] = Set("scala.runtime.Runtime"
-                                                             // "scala.runtime.BoxesRunTime"    // Need this. WTF?
+  def blacklistedFullyQualifiedClassNames: Set[String] = Set("java.util.EventListener",
+                                                             "java.util.EventObject",
+                                                             "java.util.EventListenerProxy",
+                                                             "java.util.ServiceLoader",
+                                                             "java.util.Timer",
+                                                             "java.util.Timer",
+                                                             "java.util.TimerTask",
+                                                             "scala.runtime.Runtime",
+                                                             "scala.runtime.ScalaRuntime",
+                                                             "scala.runtime.MethodCache",
+                                                             "scala.runtime.MegaMethodCache",
+                                                             "scala.runtime.EmptyMethodCache",
+                                                             "scala.util.Marshal"
                                                             )
 
   private val srcFolder = new File(System.getProperty("java.io.tmpdir"), UUID.randomUUID.toString)
@@ -79,15 +88,21 @@ private class EvalCodeImpl[T](clz: java.lang.Class[T],
   System.setSecurityManager(sseSM)
 
 	private val templateTop = """
-    package com.cyrusinnovation.computation
+    package %s
+    %s
 		class %s extends %s%s {
 			override def apply(%s):%s = {
 			  %s
 			}
-		}""".format(// class name
+		}""".format(packageName,
+
+                // import statements
+                imports.map { className => s"import ${className}" }.mkString("\n"),
+
+		        // class name
                 computationName,
 
-		            // superclass name
+		        // superclass name
                 clz.getName,
 
                 // type args
@@ -120,7 +135,7 @@ private class EvalCodeImpl[T](clz: java.lang.Class[T],
   sse.refresh
 
 	// the Class[T]
-	val generatedClass = sse.get[T](s"com.cyrusinnovation.computation.$computationName")
+	val generatedClass = sse.get[T](s"$packageName.$computationName")
 
 	// creates a new instance of the evaluated class
 	def newInstance: T = sseSM.secured { generatedClass.newInstance }

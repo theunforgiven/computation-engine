@@ -11,42 +11,65 @@ trait Computation {
   def compute(domain: Domain): Domain
 }
 
-/*
-  name: A name for the computation. This should follow Java camel case style and contain no spaces.
-  description: Free text describing the rule.
-  transformationExpression: A string that is a valid Scala expression, inside curly braces, containing
-                            free variables which will be bound by the keys in the input and output maps.
-  inputMapWithTypes: A map whose keys are the free variables in the transformationExpression, with their
-                     types, separated by a colon as in a Scala type annotation (space allowed). The values
-                     of the map are the keys that will be applied to the incoming domain of facts in order
-                     to select the values with which to bind the variables.
-  outputMapWithoutType: A map with a single entry, whose key is the name of the free variable in the
-                        transformationExpression that will carry the value to be returned from the computation.
-                        The value is the key that will be used to identify the returned value in the outgoing
-                        domain of facts.
-  shouldComtinueIfThisComputationApplies: Indicates whether a sequence of computations containing this computation
-                                          should stop if this rule returns a nonempty map.
-  shouldPropagateExceptions: If a computation fails to compile or if it throws an exception on application, it
-                             can throw an exception up the stack, or simply log and return the domain it was passed.
+/* A computation instantiated from a Scala expression passed into the constructor as a string,
+ * along with various additional configurations (see constructor params). When the computation's `compute`
+ * method is called, the computation will execute against an arbitrary Scala map (a `Map[Any, Any]`)
+ * and return a `Map[Any, Any]` containing the results.
+ *
+ *
+ * @constructor Instantiate a SimpleComputation. Compilation of the computation expression occurs in the constructor
+ *              of the computation.
+ *
+ * @param packageName                             A java package name for the computation, used to hinder naming collisions.
+ *                                                This package will be used as the package for the class compiled from the
+ *                                                computation string.
+ * @param name                                    A name for the computation. This should follow Java camel case style
+ *                                                and contain no spaces, since a class is going to be compiled from it.
+ * @param description                             Free text describing the rule.
+ * @param imports                                 A list of strings, each of which is a fully qualified class name or
+ *                                                otherwise valid Scala identifier/expression that is supplied to an import
+ *                                                statement (not including the word "import").
+ * @param computationExpression                   A string that is a valid Scala expression, inside curly braces,
+ *                                                containing free variables which will be bound by the keys in the input
+ *                                                and output maps.
+ * @param inputMapWithTypes                       A map whose keys are the free variables in the transformationExpression,
+ *                                                with their types, separated by a colon as in a Scala type annotation
+ *                                                (space allowed). The values of the map are the keys that will be applied
+ *                                                to the incoming domain of facts in order to select the values with which
+ *                                                to bind the variables.
+ * @param outputMapWithoutType:                   A map with a single entry, whose key is the name of the free variable in the
+ *                                                transformationExpression that will carry the value to be returned from the
+ *                                                computation. The value is the key that will be used to identify the returned
+ *                                                value in the outgoing domain of facts.
+ * @param shouldComtinueIfThisComputationApplies  Indicates whether a sequence of computations containing this
+ *                                                computation should stop if this rule returns a nonempty map.
+ * @param shouldPropagateExceptions               If a computation fails to compile or if it throws an exception
+ *                                                on application, it can throw an exception up the stack, or simply
+ *                                                log and return the domain it was passed.
 
  */
-class SimpleComputation(name: String,
+// TODO For testing - create a constructor that allows passing in a compiled object instead of a code string?
+class SimpleComputation(packageName: String,
+                        name: String,
                         description: String,
-                        transformationExpression: String,
+                        imports: List[String],
+                        computationExpression: String,
                         inputMapWithTypes: Map[String, String],
                         outputMapWithoutType: Map[String, String],
                         shouldContinueIfThisComputationApplies: Boolean = true,
                         shouldPropagateExceptions: Boolean = true) extends Computation {
 
-  private val completeExpression = SimpleComputation.createFunctionBody(transformationExpression, inputMapWithTypes, outputMapWithoutType)
+  private val completeExpression = SimpleComputation.createFunctionBody(computationExpression, inputMapWithTypes, outputMapWithoutType)
 
   // TODO Put in try block and deactivate rule if compilation fails
   // TODO Test the safety of the sandbox
-  private val transformationFunction = EvalCode.with1Arg[Map[Any, Any], Map[Any, Any]](name,
-                                                                                       "domainFacts",
-                                                                                       "Map[Any, Any]",
-                                                                                       completeExpression,
-                                                                                       "Map[Any, Any]").newInstance
+  private val transformationFunction = EvalCode[Map[Any, Any], Map[Any, Any]](packageName,
+                                                                              imports,
+                                                                              name,
+                                                                             "domainFacts",
+                                                                             "Map[Any, Any]",
+                                                                             completeExpression,
+                                                                             "Map[Any, Any]").newInstance
 
   def compute(domain: Domain) : Domain = {
     // TODO Test error handling
@@ -68,7 +91,7 @@ class SimpleComputation(name: String,
 
 object SimpleComputation {
 
-  def createFunctionBody(transformationExpression: String, inputMap: Map[String, String], outputMap: Map[String, String]) = {
+  def createFunctionBody(computationExpression: String, inputMap: Map[String, String], outputMap: Map[String, String]) = {
     val inputMappings  = inputMap.foldLeft("") {
       (soFar, keyValuePair) => {
         val valWithType = keyValuePair._1
@@ -86,7 +109,7 @@ object SimpleComputation {
 
     s"""if($emptyCheckExpression) Map() else {
           $inputMappings
-          val $outputVal: Option[Any] = $transformationExpression
+          val $outputVal: Option[Any] = $computationExpression
           $outputVal match {
             case Some(value) => Map($outputDomainKey -> value)
             case None => Map()
