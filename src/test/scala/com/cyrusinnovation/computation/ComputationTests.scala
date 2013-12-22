@@ -7,8 +7,8 @@ import ClojureConversions._
 
 class ComputationTests extends FlatSpec with ShouldMatchers{
 
-  "the computation" should "apply the clojure rule to get the test entity with the maximum test value" in {
-    val step = new SimpleComputation("test.rules", 1, "maximumTestValueRule",
+  "the computation" should "apply the clojure computation to get the test entity with the maximum test value" in {
+    val step = new SimpleComputation("test.computations", 1, "MaximumTestValueComputation",
       "Take the maximum of the testValue attribute of the testEntity entity",
       "(->> test-values (seq) (apply max-key #(nth %1 1)) (flatten) (apply hash-map))",
       Map("test-values" -> """'(:testEntity :testValue)"""),
@@ -44,7 +44,7 @@ class ComputationTests extends FlatSpec with ShouldMatchers{
                   (let [max-keys (->> test-values (seq) (apply max-key #(nth %1 1)) (flatten) (apply hash-map))]
                     (hash-map '(:testEntity :maxTestValue) max-keys)))))"""
 
-    val actualOutput = SimpleComputation.createClojureFunctionString(expression, inputMap, outputMap)
+    val actualOutput = SimpleComputation.createFunctionBody(expression, inputMap, outputMap)
 
     normalizeSpace(actualOutput) should be(normalizeSpace(expectedFunctionString))
   }
@@ -62,7 +62,7 @@ class ComputationTests extends FlatSpec with ShouldMatchers{
                   (let [result (identity)]
                     (hash-map :A result)))))"""
 
-    val actualOutput = SimpleComputation.createClojureFunctionString(expression, inputMap, outputMap)
+    val actualOutput = SimpleComputation.createFunctionBody(expression, inputMap, outputMap)
 
     normalizeSpace(actualOutput) should be(normalizeSpace(expectedFunctionString))
   }

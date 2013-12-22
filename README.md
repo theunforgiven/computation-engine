@@ -64,14 +64,14 @@ To get a better idea of how this all works, look at the tests in the `Computatio
 Your Clojure expression will be surrounded with the following form:
 
     (fn ^clojure.lang.IPersistentMap [^clojure.lang.IPersistentMap domain-facts]
-              (let [$letMappings]
+              (let [$inputMappings]
                (if $emptyCheckExpression
                 {}
                 (let [$outputBinding $transformationExpression]
                   (hash-map $outputDomainKey $outputBinding)))))
 
-where `$letMappings` is a string taking the keys and values of the input map passed to the constructor of the
-computation (the values being keys of the data map passed to the computation). The `$letMappings` string is
+where `$inputMappings` is a string taking the keys and values of the input map passed to the constructor of the
+computation (the values being keys of the data map passed to the computation). The `$inputMappings` string is
 of the form:
 
     $inputMapKey (domain-facts $inputMapValue)

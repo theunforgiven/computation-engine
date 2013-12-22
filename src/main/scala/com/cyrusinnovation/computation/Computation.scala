@@ -24,7 +24,7 @@ class SimpleComputation(namespace: String,
                         shouldContinueIfThisComputationApplies: Boolean = true,
                         shouldPropagateExceptions: Boolean = true) extends Computation {
 
-  private val clojureExpression = SimpleComputation.createClojureFunctionString(transformationExpression, inputMap, outputMap)
+  private val completeExpression = SimpleComputation.createFunctionBody(transformationExpression, inputMap, outputMap)
 
   /* If you rebuild (clean build) this project in IntelliJ, Scala compiles before Clojure.
      This results in a compilation failure since Clojail isn't compiled when the scala compiles.
@@ -35,7 +35,7 @@ class SimpleComputation(namespace: String,
 
   // TODO Put in try block and deactivate rule if compilation fails
   // TODO Test the safety of the sandbox
-  private val transformationFunction = Clojail.safeEval(clojureExpression).asInstanceOf[IFn]
+  private val transformationFunction = Clojail.safeEval(completeExpression).asInstanceOf[IFn]
 
   def compute(domain: Domain) : Domain = {
     // TODO Test error handling
@@ -56,8 +56,8 @@ class SimpleComputation(namespace: String,
 }
 
 object SimpleComputation {
-  def createClojureFunctionString(transformationExpression: String, inputMap: Map[String, String], outputMap: Map[String, String]) = {
-    val letMappings  = inputMap.foldLeft("") {
+  def createFunctionBody(transformationExpression: String, inputMap: Map[String, String], outputMap: Map[String, String]) = {
+    val inputMappings  = inputMap.foldLeft("") {
       (soFar, keyValuePair) => {
         val binding = keyValuePair._1
         val domainKey = keyValuePair._2
@@ -75,7 +75,7 @@ object SimpleComputation {
     val outputDomainKey = outputMap.head._2
 
     s"""(fn ^clojure.lang.IPersistentMap [^clojure.lang.IPersistentMap domain-facts]
-          (let [$letMappings]
+          (let [$inputMappings]
            (if $emptyCheckExpression
             {}
             (let [$outputBinding $transformationExpression]
