@@ -40,18 +40,18 @@ maps of maps.
 2. Instantiate your final computation. A `SimpleComputation` is for a single step; if you want to chain a number
 of computations together, use a `SequentialComputation` instantiated with a list of `SimpleComputations`.
 
-3. Prepare your data. Your data should be in the form of a Scala immutable `Map`. This will get converted
+3. Prepare your data. Your data should be in the form of a Scala immutable map. This will get converted
 to an `IPersistentMap` upon which the Clojure computations will operate. Convenience methods are included in the
 `ClojureConversions` object for generating Clojure keywords, lists, and maps.
 
 4. Call your computation's `compute` method. When the `compute` method is called on a `SequentialComputation` with a
-Scala `Map`, it converts the map to an IPersistentMap and applies the computation steps on that map in sequence
+Scala map, it converts the map to an IPersistentMap and applies the computation steps on that map in sequence
 until the computation terminates, either by arriving at the final computation or by applying a computation that sets a
 termination flag. The application of each computation results in a new `IPersistentMap` which is the result of
 merging the existing map with the new map generated from the Clojure expression. When the computation ends,
 the final `IPersistentMap` is converted back to a Scala immutable map. (If the `compute` method is called on
 a `SimpleComputation` only, just the result map is returned and converted back to a Scala immutable map. This
-should probably be made parallel to the `SequentialCombination` and combine the results with the map that was
+should probably be made parallel to the `SequentialComputation` and combine the results with the map that was
 originally passed in; see "To Do" below.)
 
 5. Extract your results. You will need to identify the values in the resulting map that contain the final
@@ -70,24 +70,27 @@ Your Clojure expression will be surrounded with the following form:
                 (let [$outputBinding $transformationExpression]
                   (hash-map $outputDomainKey $outputBinding)))))
 
-where $letMappings is a string taking the keys and values of the input map passed to the constructor of the
-computation (the values being keys of the data map passed to the computation). The $letMappings string is
+where `$letMappings` is a string taking the keys and values of the input map passed to the constructor of the
+computation (the values being keys of the data map passed to the computation). The `$letMappings` string is
 of the form:
 
     $inputMapKey (domain-facts $inputMapValue)
 
-The $emptyCheckExpression checks to see if any of the let bindings are empty (i.e. the value bindings taken
+The `$emptyCheckExpression` checks to see if any of the let bindings are empty (i.e. the value bindings taken
 from the incoming data map), and if so returns an empty map from the computation.
-The $emptyCheckExpression is of one of the following two forms:
+The `$emptyCheckExpression` is of one of the following two forms:
 
     (empty? $binding)
+
+or
+
     (and (empty? $binding) (empty? $binding) ...)
 
 Note that this assumes that the values are collections, with the result that the incoming data map must be
 a map whose values are collections.
 
-The result of evaluating $transformationExpression is bound to $outputBinding and then made the value for
-$outputDomainKey in the map that is the result of the computation. The $outputBinding and $outputDomainKey
+The result of evaluating $transformationExpression is bound to `$outputBinding` and then made the value for
+`$outputDomainKey` in the map that is the result of the computation. The `$outputBinding` and `$outputDomainKey`
 are the key and value in the output map that is passed to the constructor of the computation. (This is
 somewhat redundant; see the "To Do" section below.)
 
@@ -134,7 +137,7 @@ Scala and Clojure builds, and then reenabling the Clojail reference.
 
 This library still has a lot of rough edges and is still more or less at the proof-of-concept stage.
 In particular, when implementing it in practice, it proved more cumbersome than expected to convert Scala
-maps back and forth to IPersistentMap. (Partly this is because Scala often relies on implicit conversions
+maps back and forth to `IPersistentMap.` (Partly this is because Scala often relies on implicit conversions
 to convert Scala data structures to Java ones, rather than on implementing Java collection interfaces.)
 In addition, the quantity of validation and error-checking logic required inside rules made them more
 inelegant than had been hoped.
