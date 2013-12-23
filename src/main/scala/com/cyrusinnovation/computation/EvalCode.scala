@@ -5,6 +5,7 @@ import java.util.UUID
 import java.io.FileWriter
 import com.googlecode.scalascriptengine.{Config, SSESecurityManager, ClassLoaderConfig, ScalaScriptEngine}
 import scala.Symbol
+import java.security.Policy
 
 /**
  * Based on code by kostantinos.kougios for ScalaScriptEngine, tailored for this particular application
@@ -49,6 +50,8 @@ private class EvalCodeImpl(packageName: String,
 	if (!srcFolder.mkdir) throw new IllegalStateException("can't create temp folder %s".format(srcFolder))
 
   System.setProperty("java.security.policy", new File(securityConfig.securityPolicyFilepath).toURI.toString)
+  Policy.getPolicy.refresh()
+
   val sseSM = new SSESecurityManager(new SecurityManager)
   System.setSecurityManager(sseSM)
 
