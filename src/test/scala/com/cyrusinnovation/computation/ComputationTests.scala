@@ -17,8 +17,8 @@ class ComputationTests extends FlatSpec with ShouldMatchers{
                                         |   val maxTuple = testValues.maxBy(aTuple => aTuple._2)
                                         |   Some(MutableMap(maxTuple)) }
                                       """.stripMargin,
-                                      Map("testValues: Map[String, Int]" -> "'testValues"),
-                                      Map("maxValues" -> "'maxTestValue"),
+                                      Map("testValues: Map[String, Int]" -> 'testValues),
+                                      'maxTestValue,
                                       shouldContinueIfThisComputationApplies = true,
                                       shouldPropagateExceptions = true
     )
@@ -35,14 +35,13 @@ class ComputationTests extends FlatSpec with ShouldMatchers{
 
   "The computation" should "construct a Scala function from the given expression and the input and output maps" in {
     val expression = "Some(a)"
-    val inputMap = Map("a: Int" -> "'foo")
-    val outputMap = Map("result" -> "'A")
+    val inputMap = Map("a: Int" -> 'foo)
+    val outputMap = 'A
 
     val expectedFunctionString =
       """if(domainFacts.get('foo).isEmpty) Map() else {
             val a: Int = domainFacts.get('foo).get.asInstanceOf[Int]
-            val result: Option[Any] = Some(a)
-            result match {
+            (Some(a) : Option[Any]) match {
               case Some(value) => Map('A -> value)
               case None => Map()
             }
@@ -55,15 +54,14 @@ class ComputationTests extends FlatSpec with ShouldMatchers{
 
   "The computation" should "correctly construct a Scala function with multiple values in the input map" in {
     val expression = "Some(a,b)"
-    val inputMap = Map("a: Int" -> "'foo", "b: String" -> "'bar")
-    val outputMap = Map("result" -> "'A")
+    val inputMap = Map("a: Int" -> 'foo, "b: String" -> 'bar)
+    val outputMap = 'A
 
     val expectedFunctionString =
       """if(domainFacts.get('foo).isEmpty || domainFacts.get('bar).isEmpty) Map() else {
             val a: Int = domainFacts.get('foo).get.asInstanceOf[Int]
             val b: String = domainFacts.get('bar).get.asInstanceOf[String]
-            val result: Option[Any] = Some(a,b)
-            result match {
+            (Some(a,b) : Option[Any]) match {
               case Some(value) => Map('A -> value)
               case None => Map()
             }

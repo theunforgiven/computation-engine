@@ -54,12 +54,12 @@ class SimpleComputation(packageName: String,
                         description: String,
                         imports: List[String],
                         computationExpression: String,
-                        inputMapWithTypes: Map[String, String],
-                        outputMapWithoutType: Map[String, String],
+                        inputMapWithTypes: Map[String, Symbol],
+                        resultKey: Symbol,
                         shouldContinueIfThisComputationApplies: Boolean = true,
                         shouldPropagateExceptions: Boolean = true) extends Computation {
 
-  private val completeExpression = SimpleComputation.createFunctionBody(computationExpression, inputMapWithTypes, outputMapWithoutType)
+  private val completeExpression = SimpleComputation.createFunctionBody(computationExpression, inputMapWithTypes, resultKey)
 
   // TODO Put in try block and deactivate rule if compilation fails
   // TODO Test the safety of the sandbox
@@ -91,7 +91,7 @@ class SimpleComputation(packageName: String,
 
 object SimpleComputation {
 
-  def createFunctionBody(computationExpression: String, inputMap: Map[String, String], outputMap: Map[String, String]) = {
+  def createFunctionBody(computationExpression: String, inputMap: Map[String, Symbol], resultKey: Symbol) = {
     val inputMappings  = inputMap.foldLeft("") {
       (soFar, keyValuePair) => {
         val valWithType = keyValuePair._1
@@ -104,14 +104,10 @@ object SimpleComputation {
     val emptyChecks = inputMap.values.map((domainKey) => s"domainFacts.get($domainKey).isEmpty")
     val emptyCheckExpression = if(inputMap.keys.size > 1) emptyChecks.mkString(" || ") else emptyChecks.mkString
 
-    val outputVal = outputMap.head._1
-    val outputDomainKey = outputMap.head._2
-
     s"""if($emptyCheckExpression) Map() else {
           $inputMappings
-          val $outputVal: Option[Any] = $computationExpression
-          $outputVal match {
-            case Some(value) => Map($outputDomainKey -> value)
+          ($computationExpression : Option[Any]) match {
+            case Some(value) => Map($resultKey -> value)
             case None => Map()
           }
         }"""
