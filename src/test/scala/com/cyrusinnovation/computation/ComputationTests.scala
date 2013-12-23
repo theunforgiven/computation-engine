@@ -2,10 +2,11 @@ package com.cyrusinnovation.computation
 
 import org.scalatest.FlatSpec
 import org.scalatest.matchers.ShouldMatchers
+import java.io.File
 
 class ComputationTests extends FlatSpec with ShouldMatchers{
   object TestSecurityConfiguration extends SecurityConfiguration {
-    override def securityPolicyFilepath = "src/test/resources/sample.policy"
+    override def securityPolicyURI = new File("src/test/resources/sample.policy").toURI.toString
   }
 
   "The computation" should "apply the Scala computation to get the test entity with the maximum test value" in {

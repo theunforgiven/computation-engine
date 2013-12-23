@@ -49,7 +49,7 @@ private class EvalCodeImpl(packageName: String,
   private val srcFolder = new File(System.getProperty("java.io.tmpdir"), UUID.randomUUID.toString)
 	if (!srcFolder.mkdir) throw new IllegalStateException("can't create temp folder %s".format(srcFolder))
 
-  System.setProperty("java.security.policy", new File(securityConfig.securityPolicyFilepath).toURI.toString)
+  System.setProperty("java.security.policy", securityConfig.securityPolicyURI)
   Policy.getPolicy.refresh()
 
   val sseSM = new SSESecurityManager(new SecurityManager)

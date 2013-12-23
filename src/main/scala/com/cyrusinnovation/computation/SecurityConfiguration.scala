@@ -32,7 +32,7 @@ trait SecurityConfiguration {
                                                               "scala.util.Marshal"
                                                               )
 
-  def securityPolicyFilepath: String                        = "computation.security.policy"
+  def securityPolicyURI: String                             = "computation.security.policy"
 }
 
 object DefaultSecurityConfiguration extends SecurityConfiguration
