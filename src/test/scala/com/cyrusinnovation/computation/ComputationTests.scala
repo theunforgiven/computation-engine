@@ -2,39 +2,26 @@ package com.cyrusinnovation.computation
 
 import org.scalatest.FlatSpec
 import org.scalatest.matchers.ShouldMatchers
-import java.io.File
 
 class ComputationTests extends FlatSpec with ShouldMatchers{
-  object TestSecurityConfiguration extends SecurityConfiguration {
-    override def securityPolicyURI = new File("src/test/resources/sample.policy").toURI.toString
+
+  "A simple computation" should "apply the Scala expression to get the test entity with the maximum test value" in {
+    val facts: Map[Symbol, Any] = Map('testValues -> Map('a -> 2, 'b -> 5))
+    val newFacts = TestRules.maxValueComputation.compute(facts)
+
+    newFacts('maxTestValue) should be(Map('b -> 5))
   }
 
-  "The computation" should "apply the Scala computation to get the test entity with the maximum test value" in {
-    val inputKey = 'testValues
-    val resultKey = 'maxTestValue
-    val step = new SimpleComputation( "test.computations",
-                                      "MaximumTestValueComputation",
-                                      "Take the maximum of the testValue attribute of the testEntity entity",
-                                      List("scala.collection.mutable.{Map => MutableMap}", "scala.collection.mutable.{Set => MutableSet}"),
-                                      """{  val toTestImports = MutableSet()
-                                            val maxTuple = testValues.maxBy(aTuple => aTuple._2)
-                                            Some(MutableMap(maxTuple)) }
-                                      """,
-                                      Map("testValues: Map[String, Int]" -> 'testValues),
-                                      'maxTestValue,
-                                      TestSecurityConfiguration,
-                                      shouldContinueIfThisComputationApplies = true,
-                                      shouldPropagateExceptions = true
-    )
-    val steps = List(step)
-    val computation = new SequentialComputation(steps)
+  "A simple computation" should "propagate exceptions when indicated" in {
+    val facts: Map[Symbol, Any] = Map('maxTestValue -> Map('unused -> 3))
+    evaluating {
+      TestRules.exceptionThrowingComputation(true).compute(facts)
+    } should produce [Exception]
+  }
 
-    val innerMap = Map('a -> 2, 'b -> 5)
-    val facts: Map[Symbol, Any] = Map(inputKey -> innerMap)
-
-    val newFacts = computation.compute(facts)
-
-    newFacts(resultKey) should be(Map('b -> 5))
+  "A simple computation" should "not propagate exceptions otherwise" in {
+    val facts: Map[Symbol, Any] = Map('maxTestValue -> Map('unused -> 10))
+    TestRules.exceptionThrowingComputation(false).compute(facts)
   }
 
   "The computation" should "construct a Scala function from the given expression and the input and output maps" in {

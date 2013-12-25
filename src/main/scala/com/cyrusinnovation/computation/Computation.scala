@@ -57,7 +57,7 @@ class SimpleComputation(packageName: String,
                         inputMapWithTypes: Map[String, Symbol],
                         resultKey: Symbol,
                         securityConfiguration: SecurityConfiguration,
-                        shouldContinueIfThisComputationApplies: Boolean = true,
+                        shouldContinueIfThisComputationApplies: Boolean = true, //TODO Fix this parameter
                         shouldPropagateExceptions: Boolean = true) extends Computation {
 
   private val fullExpression = SimpleComputation.createFunctionBody(computationExpression, inputMapWithTypes, resultKey)
