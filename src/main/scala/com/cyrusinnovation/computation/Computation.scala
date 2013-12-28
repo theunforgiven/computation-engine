@@ -9,6 +9,7 @@ trait Computation {
   }
 
   def compute(domain: Domain): Domain
+  def resultKey : Symbol
 }
 
 /* A computation instantiated from a Scala expression passed into the constructor as a string,
@@ -42,7 +43,7 @@ trait Computation {
  * @param securityConfiguration                   An instance of the SecurityConfiguration trait indicating what packages
  *                                                are safe to load, what classes in those packages are unsafe to load, and
  *                                                where the Java security policy file for the current security manager is.
- * @param shouldComtinueIfThisComputationApplies  Indicates whether a sequence of computations containing this
+ * @param shouldContinueIfThisComputationApplies  Indicates whether a sequence of computations containing this
  *                                                computation should stop if this rule returns a nonempty map.
  * @param shouldPropagateExceptions               If a computation fails to compile or if it throws an exception
  *                                                on application, it can throw an exception up the stack, or simply
@@ -55,9 +56,8 @@ class SimpleComputation(packageName: String,
                         imports: List[String],
                         computationExpression: String,
                         inputMapWithTypes: Map[String, Symbol],
-                        resultKey: Symbol,
+                        val resultKey: Symbol,
                         securityConfiguration: SecurityConfiguration,
-                        shouldContinueIfThisComputationApplies: Boolean = true, //TODO Fix this parameter
                         shouldPropagateExceptions: Boolean = true) extends Computation {
 
   private val fullExpression = SimpleComputation.createFunctionBody(computationExpression, inputMapWithTypes, resultKey)
@@ -74,8 +74,7 @@ class SimpleComputation(packageName: String,
     // TODO Test error handling
     try {
       val newFacts: Map[Symbol, Any] = transformationFunction(domain.facts)
-      val continue = newFacts.isEmpty || shouldContinueIfThisComputationApplies
-      Domain.combine(newFacts, domain, continue)
+      Domain.combine(newFacts, domain)
     }
     catch {
       case e: Throwable => if(shouldPropagateExceptions) throw e else {
@@ -100,6 +99,7 @@ object SimpleComputation {
       }
     }
 
+    //TODO Remove empty checks. This should be dealt with by exception handling
     val emptyChecks = inputMap.values.map((domainKey) => s"domainFacts.get($domainKey).isEmpty")
     val emptyCheckExpression = if(inputMap.keys.size > 1) emptyChecks.mkString(" || ") else emptyChecks.mkString
 

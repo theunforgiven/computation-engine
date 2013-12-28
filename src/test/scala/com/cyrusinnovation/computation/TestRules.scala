@@ -14,7 +14,6 @@ object TestRules {
                                                   Map("testValues: Map[String, Int]" -> 'testValues),
                                                   'maxTestValue,
                                                   TestSecurityConfiguration,
-                                                  shouldContinueIfThisComputationApplies = true,
                                                   shouldPropagateExceptions = true)
 
   val negationComputation = new SimpleComputation("test.computations",
@@ -26,7 +25,6 @@ object TestRules {
                                                   Map("maxTestValue: MutableMap[Symbol, Int]" -> 'maxTestValue),
                                                   'negTestValue,
                                                   TestSecurityConfiguration,
-                                                  shouldContinueIfThisComputationApplies = true,
                                                   shouldPropagateExceptions = true)
 
   def exceptionThrowingComputation(shouldPropagate: Boolean) = 
@@ -38,6 +36,5 @@ object TestRules {
                           Map("input: Map[String, Int]" -> 'maxTestValue),
                           'unused,
                           TestSecurityConfiguration,
-                          shouldContinueIfThisComputationApplies = true,
                           shouldPropagateExceptions = shouldPropagate)
 }

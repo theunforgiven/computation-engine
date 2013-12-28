@@ -32,6 +32,5 @@ class CompoundComputationTests extends FlatSpec with ShouldMatchers{
 
     sequentialComputation.compute(facts)
   }
-
     //TODO Iterative and branching computations
 }

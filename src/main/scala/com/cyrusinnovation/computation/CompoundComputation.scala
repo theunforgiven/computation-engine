@@ -14,5 +14,7 @@ trait CompoundComputation extends Computation {
   }
 }
 
-class SequentialComputation(val steps: List[Computation]) extends CompoundComputation
+class SequentialComputation(val steps: List[Computation]) extends CompoundComputation {
+  def resultKey = steps.last.resultKey
+}
 
