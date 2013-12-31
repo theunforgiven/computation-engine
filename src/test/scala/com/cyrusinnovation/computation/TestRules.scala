@@ -1,6 +1,8 @@
 package com.cyrusinnovation.computation
 
-object TestRules {
+import com.cyrusinnovation.computation.util.Log
+
+case class TestRules(noopLogger: Log) {
 
   val maxValueComputation = new SimpleComputation("test.computations",
                                                   "MaximumTestValueComputation",
@@ -14,7 +16,9 @@ object TestRules {
                                                   Map("testValues: Map[String, Int]" -> 'testValues),
                                                   'maxTestValue,
                                                   TestSecurityConfiguration,
-                                                  shouldPropagateExceptions = true)
+                                                  noopLogger,
+                                                  shouldPropagateExceptions = true
+                                                  )
 
   val negationComputation = new SimpleComputation("test.computations",
                                                   "NegationComputation",
@@ -25,6 +29,7 @@ object TestRules {
                                                   Map("maxTestValue: MutableMap[Symbol, Int]" -> 'maxTestValue),
                                                   'negTestValue,
                                                   TestSecurityConfiguration,
+                                                  noopLogger,
                                                   shouldPropagateExceptions = true)
 
   def exceptionThrowingComputation(shouldPropagate: Boolean) = 
@@ -36,5 +41,18 @@ object TestRules {
                           Map("input: Map[String, Int]" -> 'maxTestValue),
                           'unused,
                           TestSecurityConfiguration,
+                          noopLogger,
                           shouldPropagateExceptions = shouldPropagate)
+
+  def computationWithSyntaxError(logger: Log, shouldPropagate: Boolean) =
+      new SimpleComputation("test.computations",
+                            "ExceptionThrowingComputation",
+                            "",
+                            List(),
+                            "{ val var }",
+                            Map("input: Map[String, Int]" -> 'maxTestValue),
+                            'unused,
+                            TestSecurityConfiguration,
+                            logger,
+                            shouldPropagateExceptions = shouldPropagate)
 }

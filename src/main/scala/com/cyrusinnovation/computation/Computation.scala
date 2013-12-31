@@ -1,5 +1,7 @@
 package com.cyrusinnovation.computation
 
+import com.cyrusinnovation.computation.util.Log
+
 trait Computation {
 
   def compute(facts: Map[Symbol, Any]) : Map[Symbol, Any] = {
@@ -49,7 +51,6 @@ trait Computation {
  *                                                on application, it can throw an exception up the stack, or simply
  *                                                log and return the domain it was passed.
  */
-// TODO For testing - create a constructor that allows passing in a compiled object instead of a code string?
 class SimpleComputation(packageName: String,
                         name: String,
                         description: String,
@@ -58,30 +59,48 @@ class SimpleComputation(packageName: String,
                         inputMapWithTypes: Map[String, Symbol],
                         val resultKey: Symbol,
                         securityConfiguration: SecurityConfiguration,
+                        computationEngineLog: Log,
                         shouldPropagateExceptions: Boolean = true) extends Computation {
 
-  private val fullExpression = SimpleComputation.createFunctionBody(computationExpression, inputMapWithTypes, resultKey)
+  private var enabled = true
+  private var fullExpression = SimpleComputation.createFunctionBody(computationExpression, inputMapWithTypes, resultKey)
 
-  // TODO Put in try block and deactivate rule if compilation fails
   // TODO Test the safety of the sandbox
-  private val transformationFunction = EvalCode(packageName,
-                                                imports,
-                                                name,
-                                                fullExpression,
-                                                securityConfiguration).newInstance
+  private val transformationFunction: Map[Symbol, Any] => Map[Symbol, Any] =
+    try {
+      EvalCode( packageName,
+                imports,
+                name,
+                fullExpression,
+                securityConfiguration).newInstance
+    } catch {
+        case t: Throwable => {
+          computationEngineLog.error("Computation failed to compile", t)
+          enabled = false
+          if (shouldPropagateExceptions) throw t
+          else (x) => Map()
+        }
+    }
+
+  val disabledWarning = "Disabled computation called: " + packageName + "." + name
 
   def compute(domain: Domain) : Domain = {
-    // TODO Test error handling
-    try {
-      val newFacts: Map[Symbol, Any] = transformationFunction(domain.facts)
-      Domain.combine(newFacts, domain)
-    }
-    catch {
-      case e: Throwable => if(shouldPropagateExceptions) throw e else {
-        // TODO Figure out some kind of logging
-        System.err.println(e.getMessage)
-        e.printStackTrace(System.err)
-        domain
+    if(!enabled) {
+      computationEngineLog.warn(disabledWarning)
+      domain
+    } else {
+      // TODO Test error handling
+      try {
+        val newFacts: Map[Symbol, Any] = transformationFunction(domain.facts)
+        Domain.combine(newFacts, domain)
+      }
+      catch {
+        case e: Throwable => if(shouldPropagateExceptions) throw e else {
+          // TODO Figure out some kind of logging
+          System.err.println(e.getMessage)
+          e.printStackTrace(System.err)
+          domain
+        }
       }
     }
   }
@@ -90,7 +109,9 @@ class SimpleComputation(packageName: String,
 object SimpleComputation {
 
   def createFunctionBody(computationExpression: String, inputMap: Map[String, Symbol], resultKey: Symbol) = {
-    val inputMappings  = inputMap.foldLeft("") {
+    val inputMappings = if(inputMap == null) Map() else inputMap
+
+    val inputAssignments  = inputMappings.foldLeft("") {
       (soFar, keyValuePair) => {
         val valWithType = keyValuePair._1
         val domainKey = keyValuePair._2
@@ -100,16 +121,16 @@ object SimpleComputation {
     }
 
     //TODO Remove empty checks. This should be dealt with by exception handling
-    val emptyChecks = inputMap.values.map((domainKey) => s"domainFacts.get($domainKey).isEmpty")
-    val emptyCheckExpression = if(inputMap.keys.size > 1) emptyChecks.mkString(" || ") else emptyChecks.mkString
+    val emptyChecks = inputMappings.values.map((domainKey) => s"domainFacts.get($domainKey).isEmpty")
+    val emptyCheckExpression = if(inputMappings.keys.size > 1) emptyChecks.mkString(" || ") else emptyChecks.mkString
 
     s"""if($emptyCheckExpression) Map() else {
-          $inputMappings
-          ($computationExpression : Option[Any]) match {
-            case Some(value) => Map($resultKey -> value)
-            case None => Map()
-          }
-        }"""
+      |  $inputAssignments
+      |  ($computationExpression : Option[Any]) match {
+      |    case Some(value) => Map($resultKey -> value)
+      |    case None => Map()
+      |  }
+      |}""".stripMargin
   }
 }
 

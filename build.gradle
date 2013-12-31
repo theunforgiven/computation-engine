@@ -24,12 +24,17 @@ dependencies {
 
     testCompile 'junit:junit:4.11'
     testCompile 'org.scalatest:scalatest_2.10:2.0.M5b'
+    testCompile 'org.scalamock:scalamock-scalatest-support_2.10:3.0.1'
+    testCompile 'org.scalacheck:scalacheck_2.10:1.11.1'
 }
 
 repositories {
     mavenLocal()
     mavenCentral()
-    mavenRepo name: 'sonatype-releases', url: "https://oss.sonatype.org/content/repositories/releases"
+    maven {
+        name: 'sonatype-releases'
+        url: "https://oss.sonatype.org/content/repositories/releases"
+    }
 }
 
 publishToMavenLocal.dependsOn test
