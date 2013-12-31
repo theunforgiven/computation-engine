@@ -1,14 +1,19 @@
 package com.cyrusinnovation.computation
 
-import org.scalatest.FlatSpec
+import org.scalatest.{BeforeAndAfterEach, FlatSpec}
 import org.scalatest.matchers.ShouldMatchers
 import org.scalamock.scalatest.MockFactory
 import com.cyrusinnovation.computation.util.Log
 import org.scalamock.{Mock, FunctionAdapter2}
 
-class ComputationTests extends FlatSpec with ShouldMatchers with MockFactory with Mock {
-  val noopLogger = mock[Log]
-  val testRules = TestRules(noopLogger)
+class ComputationTests extends FlatSpec with ShouldMatchers with MockFactory with BeforeAndAfterEach {
+  var noOpLogger = stub[Log]
+  var testRules = TestRules(noOpLogger)
+
+  override def beforeEach {   // Must reset before each test
+    noOpLogger = stub[Log]
+    testRules = TestRules(noOpLogger)
+  }
 
   implicit def toFunctionAdapter2[T1, T2, R](f: (T1, T2) => R) = {
     new FunctionAdapter2[T1, T2, R](f)
@@ -21,21 +26,9 @@ class ComputationTests extends FlatSpec with ShouldMatchers with MockFactory wit
     newFacts('maxTestValue) should be(Map('b -> 5))
   }
 
-  "A simple computation" should "propagate exceptions when indicated" in {
-    val facts: Map[Symbol, Any] = Map('maxTestValue -> Map('unused -> 3))
-    evaluating {
-      testRules.exceptionThrowingComputation(true).compute(facts)
-    } should produce [Exception]
-  }
-
-  "A simple computation" should "not propagate exceptions otherwise" in {
-    val facts: Map[Symbol, Any] = Map('maxTestValue -> Map('unused -> 10))
-    testRules.exceptionThrowingComputation(false).compute(facts)
-  }
-
   "A simple computation" should "just log if it fails to compile and exceptions are not propagated" in {
     val logger = stub[Log]
-    testRules.computationWithSyntaxError(logger, false)
+    testRules.computationWithSyntaxError(shouldPropagate = false, logger)
 
     (logger.error(_:String, _:Throwable)).verify{   // Uses implicit conversion above
       (msg: String, t: Throwable) => {
@@ -45,11 +38,12 @@ class ComputationTests extends FlatSpec with ShouldMatchers with MockFactory wit
       }
     }
   }
+
   "A simple computation" should "log and throw an exception if it fails to compile and exceptions are propagated" in {
     val logger = stub[Log]
 
     evaluating {
-      testRules.computationWithSyntaxError(logger, true)
+      testRules.computationWithSyntaxError(shouldPropagate = true, logger)
     } should produce[com.googlecode.scalascriptengine.CompilationError]
 
     (logger.error(_:String, _:Throwable)).verify{   // Uses implicit conversion above
@@ -65,7 +59,7 @@ class ComputationTests extends FlatSpec with ShouldMatchers with MockFactory wit
     val facts: Map[Symbol, Any] = Map('maxTestValue -> Map('unused -> 10))
 
     val logger = stub[Log]
-    val computation = testRules.computationWithSyntaxError(logger, false)
+    val computation = testRules.computationWithSyntaxError(shouldPropagate = false, logger)
 
     computation.compute(facts)
     (logger.warn(_:String)).verify("Disabled computation called: test.computations.ExceptionThrowingComputation")
@@ -88,6 +82,40 @@ class ComputationTests extends FlatSpec with ShouldMatchers with MockFactory wit
     val actualOutput = SimpleComputation.createFunctionBody(expression, inputMap, outputMap)
 
     normalizeSpace(actualOutput) should be(normalizeSpace(expectedFunctionString))
+  }
+
+  "On encountering an exception during computation, a simple computation" should "log and propagate exceptions when indicated" in {
+    val facts: Map[Symbol, Any] = Map('maxTestValue -> Map('unused -> 3))
+    val logger = stub[Log]
+    val exceptionThrowingComputation: SimpleComputation = testRules.exceptionThrowingComputation(shouldPropagate = true, logger)
+
+    evaluating {
+      exceptionThrowingComputation.compute(facts)
+    } should produce [java.lang.RuntimeException]
+
+    (logger.error(_:String, _:Throwable)).verify{
+      (msg: String, t: Throwable) => {
+          msg.startsWith("Computation threw exception when processing data: ") &&
+          msg.contains(facts.toString)
+          t.getClass == classOf[java.lang.RuntimeException] &&
+          t.getMessage == "Boom"
+      }
+    }
+  }
+
+  "On encountering an exception during computation, a simple computation" should "log but not not propagate exceptions otherwise" in {
+    val facts: Map[Symbol, Any] = Map('maxTestValue -> Map('unused -> 10))
+    val logger = stub[Log]
+    testRules.exceptionThrowingComputation(shouldPropagate = false, logger).compute(facts)
+
+    (logger.error(_:String, _:Throwable)).verify{    // Uses implicit conversion above
+      (msg: String, t: Throwable) => {
+          msg.startsWith("Computation threw exception when processing data: ") &&
+          msg.contains(facts.toString)
+          t.getClass == classOf[java.lang.RuntimeException] &&
+          t.getMessage == "Boom"
+      }
+    }
   }
 
   "When creating the function body string, the computation" should "construct Scala function code with multiple values in the input map" in {

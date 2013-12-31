@@ -2,7 +2,7 @@ package com.cyrusinnovation.computation
 
 import com.cyrusinnovation.computation.util.Log
 
-case class TestRules(noopLogger: Log) {
+case class TestRules(noOpLogger: Log) {
 
   val maxValueComputation = new SimpleComputation("test.computations",
                                                   "MaximumTestValueComputation",
@@ -16,7 +16,7 @@ case class TestRules(noopLogger: Log) {
                                                   Map("testValues: Map[String, Int]" -> 'testValues),
                                                   'maxTestValue,
                                                   TestSecurityConfiguration,
-                                                  noopLogger,
+                                                  noOpLogger,
                                                   shouldPropagateExceptions = true
                                                   )
 
@@ -29,22 +29,22 @@ case class TestRules(noopLogger: Log) {
                                                   Map("maxTestValue: MutableMap[Symbol, Int]" -> 'maxTestValue),
                                                   'negTestValue,
                                                   TestSecurityConfiguration,
-                                                  noopLogger,
+                                                  noOpLogger,
                                                   shouldPropagateExceptions = true)
 
-  def exceptionThrowingComputation(shouldPropagate: Boolean) = 
+  def exceptionThrowingComputation(shouldPropagate: Boolean, logger: Log = noOpLogger) =
     new SimpleComputation("test.computations",
                           "ExceptionThrowingComputation",
                           "",
                           List(),
-                          "{ throw new Exception() }",
+                          """{ throw new RuntimeException("Boom") }""",
                           Map("input: Map[String, Int]" -> 'maxTestValue),
                           'unused,
                           TestSecurityConfiguration,
-                          noopLogger,
+                          logger,
                           shouldPropagateExceptions = shouldPropagate)
 
-  def computationWithSyntaxError(logger: Log, shouldPropagate: Boolean) =
+  def computationWithSyntaxError(shouldPropagate: Boolean, logger: Log = noOpLogger) =
       new SimpleComputation("test.computations",
                             "ExceptionThrowingComputation",
                             "",

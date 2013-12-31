@@ -82,26 +82,23 @@ class SimpleComputation(packageName: String,
         }
     }
 
-  val disabledWarning = "Disabled computation called: " + packageName + "." + name
+  val disabledWarning = s"Disabled computation called: ${packageName}.${name}"
 
   def compute(domain: Domain) : Domain = {
-    if(!enabled) {
-      computationEngineLog.warn(disabledWarning)
-      domain
-    } else {
-      // TODO Test error handling
+    if(enabled) {
       try {
         val newFacts: Map[Symbol, Any] = transformationFunction(domain.facts)
         Domain.combine(newFacts, domain)
       }
       catch {
-        case e: Throwable => if(shouldPropagateExceptions) throw e else {
-          // TODO Figure out some kind of logging
-          System.err.println(e.getMessage)
-          e.printStackTrace(System.err)
-          domain
+        case t: Throwable => {
+          computationEngineLog.error(s"Computation threw exception when processing data: ${domain.facts}", t)
+          if(shouldPropagateExceptions) throw t else domain
         }
       }
+    } else {
+      computationEngineLog.warn(disabledWarning)
+      domain
     }
   }
 }

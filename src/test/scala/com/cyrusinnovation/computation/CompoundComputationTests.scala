@@ -1,13 +1,18 @@
 package com.cyrusinnovation.computation
 
-import org.scalatest.FlatSpec
+import org.scalatest.{BeforeAndAfterEach, FlatSpec}
 import org.scalatest.matchers.ShouldMatchers
 import com.cyrusinnovation.computation.util.Log
 import org.scalamock.scalatest.MockFactory
 
-class CompoundComputationTests extends FlatSpec with ShouldMatchers with MockFactory {
-  val noopLogger = mock[Log]
-  val testRules = TestRules(noopLogger)
+class CompoundComputationTests extends FlatSpec with ShouldMatchers with MockFactory with BeforeAndAfterEach {
+  var noOpLogger = stub[Log]
+  var testRules = TestRules(noOpLogger)
+
+  override def beforeEach {   // Must reset before each test
+    noOpLogger = stub[Log]
+    testRules = TestRules(noOpLogger)
+  }
   
   "A sequential computation" should "chain multiple computations together" in {
 
@@ -19,22 +24,15 @@ class CompoundComputationTests extends FlatSpec with ShouldMatchers with MockFac
     newFacts('negTestValue) should be(-5)
   }
 
-  "A sequential computation" should "propagate exceptions when specified" in {
+  "A sequential computation" should "propagate exceptions thrown by inner computation" in {
     val facts: Map[Symbol, Any] = Map('testValues -> Map('a -> 2, 'b -> 5))
     val sequentialComputation = new SequentialComputation(List(testRules.maxValueComputation,
-                                                               testRules.exceptionThrowingComputation(true)))
+                                                               testRules.exceptionThrowingComputation(shouldPropagate = true)))
 
     evaluating {
       sequentialComputation.compute(facts)
     } should produce [Exception]
   }
 
-  "A sequential computation" should "not propagate exceptions otherwise" in {
-    val facts: Map[Symbol, Any] = Map('testValues -> Map('a -> 2, 'b -> 5))
-    val sequentialComputation = new SequentialComputation(List(testRules.maxValueComputation,
-                                                               testRules.exceptionThrowingComputation(false)))
-
-    sequentialComputation.compute(facts)
-  }
-    //TODO Iterative and branching computations
+  //TODO Iterative computations
 }
