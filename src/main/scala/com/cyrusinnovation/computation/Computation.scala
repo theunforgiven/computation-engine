@@ -88,7 +88,9 @@ class SimpleComputation(packageName: String,
   def compute(domain: Domain) : Domain = {
     if(enabled) {
       try {
+        computationEngineLog.debug(s"${packageName}.${name}: Input: ${domain.facts}")
         val newFacts: Map[Symbol, Any] = transformationFunction(domain.facts)
+        computationEngineLog.debug(s"${packageName}.${name}: Results: ${newFacts}")
         Domain.combine(newFacts, domain)
       }
       catch {

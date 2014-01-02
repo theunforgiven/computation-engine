@@ -7,7 +7,6 @@ trait CompoundComputation extends Computation {
     steps.foldLeft(domain) {
       (domainSoFar: Domain, step: Computation) => {
         val newDomain = step.compute(domainSoFar)
-        // TODO Log when not continuing
         if (!newDomain.continue) return newDomain else newDomain
       }
     }
