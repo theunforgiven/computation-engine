@@ -125,7 +125,16 @@ class ComputationTests extends FlatSpec with ShouldMatchers with MockFactory {
     } should produce[java.security.AccessControlException]
   }
 
-  // TODO Test permissioning of Java policy file
+  "A simple computation" should "not be able to perform actions restricted by the Java security policy" in {
+    val logger = stub[Log]
+    val testRules = TestRules(logger)
+
+    val facts: Map[Symbol, Any] = Map('input -> Map('unused -> 10))
+
+    evaluating {
+      testRules.javaPolicyViolatingComputation.compute(facts)
+    } should produce[java.security.AccessControlException]
+  }
 
   "When creating the function body string, the computation" should "construct Scala function code from the given expression" in {
     val expression = "Some(a)"

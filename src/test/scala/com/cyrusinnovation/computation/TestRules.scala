@@ -88,4 +88,15 @@ case class TestRules(logger: Log) {
                                                             TestSecurityConfiguration,
                                                             logger,
                                                             shouldPropagateExceptions = true)
+
+  lazy val javaPolicyViolatingComputation = new SimpleComputation("test.computations",
+                                                                  "NoResultsComputation",
+                                                                  "Return no results",
+                                                                  List(),
+                                                                  "{  None }",
+                                                                  Map("testValues: Map[String, Int]" -> 'testValues),
+                                                                  'unused,
+                                                                  RestrictiveTestSecurityConfiguration,
+                                                                  logger,
+                                                                  shouldPropagateExceptions = true)
 }
