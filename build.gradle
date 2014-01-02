@@ -32,8 +32,8 @@ repositories {
     mavenLocal()
     mavenCentral()
     maven {
-        name: 'sonatype-releases'
-        url: "https://oss.sonatype.org/content/repositories/releases"
+        name = 'sonatype-releases'
+        url = "https://oss.sonatype.org/content/repositories/releases"
     }
 }
 
