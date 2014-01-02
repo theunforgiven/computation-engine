@@ -45,8 +45,9 @@ trait Computation {
  * @param securityConfiguration                   An instance of the SecurityConfiguration trait indicating what packages
  *                                                are safe to load, what classes in those packages are unsafe to load, and
  *                                                where the Java security policy file for the current security manager is.
- * @param shouldContinueIfThisComputationApplies  Indicates whether a sequence of computations containing this
- *                                                computation should stop if this rule returns a nonempty map.
+ * @param computationEngineLog                    An instance of `com.cyrusinnovation.computation.util.Log` -- a convenience
+ *                                                case class `com.cyrusinnovation.computation.util.ComputationEngineLog`
+ *                                                extends this trait and wraps an slf4j log passed to its constructor.
  * @param shouldPropagateExceptions               If a computation fails to compile or if it throws an exception
  *                                                on application, it can throw an exception up the stack, or simply
  *                                                log and return the domain it was passed.
@@ -82,7 +83,7 @@ class SimpleComputation(packageName: String,
         }
     }
 
-  val disabledWarning = s"Disabled computation called: ${packageName}.${name}"
+  val disabledComputationWarning = s"Disabled computation called: ${packageName}.${name}"
 
   def compute(domain: Domain) : Domain = {
     if(enabled) {
@@ -97,7 +98,7 @@ class SimpleComputation(packageName: String,
         }
       }
     } else {
-      computationEngineLog.warn(disabledWarning)
+      computationEngineLog.warn(disabledComputationWarning)
       domain
     }
   }
@@ -117,16 +118,10 @@ object SimpleComputation {
       }
     }
 
-    //TODO Remove empty checks. This should be dealt with by exception handling
-    val emptyChecks = inputMappings.values.map((domainKey) => s"domainFacts.get($domainKey).isEmpty")
-    val emptyCheckExpression = if(inputMappings.keys.size > 1) emptyChecks.mkString(" || ") else emptyChecks.mkString
-
-    s"""if($emptyCheckExpression) Map() else {
-      |  $inputAssignments
-      |  ($computationExpression : Option[Any]) match {
-      |    case Some(value) => Map($resultKey -> value)
-      |    case None => Map()
-      |  }
+    s"""$inputAssignments
+      | ($computationExpression : Option[Any]) match {
+      |   case Some(value) => Map($resultKey -> value)
+      |   case None => Map()
       |}""".stripMargin
   }
 }

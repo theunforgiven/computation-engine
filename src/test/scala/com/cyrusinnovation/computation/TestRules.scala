@@ -2,7 +2,7 @@ package com.cyrusinnovation.computation
 
 import com.cyrusinnovation.computation.util.Log
 
-case class TestRules(noOpLogger: Log) {
+case class TestRules(logger: Log) {
 
   val maxValueComputation = new SimpleComputation("test.computations",
                                                   "MaximumTestValueComputation",
@@ -16,7 +16,7 @@ case class TestRules(noOpLogger: Log) {
                                                   Map("testValues: Map[String, Int]" -> 'testValues),
                                                   'maxTestValue,
                                                   TestSecurityConfiguration,
-                                                  noOpLogger,
+                                                  logger,
                                                   shouldPropagateExceptions = true
                                                   )
 
@@ -29,10 +29,21 @@ case class TestRules(noOpLogger: Log) {
                                                   Map("maxTestValue: MutableMap[Symbol, Int]" -> 'maxTestValue),
                                                   'negTestValue,
                                                   TestSecurityConfiguration,
-                                                  noOpLogger,
+                                                  logger,
                                                   shouldPropagateExceptions = true)
 
-  def exceptionThrowingComputation(shouldPropagate: Boolean, logger: Log = noOpLogger) =
+  val noResultsComputation = new SimpleComputation( "test.computations",
+                                                    "NoResultsComputation",
+                                                    "Return no results",
+                                                    List(),
+                                                    "{  None }",
+                                                    Map("testValues: Map[String, Int]" -> 'testValues),
+                                                    'unused,
+                                                    TestSecurityConfiguration,
+                                                    logger,
+                                                    shouldPropagateExceptions = true)
+
+  def exceptionThrowingComputation(shouldPropagate: Boolean) =
     new SimpleComputation("test.computations",
                           "ExceptionThrowingComputation",
                           "",
@@ -44,7 +55,7 @@ case class TestRules(noOpLogger: Log) {
                           logger,
                           shouldPropagateExceptions = shouldPropagate)
 
-  def computationWithSyntaxError(shouldPropagate: Boolean, logger: Log = noOpLogger) =
+  def computationWithSyntaxError(shouldPropagate: Boolean) =
       new SimpleComputation("test.computations",
                             "ExceptionThrowingComputation",
                             "",
