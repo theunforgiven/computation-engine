@@ -103,6 +103,30 @@ class ComputationTests extends FlatSpec with ShouldMatchers with MockFactory {
     }
   }
 
+  "A simple computation" should "not be able to use classes from packages that aren't whitelisted in the security configuration" in {
+    val logger = stub[Log]
+    val testRules = TestRules(logger)
+
+    val facts: Map[Symbol, Any] = Map('input -> Map('unused -> 10))
+
+    evaluating {
+      testRules.whitelistViolatingComputation.compute(facts)
+    } should produce[java.security.AccessControlException]
+  }
+
+  "A simple computation" should "not be able to use classes that are blacklisted in the security configuration" in {
+    val logger = stub[Log]
+    val testRules = TestRules(logger)
+
+    val facts: Map[Symbol, Any] = Map('input -> Map('unused -> 10))
+
+    evaluating {
+      testRules.blacklistViolatingComputation.compute(facts)
+    } should produce[java.security.AccessControlException]
+  }
+
+  // TODO Test permissioning of Java policy file
+
   "When creating the function body string, the computation" should "construct Scala function code from the given expression" in {
     val expression = "Some(a)"
     val inputMap = Map("a: Int" -> 'foo)

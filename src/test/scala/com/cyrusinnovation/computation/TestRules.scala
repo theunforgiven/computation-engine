@@ -66,4 +66,26 @@ case class TestRules(logger: Log) {
                             TestSecurityConfiguration,
                             logger,
                             shouldPropagateExceptions = shouldPropagate)
+
+  val whitelistViolatingComputation = new SimpleComputation("test.computations",
+                                                            "SecurityWhitelistViolatingComputation",
+                                                            "Use a class from a package that security configuration does not allow",
+                                                            List("java.io.File"),
+                                                            """{  Some(new File(".")) }""",
+                                                            Map("input: Map[Symbol, Int]" -> 'input),
+                                                            'unused,
+                                                            TestSecurityConfiguration,
+                                                            logger,
+                                                            shouldPropagateExceptions = true)
+
+  val blacklistViolatingComputation = new SimpleComputation("test.computations",
+                                                            "SecurityBlacklistViolatingComputation",
+                                                            "Use a class that security configuration blacklists",
+                                                            List("java.util.Timer"),
+                                                            "{  Some(new Timer()) }",
+                                                            Map("input: Map[Symbol, Int]" -> 'input),
+                                                            'unused,
+                                                            TestSecurityConfiguration,
+                                                            logger,
+                                                            shouldPropagateExceptions = true)
 }

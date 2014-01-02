@@ -66,7 +66,6 @@ class SimpleComputation(packageName: String,
   private var enabled = true
   private var fullExpression = SimpleComputation.createFunctionBody(computationExpression, inputMapWithTypes, resultKey)
 
-  // TODO Test the safety of the sandbox
   private val transformationFunction: Map[Symbol, Any] => Map[Symbol, Any] =
     try {
       EvalCode( packageName,
