@@ -56,4 +56,69 @@ sealed case class AbortIfHasResults(inner: Computation) extends SequenceAborting
   }
 }
 
-//
+// TODO allow nesting - what if the domain returned by the inner computation returns a continue of false?
+// TODO test exception handling on compilation
+// TODO test exception handling on application
+/* Wrap an inner computation that is part of a series of computations, and abort that series if the
+ * inner computation's result satisfies a given condition; i.e. if the facts in the domain returned
+ * by the computation satisfy the predicate function passed into the constructor as a string.
+ *
+ * If this computation fails to compile, it will always abort.
+ *
+ * @constructor     Instantiate a SequenceAbortingComputation that stops the sequence if the wrapped
+ *                  computation satisfies a given condition.
+ *
+ * @param condition A string that is valid Scala source code for a function of type
+ *                  `Map[Symbol, Any] => Boolean`
+ *
+ * @param inner     The wrapped computation whose returned domain map should contain a value for
+ *                  the resultKey, which result satisfies the condition.
+ */
+import com.cyrusinnovation.computation.util.Log
+sealed case class AbortIf(packageName: String,
+                          name: String,
+                          description: String,
+                          imports: List[String],
+                          predicateExpression: String,
+                          inputMapWithTypes: Map[String, Symbol],
+                          inner: Computation,
+                          securityConfiguration: SecurityConfiguration,
+                          computationEngineLog: Log,
+                          shouldPropagateExceptions: Boolean = true) extends SequenceAbortingComputation {
+
+private var enabled = true
+private var fullPredicateExpression = AbortIf.createFunctionBody(predicateExpression, inputMapWithTypes, resultKey)
+
+private val predicateFunction: Map[Symbol, Any] => Boolean =
+    try {
+      EvalPredicateFunctionString(packageName,
+                                  imports,
+                                  name,
+                                  fullPredicateExpression,
+                                  securityConfiguration).newInstance
+    } catch {
+        case t: Throwable => {
+          computationEngineLog.error("Computation failed to compile", t)
+          enabled = false
+          if (shouldPropagateExceptions) throw t
+          else (x) => false
+        }
+    }
+
+  //TODO Log warning and skip computation if compilation fails
+  // val disabledComputationWarning = s"Disabled computation called: ${packageName}.${name}"
+
+  def shouldAbort(domain: Domain): Boolean = {
+    predicateFunction(domain.facts)
+  }
+}
+
+object AbortIf {
+  def createFunctionBody(predicateExpression: String, inputMap: Map[String, Symbol], resultKey: Symbol) = {
+
+    val inputAssignments  = Computation.createInputMappings(inputMap)
+
+    s"""$inputAssignments
+      | $predicateExpression""".stripMargin
+  }
+}

@@ -99,4 +99,19 @@ case class TestRules(logger: Log) {
                                                                   RestrictiveTestSecurityConfiguration,
                                                                   logger,
                                                                   shouldPropagateExceptions = true)
+
+  def iterativeComputation(inner: Computation) = new IterativeComputation(inner,
+                                                                          ('testValues -> 'testValue),
+                                                                          ('negTestValue -> 'negatives))
+
+  val simpleNegationComputation = new SimpleComputation("test.computations",
+                                                        "NegationComputation",
+                                                        "Take the negative of the input value",
+                                                        List(),
+                                                        """{  Some(- testValue) }""",
+                                                        Map("testValue: Int" -> 'testValue),
+                                                        'negTestValue,
+                                                        TestSecurityConfiguration,
+                                                        logger,
+                                                        shouldPropagateExceptions = true)
 }

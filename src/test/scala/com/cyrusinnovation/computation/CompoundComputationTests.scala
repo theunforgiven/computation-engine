@@ -28,5 +28,39 @@ class CompoundComputationTests extends FlatSpec with ShouldMatchers with MockFac
     } should produce [java.lang.RuntimeException]
   }
 
-  //TODO Iterative computations
+  "An iterative computation" should "perform an inner computation once for each element in a specified sequence" in {
+    val testRules = TestRules(stub[Log])    //Can't stub inside a BeforeEach
+    val facts: Map[Symbol, Any] = Map('testValues -> List(2, 5, 7, 9))
+
+    val iterativeComputation = testRules.iterativeComputation(
+      testRules.simpleNegationComputation
+    )
+    val newFacts = iterativeComputation.compute(facts)
+
+    newFacts('negatives) should be(List(-2, -5, -7, -9))
+  }
+
+  "An iterative computation" should "be able to be aborted given an arbitrary condition" in {
+    val stubLogger = stub[Log]
+    val testRules = TestRules(stubLogger)
+    val facts: Map[Symbol, Any] = Map('testValues -> List(2, 5, 7, 9))
+    val domain = Domain(facts, true)
+
+    val iterativeComputation = testRules.iterativeComputation(
+      AbortIf("test.computations",
+              "AbortIfContainsMapWithDesiredEntry",
+              "See if the value is -5",
+              List(),
+              "x == -5",
+              Map("x: Int" -> testRules.simpleNegationComputation.resultKey),
+              testRules.simpleNegationComputation,
+              TestSecurityConfiguration,
+              stubLogger,
+              shouldPropagateExceptions = true)
+    )
+    val newDomain = iterativeComputation.compute(domain)
+
+    newDomain.facts('negatives) should be(List(-2, -5))
+    newDomain.continue should be(true)
+  }
 }

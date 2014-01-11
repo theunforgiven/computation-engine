@@ -23,28 +23,45 @@ trait EvalCode[T]
 	def newInstance: T
 }
 
-object EvalCode {
+object EvalSimpleComputationString {
 	def apply(packageName: String,
             imports: List[String],
             computationName: String,
             body: String,
             securityConfig: SecurityConfiguration): EvalCode[Map[Symbol, Any] => Map[Symbol, Any]] = {
 
-    new EvalCodeImpl(packageName,
-                     imports,
-                     computationName,
-                     body,
-                     securityConfig)
+    new EvalCodeImpl[Map[Symbol, Any]](packageName,
+                                       imports,
+                                       computationName,
+                                       body,
+                                       "Map[Symbol, Any]",
+                                       securityConfig)
   }
 }
 
-private class EvalCodeImpl(packageName: String,
-                           imports: List[String],
-                           computationName: String,
-                           body: String,
-                           securityConfig:  SecurityConfiguration
-                           )
-                           extends EvalCode[Map[Symbol, Any] => Map[Symbol, Any]] {
+object EvalPredicateFunctionString {
+	def apply(packageName: String,
+            imports: List[String],
+            computationName: String,
+            body: String,
+            securityConfig: SecurityConfiguration): EvalCode[Map[Symbol, Any] => Boolean] = {
+
+    new EvalCodeImpl[Boolean](packageName,
+                              imports,
+                              computationName,
+                              body,
+                              "Boolean",
+                              securityConfig)
+  }
+}
+private class EvalCodeImpl[ResultType](packageName: String,
+                                       imports: List[String],
+                                       computationName: String,
+                                       body: String,
+                                       resultTypeName: String,
+                                       securityConfig:  SecurityConfiguration
+                                       )
+                                       extends EvalCode[Map[Symbol, Any] => ResultType] {
 
   private val srcFolder = new File(System.getProperty("java.io.tmpdir"), UUID.randomUUID.toString)
 	if (!srcFolder.mkdir) throw new IllegalStateException("can't create temp folder %s".format(srcFolder))
@@ -67,8 +84,8 @@ private class EvalCodeImpl(packageName: String,
 	private val templateTop = """
     package %s
     %s
-		class %s extends %s[Map[Symbol, Any], Map[Symbol, Any]] {
-			override def apply(domainFacts: Map[Symbol, Any]): Map[Symbol, Any] = {
+		class %s extends %s[Map[Symbol, Any], %s] {
+			override def apply(domainFacts: Map[Symbol, Any]): %s = {
 			  %s
 			}
 		}""".format(packageName,
@@ -77,8 +94,9 @@ private class EvalCodeImpl(packageName: String,
                 // class name
                 computationName,
                 // superclass name
-                classOf[Map[Symbol, Any] => Map[Symbol, Any]].getName,
-                // body
+                classOf[Map[Symbol, Any] => ResultType].getName,
+                resultTypeName,
+                resultTypeName,
                 body
                 )
 
@@ -93,7 +111,7 @@ private class EvalCodeImpl(packageName: String,
   private val sse = ScalaScriptEngine.onChangeRefresh(config, 0)
   sse.refresh
 
-	val generatedClass = sse.get[Map[Symbol, Any] => Map[Symbol, Any]](s"$packageName.$computationName")
+	val generatedClass = sse.get[Map[Symbol, Any] => ResultType](s"$packageName.$computationName")
 
-	def newInstance: Map[Symbol, Any] => Map[Symbol, Any] = sseSM.secured { generatedClass.newInstance() }
+	def newInstance: Map[Symbol, Any] => ResultType = sseSM.secured { generatedClass.newInstance() }
 }

@@ -14,6 +14,21 @@ trait Computation {
   def resultKey : Symbol
 }
 
+object Computation {
+  def createInputMappings(inputMap: Map[String, Symbol]) : String = {
+    val inputMappings = if (inputMap == null) Map() else inputMap
+
+    inputMappings.foldLeft("") {
+      (soFar, keyValuePair) => {
+        val valWithType = keyValuePair._1
+        val domainKey = keyValuePair._2
+        val theType = valWithType.split( """:\s*""").last
+        soFar + s"""val $valWithType = domainFacts.get($domainKey).get.asInstanceOf[$theType]\n"""
+      }
+    }
+  }
+}
+
 /* A computation instantiated from a Scala expression passed into the constructor as a string,
  * along with various additional configurations (see constructor params). When the computation's `compute`
  * method is called, the computation will execute against an arbitrary Scala map (a `Map[Any, Any]`)
@@ -32,9 +47,9 @@ trait Computation {
  * @param imports                                 A list of strings, each of which is a fully qualified class name or
  *                                                otherwise valid Scala identifier/expression that is supplied to an import
  *                                                statement (not including the word "import").
- * @param computationExpression                   A string that is a valid Scala expression, inside curly braces,
- *                                                containing free variables which will be bound by the keys in the input
- *                                                and output maps.
+ * @param computationExpression                   A string that is source code for a valid Scala expression, inside curly
+ *                                                braces, containing free variables which will be bound by the keys in the
+ *                                                input and output maps.
  * @param inputMapWithTypes                       A map whose keys are the free variables in the transformationExpression,
  *                                                with their types, separated by a colon as in a Scala type annotation
  *                                                (space allowed). The values of the map are the keys that will be applied
@@ -68,7 +83,7 @@ class SimpleComputation(packageName: String,
 
   private val transformationFunction: Map[Symbol, Any] => Map[Symbol, Any] =
     try {
-      EvalCode( packageName,
+      EvalSimpleComputationString( packageName,
                 imports,
                 name,
                 fullExpression,
@@ -108,17 +123,10 @@ class SimpleComputation(packageName: String,
 object SimpleComputation {
 
   def createFunctionBody(computationExpression: String, inputMap: Map[String, Symbol], resultKey: Symbol) = {
-    val inputMappings = if(inputMap == null) Map() else inputMap
 
-    val inputAssignments  = inputMappings.foldLeft("") {
-      (soFar, keyValuePair) => {
-        val valWithType = keyValuePair._1
-        val domainKey = keyValuePair._2
-        val theType = valWithType.split(""":\s*""").last
-        soFar + s"""val $valWithType = domainFacts.get($domainKey).get.asInstanceOf[$theType]\n"""
-      }
-    }
+    val inputAssignments  = Computation.createInputMappings(inputMap)
 
+    //TODO wrap expression in curly braces so it doesn't have to be passed in that way.
     s"""$inputAssignments
       | ($computationExpression : Option[Any]) match {
       |   case Some(value) => Map($resultKey -> value)
