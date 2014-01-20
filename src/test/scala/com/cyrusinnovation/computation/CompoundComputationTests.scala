@@ -21,7 +21,7 @@ class CompoundComputationTests extends FlatSpec with ShouldMatchers with MockFac
     val testRules = TestRules(stub[Log])
     val facts: Map[Symbol, Any] = Map('testValues -> Map('a -> 2, 'b -> 5))
     val sequentialComputation = new SequentialComputation(List(testRules.maxValueComputation,
-                                                               testRules.exceptionThrowingComputation(shouldPropagate = true)))
+                                                               testRules.exceptionThrowingSimpleComputation(shouldPropagate = true)))
 
     evaluating {
       sequentialComputation.compute(facts)

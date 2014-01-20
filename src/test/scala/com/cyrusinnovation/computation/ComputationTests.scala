@@ -23,7 +23,7 @@ class ComputationTests extends FlatSpec with ShouldMatchers with MockFactory {
     val logger = stub[Log]
     val testRules = TestRules(logger)
 
-    testRules.computationWithSyntaxError(shouldPropagate = false)
+    testRules.simpleComputationWithSyntaxError(shouldPropagate = false)
 
     (logger.error(_:String, _:Throwable)).verify{   // Uses implicit conversion above
       (msg: String, t: Throwable) => {
@@ -39,7 +39,7 @@ class ComputationTests extends FlatSpec with ShouldMatchers with MockFactory {
     val testRules = TestRules(logger)
 
     evaluating {
-      testRules.computationWithSyntaxError(shouldPropagate = true)
+      testRules.simpleComputationWithSyntaxError(shouldPropagate = true)
     } should produce[com.googlecode.scalascriptengine.CompilationError]
 
     (logger.error(_:String, _:Throwable)).verify{   // Uses implicit conversion above
@@ -57,7 +57,7 @@ class ComputationTests extends FlatSpec with ShouldMatchers with MockFactory {
 
     val facts: Map[Symbol, Any] = Map('maxTestValue -> Map('unused -> 10))
 
-    val computation = testRules.computationWithSyntaxError(shouldPropagate = false)
+    val computation = testRules.simpleComputationWithSyntaxError(shouldPropagate = false)
 
     computation.compute(facts)
     (logger.warn(_:String)).verify("Disabled computation called: test.computations.ExceptionThrowingComputation")
@@ -69,7 +69,7 @@ class ComputationTests extends FlatSpec with ShouldMatchers with MockFactory {
 
     val facts: Map[Symbol, Any] = Map('maxTestValue -> Map('unused -> 3))
 
-    val exceptionThrowingComputation: SimpleComputation = testRules.exceptionThrowingComputation(shouldPropagate = true)
+    val exceptionThrowingComputation: SimpleComputation = testRules.exceptionThrowingSimpleComputation(shouldPropagate = true)
 
     evaluating {
       exceptionThrowingComputation.compute(facts)
@@ -91,7 +91,7 @@ class ComputationTests extends FlatSpec with ShouldMatchers with MockFactory {
 
     val facts: Map[Symbol, Any] = Map('maxTestValue -> Map('unused -> 10))
 
-    testRules.exceptionThrowingComputation(shouldPropagate = false).compute(facts)
+    testRules.exceptionThrowingSimpleComputation(shouldPropagate = false).compute(facts)
 
     (logger.error(_:String, _:Throwable)).verify{    // Uses implicit conversion above
       (msg: String, t: Throwable) => {

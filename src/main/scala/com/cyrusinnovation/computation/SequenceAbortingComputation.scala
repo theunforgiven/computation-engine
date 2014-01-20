@@ -56,25 +56,50 @@ sealed case class AbortIfHasResults(inner: Computation) extends SequenceAborting
   }
 }
 
-// TODO allow nesting - what if the domain returned by the inner computation returns a continue of false?
-// TODO test exception handling on compilation
-// TODO test exception handling on application
 /* Wrap an inner computation that is part of a series of computations, and abort that series if the
  * inner computation's result satisfies a given condition; i.e. if the facts in the domain returned
- * by the computation satisfy the predicate function passed into the constructor as a string.
+ * by the computation satisfy the predicate function passed into the constructor as a string. (A
+ * series of computations can be either a SequentialComputation or an IterativeComputation.)
  *
- * If this computation fails to compile, it will always abort.
+ * If this computation fails to compile or throws an exception during computation, it will always abort
+ * the inner series of computations, whether or not exceptions are propagated.
  *
  * @constructor     Instantiate a SequenceAbortingComputation that stops the sequence if the wrapped
- *                  computation satisfies a given condition.
+ *                  computation satisfies a given condition. Compilation of the predicate expression
+ *                  occurs in the constructor of the computation.
  *
- * @param condition A string that is valid Scala source code for a function of type
- *                  `Map[Symbol, Any] => Boolean`
- *
- * @param inner     The wrapped computation whose returned domain map should contain a value for
- *                  the resultKey, which result satisfies the condition.
+ * @param packageName                             A java package name for the computation, used to hinder naming collisions.
+ *                                                This package will be used as the package for the class compiled from the
+ *                                                computation string.
+ * @param name                                    A name for the computation. This should follow Java camel case style
+ *                                                and contain no spaces, since a class is going to be compiled from it.
+ * @param description                             Free text describing the rule.
+ * @param imports                                 A list of strings, each of which is a fully qualified class name or
+ *                                                otherwise valid Scala identifier/expression that is supplied to an import
+ *                                                statement (not including the word "import").
+ * @param predicateExpression                     A string that is valid Scala source code for an expression returning a
+ *                                                Boolean, containing free variables which will be bound by the keys in the
+ *                                                input map.
+ * @param inputMapWithTypes                       A map whose keys are the free variables in the transformationExpression,
+ *                                                with their types, separated by a colon as in a Scala type annotation
+ *                                                (space allowed). The values of the map are the keys that will be applied
+ *                                                to the incoming domain of facts in order to select the values with which
+ *                                                to bind the variables.
+ * @param inner                                   The wrapped computation whose returned domain map should contain values
+ *                                                that satisfy the predicate expression.
+ * @param securityConfiguration                   An instance of the SecurityConfiguration trait indicating what packages
+ *                                                are safe to load, what classes in those packages are unsafe to load, and
+ *                                                where the Java security policy file for the current security manager is.
+ * @param computationEngineLog                    An instance of `com.cyrusinnovation.computation.util.Log`. A convenience
+ *                                                case class `com.cyrusinnovation.computation.util.ComputationEngineLog`
+ *                                                extends this trait and wraps an slf4j log passed to its constructor.
+ * @param shouldPropagateExceptions               If a computation fails to compile or if it throws an exception
+ *                                                on application, it can throw an exception up the stack, or simply
+ *                                                log and return the domain it was passed.
  */
 import com.cyrusinnovation.computation.util.Log
+// TODO allow nesting - what if the domain returned by the inner computation returns a continue of false?
+// TODO test exception handling on application
 sealed case class AbortIf(packageName: String,
                           name: String,
                           description: String,
@@ -101,15 +126,31 @@ private val predicateFunction: Map[Symbol, Any] => Boolean =
           computationEngineLog.error("Computation failed to compile", t)
           enabled = false
           if (shouldPropagateExceptions) throw t
-          else (x) => false
+          else (x) => true
         }
     }
 
-  //TODO Log warning and skip computation if compilation fails
-  // val disabledComputationWarning = s"Disabled computation called: ${packageName}.${name}"
+  val disabledComputationWarning = s"Defective computation called: ${packageName}.${name}"
+
+  override def compute(domain: Domain): Domain = {
+    if(enabled) {
+      try {
+        super.compute(domain)
+      }
+      catch {
+        case t: Throwable => {
+          computationEngineLog.error(s"AbortIf threw exception when processing data: ${domain.facts}", t)
+          if(shouldPropagateExceptions) throw t else domain
+        }
+      }
+    } else {
+      computationEngineLog.warn(disabledComputationWarning)
+      new Domain(domain.facts, false)
+    }
+  }
 
   def shouldAbort(domain: Domain): Boolean = {
-    predicateFunction(domain.facts)
+      predicateFunction(domain.facts)
   }
 }
 

@@ -43,7 +43,7 @@ case class TestRules(logger: Log) {
                                                     logger,
                                                     shouldPropagateExceptions = true)
 
-  def exceptionThrowingComputation(shouldPropagate: Boolean) =
+  def exceptionThrowingSimpleComputation(shouldPropagate: Boolean) =
     new SimpleComputation("test.computations",
                           "ExceptionThrowingComputation",
                           "",
@@ -55,7 +55,7 @@ case class TestRules(logger: Log) {
                           logger,
                           shouldPropagateExceptions = shouldPropagate)
 
-  def computationWithSyntaxError(shouldPropagate: Boolean) =
+  def simpleComputationWithSyntaxError(shouldPropagate: Boolean) =
       new SimpleComputation("test.computations",
                             "ExceptionThrowingComputation",
                             "",
@@ -114,4 +114,28 @@ case class TestRules(logger: Log) {
                                                         TestSecurityConfiguration,
                                                         logger,
                                                         shouldPropagateExceptions = true)
+
+  def abortIfComputationWithSyntaxError(shouldPropagate: Boolean) =
+      AbortIf("test.computations",
+              "AbortIfWithSyntaxError",
+              "",
+              List(),
+              "{ val var }",
+              Map("input: Map[String, Int]" -> 'maxTestValue),
+              simpleNegationComputation,
+              TestSecurityConfiguration,
+              logger,
+              shouldPropagateExceptions = shouldPropagate)
+
+  def exceptionThrowingAbortIf(shouldPropagate: Boolean) =
+    AbortIf("test.computations",
+             "ExceptionThrowingAbortIf",
+             "",
+             List("scala.collection.mutable.{Map => MutableMap}"),
+             """throw new RuntimeException("Boom")""",
+             Map("x: MutableMap[Symbol, Int]" -> maxValueComputation.resultKey),
+             maxValueComputation,
+             TestSecurityConfiguration,
+             logger,
+             shouldPropagateExceptions = shouldPropagate)
 }

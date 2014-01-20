@@ -60,7 +60,7 @@ object Computation {
  * @param securityConfiguration                   An instance of the SecurityConfiguration trait indicating what packages
  *                                                are safe to load, what classes in those packages are unsafe to load, and
  *                                                where the Java security policy file for the current security manager is.
- * @param computationEngineLog                    An instance of `com.cyrusinnovation.computation.util.Log` -- a convenience
+ * @param computationEngineLog                    An instance of `com.cyrusinnovation.computation.util.Log`. A convenience
  *                                                case class `com.cyrusinnovation.computation.util.ComputationEngineLog`
  *                                                extends this trait and wraps an slf4j log passed to its constructor.
  * @param shouldPropagateExceptions               If a computation fails to compile or if it throws an exception
