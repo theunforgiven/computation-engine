@@ -7,6 +7,9 @@ import com.googlecode.scalascriptengine._
 import scala.Symbol
 import java.security.Policy
 import com.googlecode.scalascriptengine.Config
+import scala.Some
+import com.googlecode.scalascriptengine.SourceFile
+import com.googlecode.scalascriptengine.SourcePath
 
 /**
  * Based on code by kostantinos.kougios for ScalaScriptEngine, tailored for this particular application
@@ -55,6 +58,8 @@ object EvalPredicateFunctionString {
                               securityConfig)
   }
 }
+
+// TODO Document configuration settings - script.classes, script.use.cached.classes
 private class EvalCodeImpl[ResultType](packageName: String,
                                        imports: List[String],
                                        computationName: String,
@@ -68,15 +73,16 @@ private class EvalCodeImpl[ResultType](packageName: String,
   private val classesDir = setTargetDirectory()
   private val config = createConfig(sourceDirectory, classesDir, securityConfig)
   private val sseSM = setupJavaSecurityManager()
-  private val sse = ScalaScriptEngine.withoutRefreshPolicy(config, ScalaScriptEngine.currentClassPath)
 
-  useCachedClasses match {
-    case Some("t") | Some("y") => ()
+  private val sse = useCachedClasses match {
+    case Some("t") | Some("y") => createNonCompilingScalaScriptEngine(config)
     case _ => {
       writeSourceFile(packageName, imports, computationName, body, resultTypeName, sourceDirectory)
-      sse.refresh
+      ScalaScriptEngine.withoutRefreshPolicy(config, ScalaScriptEngine.currentClassPath)
     }
   }
+
+  sse.refresh
 
   val generatedClass = sse.get[Map[Symbol, Any] => ResultType](s"$packageName.$computationName")
 
@@ -89,6 +95,7 @@ private class EvalCodeImpl[ResultType](packageName: String,
   }
 
   private def setTargetDirectory() : File = {
+    //TODO allow target directory to be set using system property. This needs to be a URI, not just a simple path.
 //    Option(System.getProperty("script.classes")) match {
 //
 //    }
@@ -119,6 +126,15 @@ private class EvalCodeImpl[ResultType](packageName: String,
     val sseSM = new SSESecurityManager(new SecurityManager)
     System.setSecurityManager(sseSM)
     sseSM
+  }
+
+  def createNonCompilingScalaScriptEngine(configuration: Config) : ScalaScriptEngine = {
+    new ScalaScriptEngine(configuration) {
+      val overriddenCodeVersion = CodeVersionForNonCompilingScriptEngine(createClassLoader)
+      override def get[T](className: String): Class[T] = {
+        overriddenCodeVersion.get(className)
+      }
+    }
   }
 
   def useCachedClasses: Option[String] = {
@@ -159,4 +175,14 @@ private class EvalCodeImpl[ResultType](packageName: String,
       src.close()
     }
   }
+}
+
+case class CodeVersionForNonCompilingScriptEngine(classloader: ScalaClassLoader) extends CodeVersion {
+  def version: Int = 1
+  def classLoader: ScalaClassLoader = classloader
+  def files: List[SourceFile] = List()
+  def sourceFiles: Map[File, SourceFile] = Map()
+  def get[T](className: String): Class[T] = classLoader.get(className)
+  def newInstance[T](className: String): T = classLoader.newInstance(className)
+  def constructors[T](className: String): Constructors[T] = new Constructors[T](get(className))
 }
