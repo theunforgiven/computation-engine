@@ -17,8 +17,7 @@ class SequentialComputation(val steps: List[Computation]) extends Computation {
 
 class IterativeComputation[+A,+Repr <: LinearSeqOptimized[A, Repr]](val inner: Computation,
                            inputMapping: (Symbol, Symbol),
-                           outputMapping: (Symbol, Symbol)) extends Computation {
-  def resultKey = outputMapping._2
+                           val resultKey: Symbol) extends Computation {
 
   def compute(domain: Domain): Domain = {
     val input: Any = domain.facts.get(inputMapping._1).get
@@ -34,7 +33,7 @@ class IterativeComputation[+A,+Repr <: LinearSeqOptimized[A, Repr]](val inner: C
       (resultsSoFar: List[Any], value: Any) => {
         val domainWithSingleValueAdded = Domain.combine(Map(inputMapping._2 -> value), originalDomain)
         val innerResults = inner.compute(domainWithSingleValueAdded)
-        innerResults.facts.get(outputMapping._1) match {
+        innerResults.facts.get(inner.resultKey) match {
           case Some(result) => {
             val theResults = result :: resultsSoFar
             if(innerResults.continue) theResults else return theResults

@@ -6,7 +6,7 @@ package com.cyrusinnovation.computation
  * as an argument to its constructor. For more complex abort conditions, create a SimpleComputation to
  * perform the test on the results of a previous computation, and wrap it in one of the two conditions.
  */
-trait SequenceAbortingComputation extends Computation {
+trait AbortingComputation extends Computation {
   def compute(domain: Domain): Domain = {
     val newDomain: Domain = inner.compute(domain)
     val continue = ! shouldAbort(newDomain)
@@ -22,13 +22,13 @@ trait SequenceAbortingComputation extends Computation {
  * inner computation does not return a result; i.e. if the resultKey specified for that computation
  * is not found in the domain of facts returned from the computation.
  *
- * @constructor     Instantiate a SequenceAbortingComputation that stops the sequence if the wrapped
+ * @constructor     Instantiate an AbortingComputation that stops the sequence if the wrapped
  *                  computation does not return a result.
  *
  * @param inner     The wrapped computation whose returned domain map should contain
  *                  the resultKey for that computation, if the sequence is to continue.
  */
-sealed case class AbortIfNoResults(inner: Computation) extends SequenceAbortingComputation {
+sealed case class AbortIfNoResults(inner: Computation) extends AbortingComputation {
   def shouldAbort(domain: Domain): Boolean = {
     domain.facts.get(inner.resultKey) match {
       case Some(result) => false
@@ -41,13 +41,13 @@ sealed case class AbortIfNoResults(inner: Computation) extends SequenceAbortingC
  * inner computation returns a result; i.e. if the resultKey specified for that computation
  * is found in the domain of facts returned from the computation.
  *
- * @constructor     Instantiate a SequenceAbortingComputation that stops the sequence if the wrapped
+ * @constructor     Instantiate an AbortingComputation that stops the sequence if the wrapped
  *                  computation returns a result.
  *
  * @param inner     The wrapped computation whose returned domain map should not contain
  *                  the resultKey for that computation, if the sequence is to continue.
  */
-sealed case class AbortIfHasResults(inner: Computation) extends SequenceAbortingComputation {
+sealed case class AbortIfHasResults(inner: Computation) extends AbortingComputation {
   def shouldAbort(domain: Domain): Boolean = {
     domain.facts.get(inner.resultKey) match {
       case Some(result) => true
@@ -64,7 +64,7 @@ sealed case class AbortIfHasResults(inner: Computation) extends SequenceAborting
  * If this computation fails to compile or throws an exception during computation, it will always abort
  * the inner series of computations, whether or not exceptions are propagated.
  *
- * @constructor     Instantiate a SequenceAbortingComputation that stops the sequence if the wrapped
+ * @constructor     Instantiate an AbortingComputation that stops the sequence if the wrapped
  *                  computation satisfies a given condition. Compilation of the predicate expression
  *                  occurs in the constructor of the computation.
  *
@@ -109,7 +109,7 @@ sealed case class AbortIf(packageName: String,
                           inner: Computation,
                           securityConfiguration: SecurityConfiguration,
                           computationEngineLog: Log,
-                          shouldPropagateExceptions: Boolean = true) extends SequenceAbortingComputation {
+                          shouldPropagateExceptions: Boolean = true) extends AbortingComputation {
 
 private var enabled = true
 private var fullPredicateExpression = AbortIf.createFunctionBody(predicateExpression, inputMapWithTypes, resultKey)

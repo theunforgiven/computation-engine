@@ -102,7 +102,7 @@ case class TestRules(logger: Log) {
 
   def iterativeComputation(inner: Computation) = new IterativeComputation(inner,
                                                                           ('testValues -> 'testValue),
-                                                                          ('negTestValue -> 'negatives))
+                                                                          'negatives)
 
   val simpleNegationComputation = new SimpleComputation("test.computations",
                                                         "NegationComputation",

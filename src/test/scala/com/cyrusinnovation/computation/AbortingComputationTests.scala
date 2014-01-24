@@ -6,9 +6,9 @@ import com.cyrusinnovation.computation.util.Log
 import org.scalamock.scalatest.MockFactory
 import org.scalamock.FunctionAdapter2
 
-class SequenceAbortingComputationTests extends FlatSpec with ShouldMatchers with MockFactory {
+class AbortingComputationTests extends FlatSpec with ShouldMatchers with MockFactory {
 
-  "A sequence aborting computation" should "be able to abort a sequential computation mid-sequence if there is a return value" in {
+  "An aborting computation" should "be able to abort a sequential computation mid-sequence if there is a return value" in {
     val testRules = TestRules(stub[Log])    //Can't stub inside a BeforeEach
 
     val domain = Domain(Map('testValues -> Map('a -> 2, 'b -> 5)), continue = true)
@@ -20,7 +20,7 @@ class SequenceAbortingComputationTests extends FlatSpec with ShouldMatchers with
     newDomain.continue should be(true)  // Domain coming out of a sequence that is aborted should not have continue set to false
   }
 
-  "A sequence aborting computation" should "be able to abort a sequential computation mid-sequence if there is no return value" in {
+  "An aborting computation" should "be able to abort a sequential computation mid-sequence if there is no return value" in {
     val testRules = TestRules(stub[Log])
 
     val domain = Domain(Map('testValues -> Map('a -> 2, 'b -> 5)), continue = true)
@@ -32,7 +32,7 @@ class SequenceAbortingComputationTests extends FlatSpec with ShouldMatchers with
     newDomain.continue should be(true)
   }
 
-  "A sequence aborting computation" should "be able to abort a sequential computation mid-sequence based on a specific condition" in {
+  "An aborting computation" should "be able to abort a sequential computation mid-sequence based on a specific condition" in {
     val stubLogger = stub[Log]
     val testRules = TestRules(stubLogger)
 
