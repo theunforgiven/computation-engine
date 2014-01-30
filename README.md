@@ -24,7 +24,8 @@ represented in generic form as Scala maps of `Symbol -> Any`.
     * Imports - A list of fully-qualified classnames or other strings that each could be used in an
     "import" statement (without the "import" keyword).
     * The computation expression - A string containing a Scala expression. This expression should contain
-    unbound identifiers that will be bound using the input map below.
+    unbound identifiers that will be bound using the input map below. Its result should be of Option[Any]
+    type.
     * An input mapping - A map of `String -> Symbol` whose keys are of the form `identifer:Type` where the
     identifiers are unbound in the computation expression and `Type` designates the type of the val that
     will be created using the identifer. The values of the input map are symbols designating the keys
@@ -69,19 +70,65 @@ to the single result of all the iterations combined (returned as a List).
 
 To get a better idea of how this all works, look at the tests for the various computation classes.
 
+### Under the hood
+
+Your Scala expression will be turned into code of the following form:
+
+    $inputAssignments
+    ($computationExpression : Option[Any]) match {
+        case Some(value) => Map($resultKey -> value)
+        case None => Map()
+
+where $computationExpression is a substitution variable representing your Scala expression, and
+`$inputAssignments` is a string made by iterating over the keys and values of the input mapping passed
+to the constructor of the computation. This string is made up of statements of the following form:
+
+    val $valWithType = domainFacts.get($domainKey).get.asInstanceOf[$theType]
+
+where $valWithType represents a key in the input mapping and $domainKey represents the corresponding
+value. The type $theType is obtained by taking the portion of $valWithType after the ":" character.
+These statements are what assign values to the free identifiers in your Scala expression, which
+correspond to the portion of $valWithType preceding the ":" character.
+
+The result of evaluating $computationExpression must be an Option[Any] where None signifies that
+the computation did not produce any results, and the computation returns an empty map. If the
+computation produces a result (wrapped in a Some), the computation returns a map containing
+$resultKey as a key and the result as the value.
+
+It is envisioned that computations be stateless, with their results dependent only on the values passed in
+as input. If you find yourself writing a computation that takes no inputs, you're probably doing it wrong.
+E.g., a computation that adds a day to the current date should take the current date as input rather than asking
+the system for the current date.
+
+### Using the jar
+
+Using this library requires that the `SecurityConfiguration` trait be extended; the `DefaultSecurityConfiguration`
+object provides a default implementation useful for many purposes. The security configuration operates at two levels:
+First, at the level of the Java security manager, for which you will need to provide a Java policy file. (The
+`DefaultSecurityConfiguration` will result in the `java.security.policy` system property being set to
+`computation.security.policy`--the name of the default policy file.) Several examples of policy files may
+be found in the `test/resources` folder. Note that the computation engine will not be able to function without
+certain default permissions being set:
+
+
+The second level of security configuration operates at the level of the Scala script engine. The security
+configuration allows you to whitelist packages whose classes may be referenced within computations, and to
+blacklist classes within those packages which should not be referenced. The `SecurityConfiguration` trait
+whitelists packages most likely to be used by computations, and blacklists classes that manipulate state.
+You can override these choices by extending the trait.
+
 ### Working with the source code
 
 The gradle build tool is used to build the code. Gradle will also generate project files for IntelliJ IDEA
 if the `gradle idea` command is run.
 
-###
-
-
 ### Testing
 
-Rules should be able to be read from a database. That should be up next.
-
-The roadmap for the computation engine also includes developing tools for testing rules. Some thoughts:
+Some thoughts on testing:
+    * Computations are intended to be stateless and to compute results deterministically as a function
+    of their inputs alone. (Some work has gone into making the `DefaultSecurityConfiguration` exclude
+    classes that manipulate state.) Keeping computations stateless and functional also makes them
+    much more easily testable.
     * The input mapping of a computation establishes a contract that can and should be tested, namely,
     that the data map passed to the computation will contain certain keys that can be assigned to vals
     of specific types. The computation will throw an exception (which may not be propagated, depending
@@ -94,14 +141,19 @@ The roadmap for the computation engine also includes developing tools for testin
     specify the input contract for the entire sequence, since a computation further in the sequence
     might rely on some key in the input data that the first computation did not need. However, if a
     test can specify the shape of the data passed in to the first step in the sequence, then it should
-    be possible to automate testing (using e.g., ScalaCheck) to establish that contract conditions
-    are always fulfilled for each step in the sequence.
-    * It would be useful to have a testing module that pulled rules from the database and tested
-    them. This module could be included in a "testing project" in which classpaths specific to the
-    computations could be set up; computation tests would live in this project as regular compiled
-    code and would have to be changed when computations changed.
+    be possible to automatically generate tests (using e.g., ScalaCheck) to establish that contract
+    conditions are always fulfilled for each step in the sequence.
 
-Further out, it would be useful to have a few more things:
-    * A tool for deploying rules from one database to another, and for rolling back to a previous
+### Future directions
+
+Here are some things it would be useful to have:
+
+    * The ability to read computations from a database. That's up next on the roadmap.
+    * Tools for making it easy to test computations, using ScalaCheck to automate the generation of tests
+    where possible. It would also be useful to have a testing module that could pull computations from the
+    database and test them. The module would be included as a library in test projects in which
+    classpaths specific to the computations would be set up. Computation tests would live in this
+    project as regular compiled code and would need to change as computations changed.
+    * A tool for deploying computations from one database to another, and for rolling back to a previous
     version if there is a problem.
-    * A visual tool for creating rules and inserting them into a database.
+    * A visual tool for creating computations and inserting them into a database.
