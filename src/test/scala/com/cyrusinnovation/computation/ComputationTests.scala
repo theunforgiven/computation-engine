@@ -1,12 +1,12 @@
 package com.cyrusinnovation.computation
 
 import org.scalatest.FlatSpec
-import org.scalatest.matchers.ShouldMatchers
+import org.scalatest.Matchers
 import org.scalamock.scalatest.MockFactory
 import com.cyrusinnovation.computation.util.Log
 import org.scalamock.FunctionAdapter2
 
-class ComputationTests extends FlatSpec with ShouldMatchers with MockFactory {
+class ComputationTests extends FlatSpec with Matchers with MockFactory {
   implicit def toFunctionAdapter2[T1, T2, R](f: (T1, T2) => R) = {
     new FunctionAdapter2[T1, T2, R](f)
   }

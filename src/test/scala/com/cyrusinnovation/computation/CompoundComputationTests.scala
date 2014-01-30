@@ -1,11 +1,11 @@
 package com.cyrusinnovation.computation
 
 import org.scalatest.FlatSpec
-import org.scalatest.matchers.ShouldMatchers
+import org.scalatest.Matchers
 import com.cyrusinnovation.computation.util.Log
 import org.scalamock.scalatest.MockFactory
 
-class CompoundComputationTests extends FlatSpec with ShouldMatchers with MockFactory {
+class CompoundComputationTests extends FlatSpec with Matchers with MockFactory {
 
   "A sequential computation" should "chain multiple computations together" in {
     val testRules = TestRules(stub[Log])    //Can't stub inside a BeforeEach

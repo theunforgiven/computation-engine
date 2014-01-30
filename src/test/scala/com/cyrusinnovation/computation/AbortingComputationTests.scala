@@ -1,12 +1,12 @@
 package com.cyrusinnovation.computation
 
 import org.scalatest.FlatSpec
-import org.scalatest.matchers.ShouldMatchers
+import org.scalatest.Matchers
 import com.cyrusinnovation.computation.util.Log
 import org.scalamock.scalatest.MockFactory
 import org.scalamock.FunctionAdapter2
 
-class AbortingComputationTests extends FlatSpec with ShouldMatchers with MockFactory {
+class AbortingComputationTests extends FlatSpec with Matchers with MockFactory {
 
   "An aborting computation" should "be able to abort a sequential computation mid-sequence if there is a return value" in {
     val testRules = TestRules(stub[Log])    //Can't stub inside a BeforeEach

@@ -2,13 +2,13 @@ package com.cyrusinnovation.computation
 
 import java.io.File
 import org.scalatest.{BeforeAndAfterEach, FlatSpec}
-import org.scalatest.matchers.ShouldMatchers
+import org.scalatest.Matchers
 import org.scalamock.scalatest.MockFactory
 import com.cyrusinnovation.computation.util.Log
 import com.googlecode.scalascriptengine.ScalaScriptEngine
 import java.net.URI
 
-class EvalCodeTests extends FlatSpec with ShouldMatchers with MockFactory with BeforeAndAfterEach {
+class EvalCodeTests extends FlatSpec with Matchers with MockFactory with BeforeAndAfterEach {
 
   override def beforeEach = {
     System.getProperties.remove("script.use.cached.classes")
