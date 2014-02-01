@@ -103,19 +103,42 @@ the system for the current date.
 ### Using the jar
 
 Using this library requires that the `SecurityConfiguration` trait be extended; the `DefaultSecurityConfiguration`
-object provides a default implementation useful for many purposes. The security configuration operates at two levels:
+object extends that trait and provides a default implementation useful for many purposes. The security configuration
+operates at two levels:
+
 First, at the level of the Java security manager, for which you will need to provide a Java policy file. (The
 `DefaultSecurityConfiguration` will result in the `java.security.policy` system property being set to
-`computation.security.policy`--the name of the default policy file.) Several examples of policy files may
-be found in the `test/resources` folder. Note that the computation engine will not be able to function without
-certain default permissions being set:
+`computation.security.policy`--the name of the default policy file.) Several examples of policy files may be found
+in the `test/resources` folder. Note that the computation engine will probably not be able to function without
+the following permissions being set:
 
+    grant {
+      permission java.lang.reflect.ReflectPermission "suppressAccessChecks";
+    };
+
+In addition, depending on the classes you are loading and the location of the jar files from which they need
+to be loaded, you may need to grant file read permissions for those file locations. In general, it is probably
+easier and may be acceptably secure just to establish blanket file read permission at the Java security manager
+level, and to prohibit computations from reading files by relying on the fact that java.io is not a whitelisted
+package in the security configuration for the Scala script engine (see below). To establish blanket file read
+permissions:
+
+    grant {
+      permission java.io.FilePermission "<<ALL FILES>>", "read";
+    };
 
 The second level of security configuration operates at the level of the Scala script engine. The security
 configuration allows you to whitelist packages whose classes may be referenced within computations, and to
 blacklist classes within those packages which should not be referenced. The `SecurityConfiguration` trait
 whitelists packages most likely to be used by computations, and blacklists classes that manipulate state.
 You can override these choices by extending the trait.
+
+When using the computation engine, particularly during testing, it can sometimes become onerous to wait
+for the computations to be recompiled each time an application or test suite is run. Since classes are
+always compiled to the same location, you can use the Java system property `script.use.cached.classes`
+to always skip compilation and to use the already-compiled classes. (Currently, the classes are always
+compiled into the location specified by the system property `java.io.tmpdir`; however, in the future
+it is envisioned that the location will be specifiable by setting the system property `script.classes`.)
 
 ### Working with the source code
 
@@ -148,6 +171,7 @@ Some thoughts on testing:
 
 Here are some things it would be useful to have:
 
+    * Configurability of the output directory to which class files are compiled.
     * The ability to read computations from a database. That's up next on the roadmap.
     * Tools for making it easy to test computations, using ScalaCheck to automate the generation of tests
     where possible. It would also be useful to have a testing module that could pull computations from the
