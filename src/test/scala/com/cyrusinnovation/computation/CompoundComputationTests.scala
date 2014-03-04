@@ -32,9 +32,9 @@ class CompoundComputationTests extends FlatSpec with Matchers with MockFactory {
     val testRules = TestRules(stub[Log])    //Can't stub inside a BeforeEach
     val facts: Map[Symbol, Any] = Map('testValues -> List(2, 5, 7, 9))
 
-    val iterativeComputation = testRules.iterativeComputation(
-      testRules.simpleNegationComputation
-    )
+    val iterativeComputation = new IterativeComputation(testRules.simpleNegationComputation,
+                                                        ('testValues -> 'testValue),
+                                                        'negatives)
     val newFacts = iterativeComputation.compute(facts)
 
     newFacts('negatives) should be(List(-2, -5, -7, -9))
@@ -46,21 +46,37 @@ class CompoundComputationTests extends FlatSpec with Matchers with MockFactory {
     val facts: Map[Symbol, Any] = Map('testValues -> List(2, 5, 7, 9))
     val domain = Domain(facts, true)
 
-    val iterativeComputation = testRules.iterativeComputation(
-      AbortIf("test.computations",
-              "AbortIfContainsMapWithDesiredEntry",
-              "See if the value is -5",
-              List(),
-              "x == -5",
-              Map("x: Int" -> testRules.simpleNegationComputation.resultKey),
-              testRules.simpleNegationComputation,
-              TestSecurityConfiguration,
-              stubLogger,
-              shouldPropagateExceptions = true)
+    val abortingComputation = AbortIf("test.computations",
+                                      "AbortIfContainsMapWithDesiredEntry",
+                                      "See if the value is -5",
+                                      List(),
+                                      "x == -5",
+                                      Map("x: Int" -> testRules.simpleNegationComputation.resultKey),
+                                      testRules.simpleNegationComputation,
+                                      TestSecurityConfiguration,
+                                      stubLogger,
+                                      shouldPropagateExceptions = true)
+
+    val iterativeComputation = new IterativeComputation(abortingComputation,
+                                                        ('testValues -> 'testValue),
+                                                        'negatives
     )
     val newDomain = iterativeComputation.compute(domain)
 
     newDomain.facts('negatives) should be(List(-2, -5))
     newDomain.continue should be(true)
+  }
+
+  "A mapping computation" should "return a map with the keys from the original map mapped to the results of applying the inner computation to the values" in {
+    val testRules = TestRules(stub[Log])    //Can't stub inside a BeforeEach
+    val facts: Map[Symbol, Any] = Map('testValues -> Map('a -> 2, 'b -> 5, 'c -> 7, 'd -> 9))
+
+    val iterativeComputation = new MappingComputation(testRules.simpleNegationComputation,
+                                                      ('testValues -> 'testValue),
+                                                      'negatives)
+
+    val newFacts = iterativeComputation.compute(facts)
+
+    newFacts('negatives) should be(Map('a -> -2, 'b -> -5, 'c -> -7, 'd -> -9))
   }
 }

@@ -2,6 +2,7 @@ package com.cyrusinnovation.computation
 
 import com.cyrusinnovation.computation.util.Log
 
+//TODO inline these where they are the classes under test
 case class TestRules(logger: Log) {
 
   val maxValueComputation = new SimpleComputation("test.computations",
@@ -99,10 +100,6 @@ case class TestRules(logger: Log) {
                                                                   RestrictiveTestSecurityConfiguration,
                                                                   logger,
                                                                   shouldPropagateExceptions = true)
-
-  def iterativeComputation(inner: Computation) = new IterativeComputation(inner,
-                                                                          ('testValues -> 'testValue),
-                                                                          'negatives)
 
   val simpleNegationComputation = new SimpleComputation("test.computations",
                                                         "NegationComputation",
