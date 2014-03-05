@@ -70,8 +70,7 @@ class MappingComputation[A, +B, +MapType <: MapLike[A, B, MapType] with Map[A, B
         innerResults.facts.get(inner.resultKey) match {
           case Some(result) => {
             val theResults = resultsSoFar + (keyValueTuple._1 -> result)
-            theResults
-            //if(innerResults.continue) theResults else return theResults
+            if(innerResults.continue) theResults else return theResults
           }
           case None => resultsSoFar
         }
