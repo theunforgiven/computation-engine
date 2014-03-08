@@ -162,36 +162,42 @@ if the `gradle idea` command is run.
 ### Testing
 
 Some thoughts on testing:
-    * Computations are intended to be stateless and to compute results deterministically as a function
-    of their inputs alone. (Some work has gone into making the `DefaultSecurityConfiguration` exclude
-    classes that manipulate state.) Keeping computations stateless and functional also makes them
-    much more easily testable.
-    * The input mapping of a computation establishes a contract that can and should be tested, namely,
-    that the data map passed to the computation will contain certain keys that can be assigned to vals
-    of specific types. The computation will throw an exception (which may not be propagated, depending
-    on the flag) if this contract is not fulfilled. The caller of the computation should be tested
-    rigorously to make sure it will always pass values of the correct types to the computation.
-    * Each step in a `SequentialConputation` imposes a contract on the output of the sequence that came
-    before. This doesn't necessarily mean that the results of the immediately preceding computation
-    will by themselves fulfill the contract, since each computation adds its own results to the
-    data map it received. In addition, the first computation's input mapping does not necessarily
-    specify the input contract for the entire sequence, since a computation further in the sequence
-    might rely on some key in the input data that the first computation did not need. However, if a
-    test can specify the shape of the data passed in to the first step in the sequence, then it should
-    be possible to automatically generate tests (using e.g., ScalaCheck) to establish that contract
-    conditions are always fulfilled for each step in the sequence.
+* Computations are intended to be stateless and to compute results deterministically as a function
+  of their inputs alone. (Some work has gone into making the `DefaultSecurityConfiguration` exclude
+  classes that manipulate state.) Keeping computations stateless and functional also makes them
+  much more easily testable.
+
+* The input mapping of a computation establishes a contract that can and should be tested, namely,
+  that the data map passed to the computation will contain certain keys that can be assigned to vals
+  of specific types. The computation will throw an exception (which may not be propagated, depending
+  on the flag) if this contract is not fulfilled. The caller of the computation should be tested
+  rigorously to make sure it will always pass values of the correct types to the computation.
+
+* Each step in a `SequentialConputation` imposes a contract on the output of the sequence that came
+  before. This doesn't necessarily mean that the results of the immediately preceding computation
+  will by themselves fulfill the contract, since each computation adds its own results to the
+  data map it received. In addition, the first computation's input mapping does not necessarily
+  specify the input contract for the entire sequence, since a computation further in the sequence
+  might rely on some key in the input data that the first computation did not need. However, if a
+  test can specify the shape of the data passed in to the first step in the sequence, then it should
+  be possible to automatically generate tests (using e.g., ScalaCheck) to establish that contract
+  conditions are always fulfilled for each step in the sequence.
 
 ### Future directions
 
 Here are some things it would be useful to have:
 
-    * Configurability of the output directory to which class files are compiled.
-    * The ability to read computations from a database. That's up next on the roadmap.
-    * Tools for making it easy to test computations, using ScalaCheck to automate the generation of tests
-    where possible. It would also be useful to have a testing module that could pull computations from the
-    database and test them. The module would be included as a library in test projects in which
-    classpaths specific to the computations would be set up. Computation tests would live in this
-    project as regular compiled code and would need to change as computations changed.
-    * A tool for deploying computations from one database to another, and for rolling back to a previous
-    version if there is a problem.
-    * A visual tool for creating computations and inserting them into a database.
+* Configurability of the output directory to which class files are compiled.
+
+* The ability to read computations from a database. That's up next on the roadmap.
+
+* Tools for making it easy to test computations, using ScalaCheck to automate the generation of tests
+  where possible. It would also be useful to have a testing module that could pull computations from the
+  database and test them. The module would be included as a library in test projects in which
+  classpaths specific to the computations would be set up. Computation tests would live in this
+  project as regular compiled code and would need to change as computations changed.
+
+* A tool for deploying computations from one database to another, and for rolling back to a previous
+  version if there is a problem.
+
+* A visual tool for creating computations and inserting them into a database.
