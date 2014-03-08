@@ -1,5 +1,9 @@
 package com.cyrusinnovation.computation
 
+/** Contains the facts to be operated on in a computation as well as metadata indicating
+ * whether the caller should continue or not (e.g., if the caller is a sequence of
+ * computations).
+*/
 case class Domain(facts: Map[Symbol, Any], continue: Boolean)
 
 object Domain {

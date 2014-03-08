@@ -2,15 +2,47 @@ package com.cyrusinnovation.computation
 
 import com.cyrusinnovation.computation.util.Log
 
+/** Operates on a set of facts (contained in a Map[Symbol, Any] to return a result in
+ * the same form. Implementers must extend the `compute` method to specify the specific
+ * computation, and the `resultKey` method allowing the results to be identified in the
+ * returned map.
+ */
 trait Computation {
 
+/** Takes a set of facts and returns a new set of facts made up of the original set of
+ * facts plus the result. This method is generally the one called by clients to execute
+ * computations
+ *
+ * @param facts       A map whose keys the computation will use to identify the values
+ *                    to be operated on in the computation.
+ *
+ * @return            A new map consisting of the original map of facts plus an entry
+ *                    whose key is `resultKey` and whose value is the result of the
+ *                    computation.
+ */
   def compute(facts: Map[Symbol, Any]) : Map[Symbol, Any] = {
     val domain = new Domain(facts, true)
     val results = compute(domain)
     results.facts
   }
 
+/** Takes a domain of facts and returns a new domain of facts made up of the original set of
+ * facts plus the result. This method specifies the details of the computation and must be
+ * implemented by classes that mix in this trait.
+ *
+ * @param domain      A `Domain` containing the facts to be operated on as well as
+ *                    additional metadata.
+ *
+ * @return            A new domain consisting of the original domain of facts plus
+ *                    an entry whose key is `resultKey` and whose value is the result
+ *                    of the computation. The metadata of the domain may also be different
+ *                    from the metadata in the input domain.
+ */
   def compute(domain: Domain): Domain
+
+/** Returns the symbol that identifies the results of the computation in the domain of facts
+ * returned by `compute`. This method must be implemented by classes that mix in this trait.
+ */
   def resultKey : Symbol
 }
 
@@ -29,7 +61,7 @@ object Computation {
   }
 }
 
-/* A computation instantiated from a Scala expression passed into the constructor as a string,
+/** A computation instantiated from a Scala expression passed into the constructor as a string,
  * along with various additional configurations (see constructor params). When the computation's `compute`
  * method is called, the computation will execute against an arbitrary Scala map (a `Map[Any, Any]`)
  * and return a `Map[Any, Any]` containing the results.
@@ -99,6 +131,11 @@ class SimpleComputation(packageName: String,
 
   val disabledComputationWarning = s"Disabled computation called: ${packageName}.${name}"
 
+/** Takes a domain of facts and returns a new domain of facts made up of the original set of
+ * facts plus the result. Implements `compute` on the `Computation` trait. This method will
+ * propagate exceptions or not depending on whether the `shouldPropagateExceptions` constructor
+ * parameter is set.
+ */
   def compute(domain: Domain) : Domain = {
     if(enabled) {
       try {

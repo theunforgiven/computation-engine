@@ -1,0 +1,311 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html>
+        <head>
+          <title>computation - com.cyrusinnovation.computation</title>
+          <meta name="description" content="computation - com.cyrusinnovation.computation" />
+          <meta name="keywords" content="computation com.cyrusinnovation.computation" />
+          <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+          
+      <link href="../../../lib/template.css" media="screen" type="text/css" rel="stylesheet" />
+      <link href="../../../lib/diagrams.css" media="screen" type="text/css" rel="stylesheet" id="diagrams-css" />
+      <script type="text/javascript">
+         if(top === self) {
+            var url = '../../../index.html';
+            var hash = 'com.cyrusinnovation.computation.package';
+            var anchor = window.location.hash;
+            var anchor_opt = '';
+            if (anchor.length >= 1)
+              anchor_opt = '@' + anchor.substring(1);
+            window.location.href = url + '#' + hash + anchor_opt;
+         }
+   	  </script>
+    
+        </head>
+        <body class="value">
+      <div id="definition">
+        <img src="../../../lib/package_big.png" />
+        <p id="owner"><a href="../../package.html" class="extype" name="com">com</a>.<a href="../package.html" class="extype" name="com.cyrusinnovation">cyrusinnovation</a></p>
+        <h1>computation</h1>
+      </div>
+
+      <h4 id="signature" class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">package</span>
+      </span>
+      <span class="symbol">
+        <span class="name">computation</span>
+      </span>
+      </h4>
+      
+          <div id="comment" class="fullcommenttop"></div>
+        
+
+      <div id="mbrsel">
+        <div id="textfilter"><span class="pre"></span><span class="input"><input id="mbrsel-input" type="text" accesskey="/" /></span><span class="post"></span></div>
+        
+        
+        <div id="visbl">
+            <span class="filtertype">Visibility</span>
+            <ol><li class="public in"><span>Public</span></li><li class="all out"><span>All</span></li></ol>
+          </div>
+      </div>
+
+      <div id="template">
+        <div id="allMembers">
+        
+
+        <div id="types" class="types members">
+              <h3>Type Members</h3>
+              <ol><li name="com.cyrusinnovation.computation.AbortIf" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="AbortIfextendsAbortingComputationwithProductwithSerializable"></a>
+      <a id="AbortIf:AbortIf"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">sealed </span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="AbortIf.html"><span class="name">AbortIf</span></a><span class="params">(<span name="packageName">packageName: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="name">name: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="description">description: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="imports">imports: <span class="extype" name="scala.List">List</span>[<span class="extype" name="scala.Predef.String">String</span>]</span>, <span name="predicateExpression">predicateExpression: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="inputMapWithTypes">inputMapWithTypes: <span class="extype" name="scala.Predef.Map">Map</span>[<span class="extype" name="scala.Predef.String">String</span>, <span class="extype" name="scala.Symbol">Symbol</span>]</span>, <span name="inner">inner: <a href="Computation.html" class="extype" name="com.cyrusinnovation.computation.Computation">Computation</a></span>, <span name="securityConfiguration">securityConfiguration: <a href="SecurityConfiguration.html" class="extype" name="com.cyrusinnovation.computation.SecurityConfiguration">SecurityConfiguration</a></span>, <span name="computationEngineLog">computationEngineLog: &lt;error&gt;</span>, <span name="shouldPropagateExceptions">shouldPropagateExceptions: <span class="extype" name="scala.Boolean">Boolean</span> = <span class="symbol">true</span></span>)</span><span class="result"> extends <a href="AbortingComputation.html" class="extype" name="com.cyrusinnovation.computation.AbortingComputation">AbortingComputation</a> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4>
+      
+    </li><li name="com.cyrusinnovation.computation.AbortIfHasResults" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="AbortIfHasResultsextendsAbortingComputationwithProductwithSerializable"></a>
+      <a id="AbortIfHasResults:AbortIfHasResults"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">sealed </span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="AbortIfHasResults.html"><span class="name">AbortIfHasResults</span></a><span class="params">(<span name="inner">inner: <a href="Computation.html" class="extype" name="com.cyrusinnovation.computation.Computation">Computation</a></span>)</span><span class="result"> extends <a href="AbortingComputation.html" class="extype" name="com.cyrusinnovation.computation.AbortingComputation">AbortingComputation</a> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4>
+      <p class="comment cmt">Wraps an inner computation that is part of a series of computations, and aborts the series if the
+inner computation returns a result; i.</p>
+    </li><li name="com.cyrusinnovation.computation.AbortIfNoResults" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="AbortIfNoResultsextendsAbortingComputationwithProductwithSerializable"></a>
+      <a id="AbortIfNoResults:AbortIfNoResults"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">sealed </span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="AbortIfNoResults.html"><span class="name">AbortIfNoResults</span></a><span class="params">(<span name="inner">inner: <a href="Computation.html" class="extype" name="com.cyrusinnovation.computation.Computation">Computation</a></span>)</span><span class="result"> extends <a href="AbortingComputation.html" class="extype" name="com.cyrusinnovation.computation.AbortingComputation">AbortingComputation</a> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4>
+      <p class="comment cmt">Wraps an inner computation that is part of a series of computations, and aborts the series if the
+inner computation does not return a result; i.</p>
+    </li><li name="com.cyrusinnovation.computation.AbortingComputation" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="AbortingComputationextendsComputation"></a>
+      <a id="AbortingComputation:AbortingComputation"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="AbortingComputation.html"><span class="name">AbortingComputation</span></a><span class="result"> extends <a href="Computation.html" class="extype" name="com.cyrusinnovation.computation.Computation">Computation</a></span>
+      </span>
+      </h4>
+      <p class="comment cmt">Wraps a computation that is used in a series of computations, and signals that the remainder of the sequence
+should stop being executed if the results fail a specified test.</p>
+    </li><li name="com.cyrusinnovation.computation.Computation" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="ComputationextendsAnyRef"></a>
+      <a id="Computation:Computation"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="Computation.html"><span class="name">Computation</span></a><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+      </span>
+      </h4>
+      <p class="comment cmt">Operates on a set of facts (contained in a Map[Symbol, Any] to return a result in
+the same form.</p>
+    </li><li name="com.cyrusinnovation.computation.Domain" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="DomainextendsProductwithSerializable"></a>
+      <a id="Domain:Domain"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="Domain.html"><span class="name">Domain</span></a><span class="params">(<span name="facts">facts: <span class="extype" name="scala.Predef.Map">Map</span>[<span class="extype" name="scala.Symbol">Symbol</span>, <span class="extype" name="scala.Any">Any</span>]</span>, <span name="continue">continue: <span class="extype" name="scala.Boolean">Boolean</span></span>)</span><span class="result"> extends <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4>
+      <p class="comment cmt">Contains the facts to be operated on in a computation as well as metadata indicating
+whether the caller should continue or not (e.</p>
+    </li><li name="com.cyrusinnovation.computation.IterativeComputation" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="IterativeComputation[+A,+SeqType&lt;:scala.collection.LinearSeqOptimized[A,SeqType]]extendsComputation"></a>
+      <a id="IterativeComputation[+A,+SeqType&lt;:LinearSeqOptimized[A,SeqType]]:IterativeComputation[A,SeqType]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="IterativeComputation.html"><span class="name">IterativeComputation</span></a><span class="tparams">[<span name="A">+A</span>, <span name="SeqType">+SeqType &lt;: <span class="extype" name="scala.collection.LinearSeqOptimized">LinearSeqOptimized</span>[<span class="extype" name="com.cyrusinnovation.computation.IterativeComputation.A">A</span>, <span class="extype" name="com.cyrusinnovation.computation.IterativeComputation.SeqType">SeqType</span>]</span>]</span><span class="result"> extends <a href="Computation.html" class="extype" name="com.cyrusinnovation.computation.Computation">Computation</a></span>
+      </span>
+      </h4>
+      <p class="comment cmt">A computation that applies another computation serially to a sequence of values (i.</p>
+    </li><li name="com.cyrusinnovation.computation.MappingComputation" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="MappingComputation[A,+B,+MapType&lt;:scala.collection.MapLike[A,B,MapType]withMap[A,B]]extendsComputation"></a>
+      <a id="MappingComputation[A,+B,+MapType&lt;:MapLike[A,B,MapType]withMap[A,B]]:MappingComputation[A,B,MapType]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="MappingComputation.html"><span class="name">MappingComputation</span></a><span class="tparams">[<span name="A">A</span>, <span name="B">+B</span>, <span name="MapType">+MapType &lt;: <span class="extype" name="scala.collection.MapLike">MapLike</span>[<span class="extype" name="com.cyrusinnovation.computation.MappingComputation.A">A</span>, <span class="extype" name="com.cyrusinnovation.computation.MappingComputation.B">B</span>, <span class="extype" name="com.cyrusinnovation.computation.MappingComputation.MapType">MapType</span>] with <span class="extype" name="scala.Predef.Map">Map</span>[<span class="extype" name="com.cyrusinnovation.computation.MappingComputation.A">A</span>, <span class="extype" name="com.cyrusinnovation.computation.MappingComputation.B">B</span>]</span>]</span><span class="result"> extends <a href="Computation.html" class="extype" name="com.cyrusinnovation.computation.Computation">Computation</a></span>
+      </span>
+      </h4>
+      <p class="comment cmt">A computation that applies another computation to a each value of a map (i.</p>
+    </li><li name="com.cyrusinnovation.computation.SecurityConfiguration" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="SecurityConfigurationextendsAnyRef"></a>
+      <a id="SecurityConfiguration:SecurityConfiguration"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="SecurityConfiguration.html"><span class="name">SecurityConfiguration</span></a><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+      </span>
+      </h4>
+      <p class="comment cmt">Establishes the location of the Java SecurityManager policy file, as well as the packages
+to be allowed in computations.</p>
+    </li><li name="com.cyrusinnovation.computation.SequentialComputation" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="SequentialComputationextendsComputation"></a>
+      <a id="SequentialComputation:SequentialComputation"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="SequentialComputation.html"><span class="name">SequentialComputation</span></a><span class="result"> extends <a href="Computation.html" class="extype" name="com.cyrusinnovation.computation.Computation">Computation</a></span>
+      </span>
+      </h4>
+      <p class="comment cmt">A single computation created from a series of computations.</p>
+    </li><li name="com.cyrusinnovation.computation.SimpleComputation" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="SimpleComputationextendsComputation"></a>
+      <a id="SimpleComputation:SimpleComputation"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="SimpleComputation.html"><span class="name">SimpleComputation</span></a><span class="result"> extends <a href="Computation.html" class="extype" name="com.cyrusinnovation.computation.Computation">Computation</a></span>
+      </span>
+      </h4>
+      <p class="comment cmt">A computation instantiated from a Scala expression passed into the constructor as a string,
+along with various additional configurations (see constructor params).</p>
+    </li></ol>
+            </div>
+
+        
+
+        <div id="values" class="values members">
+              <h3>Value Members</h3>
+              <ol><li name="com.cyrusinnovation.computation.AbortIf" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="AbortIf"></a>
+      <a id="AbortIf:AbortIf"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="AbortIf$.html"><span class="name">AbortIf</span></a><span class="result"> extends <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4>
+      
+    </li><li name="com.cyrusinnovation.computation.Computation" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="Computation"></a>
+      <a id="Computation:Computation"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="Computation$.html"><span class="name">Computation</span></a>
+      </span>
+      </h4>
+      
+    </li><li name="com.cyrusinnovation.computation.DefaultSecurityConfiguration" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="DefaultSecurityConfiguration"></a>
+      <a id="DefaultSecurityConfiguration:DefaultSecurityConfiguration"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="DefaultSecurityConfiguration$.html"><span class="name">DefaultSecurityConfiguration</span></a><span class="result"> extends <a href="SecurityConfiguration.html" class="extype" name="com.cyrusinnovation.computation.SecurityConfiguration">SecurityConfiguration</a></span>
+      </span>
+      </h4>
+      <p class="comment cmt">A default implementation of the SecurityConfiguration trait inheriting the default implementations
+of all the methods in the trait.</p>
+    </li><li name="com.cyrusinnovation.computation.Domain" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="Domain"></a>
+      <a id="Domain:Domain"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="Domain$.html"><span class="name">Domain</span></a><span class="result"> extends <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4>
+      
+    </li><li name="com.cyrusinnovation.computation.SimpleComputation" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="SimpleComputation"></a>
+      <a id="SimpleComputation:SimpleComputation"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="SimpleComputation$.html"><span class="name">SimpleComputation</span></a>
+      </span>
+      </h4>
+      
+    </li></ol>
+            </div>
+
+        
+
+        
+        </div>
+
+        <div id="inheritedMembers">
+        
+        
+        </div>
+
+        <div id="groupedMembers">
+        <div class="group" name="Ungrouped">
+              <h3>Ungrouped</h3>
+              
+            </div>
+        </div>
+
+      </div>
+
+      <div id="tooltip"></div>
+
+      <div id="footer">  </div>
+      <script defer="defer" type="text/javascript" id="jquery-js" src="../../../lib/jquery.js"></script><script defer="defer" type="text/javascript" id="jquery-ui-js" src="../../../lib/jquery-ui.js"></script><script defer="defer" type="text/javascript" id="tools-tooltip-js" src="../../../lib/tools.tooltip.js"></script><script defer="defer" type="text/javascript" id="template-js" src="../../../lib/template.js"></script>
+    </body>
+      </html>

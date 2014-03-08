@@ -14,6 +14,14 @@ for manipulating that data. This library uses Scala as the expression language; 
 Scala expressions are evaluated in the Scala Script Engine sandbox to provide some safety. Data is
 represented in generic form as Scala maps of `Symbol -> Any`.
 
+The computation engine provides several types of compound computation to allow re-use of
+simpler computations in various contexts. For example, you may want to apply a computation to a
+single item in one place in your application, but apply the same computation to a series or map
+of items in another (an `IterativeComputation` or a `MappingComputation`). Re-using the same
+computation allows you to make changes in just one place if you need to change the computation.
+Similarly, chaining computations together in a sequence (a `SequentialComputation`)
+allows for the steps in the chained computation to be used separately elsewhere.
+
 ### How to use it:
 
 1. Instantiate your simple computations. A `SimpleComputation` has:
@@ -42,6 +50,7 @@ represented in generic form as Scala maps of `Symbol -> Any`.
     * A "should propagate exceptions" flag - This flag indicates whether the computation should rethrow an
     exception if the expression fails to compile or if there is an exception when the computation is being
     applied.
+
 2. Combine your computations.
     * A `SequentialComputation` is instantiated with a list of computations that will be the steps in the
     sequence.
@@ -51,9 +60,13 @@ represented in generic form as Scala maps of `Symbol -> Any`.
     element of that sequence that will be inserted into the data map passed to the inner computation. Finally,
     the `IterativeComputation` takes a symbol identifying its result key. (The results of the inner computation
     are extracted using the inner computation's result key.)
+    * A `MappingComputation` also takes a single computation over which it will iterate, but the values to be
+    iterated over are the values of a map rather than a simple sequence. The result of each application of the
+    inner computation is assigned to the original key in the map returned in the results. The constructor of a
+    `MappingComputation` is the same as that of an `IterativeComputation.`
     * An `AbortingComputation` wraps another computation and comes in several flavors. The `AbortIfNoResults`
-    and `AbortIfHasResults` abort a series of computations (either a `SequentialComputation` or an
-    `IterativeComputation`) if the inner computation has no results or has results, respectively. The `AbortIf`
+    and `AbortIfHasResults` abort a series of computations (a `SequentialComputation,` `IterativeComputation,`
+    or `MappingComputation`) if the inner computation has no results or has results, respectively. The `AbortIf`
     allows for more sophisticated tests on the data map returned from the inner computation, using a predicate
     expression specified as a Scala string.
 
@@ -78,6 +91,7 @@ Your Scala expression will be turned into code of the following form:
     ($computationExpression : Option[Any]) match {
         case Some(value) => Map($resultKey -> value)
         case None => Map()
+    }
 
 where $computationExpression is a substitution variable representing your Scala expression, and
 `$inputAssignments` is a string made by iterating over the keys and values of the input mapping passed
