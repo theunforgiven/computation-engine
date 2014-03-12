@@ -10,6 +10,7 @@ import com.googlecode.scalascriptengine.Config
 import scala.Some
 import com.googlecode.scalascriptengine.SourceFile
 import com.googlecode.scalascriptengine.SourcePath
+import java.net.URI
 
 /**
  * Based on code by kostantinos.kougios for ScalaScriptEngine, tailored for this particular application
@@ -59,7 +60,6 @@ object EvalPredicateFunctionString {
   }
 }
 
-// TODO Document configuration settings - script.classes, script.use.cached.classes
 private class EvalCodeImpl[ResultType](packageName: String,
                                        imports: List[String],
                                        computationName: String,
@@ -74,6 +74,7 @@ private class EvalCodeImpl[ResultType](packageName: String,
   private val config = createConfig(sourceDirectory, classesDir, securityConfig)
   private val sseSM = setupJavaSecurityManager()
 
+  //TODO Also allow only compiling once using Script Engine refresh policy
   private val sse = useCachedClasses match {
     case Some("t") | Some("y") => createNonCompilingScalaScriptEngine(config)
     case _ => {
@@ -95,11 +96,15 @@ private class EvalCodeImpl[ResultType](packageName: String,
   }
 
   private def setTargetDirectory() : File = {
-    //TODO allow target directory to be set using system property. This needs to be a URI, not just a simple path.
-//    Option(System.getProperty("script.classes")) match {
-//
-//    }
-    val targetDirectory = ScalaScriptEngine.tmpOutputFolder
+    //The value of the script.classes property needs to be a URI, not just a simple path.
+    val targetDirectory = Option(System.getProperty("script.classes")) match {
+      case None => ScalaScriptEngine.tmpOutputFolder
+      case Some(uri) => {
+        val directory = new File(new URI(uri))
+        if(! directory.exists) { directory.mkdirs() }
+        directory
+      }
+    }
     System.setProperty("script.classes", targetDirectory.toURI.toString)
     targetDirectory
   }

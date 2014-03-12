@@ -150,9 +150,12 @@ You can override these choices by extending the trait.
 When using the computation engine, particularly during testing, it can sometimes become onerous to wait
 for the computations to be recompiled each time an application or test suite is run. Since classes are
 always compiled to the same location, you can use the Java system property `script.use.cached.classes`
-to always skip compilation and to use the already-compiled classes. (Currently, the classes are always
-compiled into the location specified by the system property `java.io.tmpdir`; however, in the future
-it is envisioned that the location will be specifiable by setting the system property `script.classes`.)
+to always skip compilation and to use the already-compiled classes.
+
+The directory to which the classes are compiled can be controlled using the `script.classes` system property.
+The value of this property should be a URI, not a simple path. The default directory to which classes
+are compiled is under the directory indicated by the `java.io.tmpdir` system property, in the
+`scala-script-engine-classes` subdirectory.
 
 ### Working with the source code
 
@@ -186,8 +189,6 @@ Some thoughts on testing:
 ### Future directions
 
 Here are some things it would be useful to have:
-
-* Configurability of the output directory to which class files are compiled.
 
 * The ability to read computations from a database. That's up next on the roadmap.
 

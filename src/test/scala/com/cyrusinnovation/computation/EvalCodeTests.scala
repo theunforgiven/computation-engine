@@ -27,7 +27,7 @@ class EvalCodeTests extends FlatSpec with Matchers with MockFactory with BeforeA
       case None => ScalaScriptEngine.tmpOutputFolder.toURI.toString
     }
 
-    val classFileURI = List(targetDirectory, "test", "computations", "ExceptionThrowingComputation.class").mkString("/")
+    val classFileURI = List(targetDirectory, "test", "computations", "ExceptionThrowingComputation.class").mkString(java.io.File.separator)
 
     val firstComputation = TestRules(stub[Log]).exceptionThrowingSimpleComputation(shouldPropagate = false)
     val file = new File(new URI(classFileURI))
@@ -47,7 +47,7 @@ class EvalCodeTests extends FlatSpec with Matchers with MockFactory with BeforeA
       case None => ScalaScriptEngine.tmpOutputFolder.toURI.toString
     }
 
-    val classFileURI = List(targetDirectory, "test", "computations", "ExceptionThrowingComputation.class").mkString("/")
+    val classFileURI = List(targetDirectory, "test", "computations", "ExceptionThrowingComputation.class").mkString(java.io.File.separator)
 
     val firstComputation = TestRules(stub[Log]).exceptionThrowingSimpleComputation(shouldPropagate = false)
     val file = new File(new URI(classFileURI))
@@ -68,7 +68,7 @@ class EvalCodeTests extends FlatSpec with Matchers with MockFactory with BeforeA
       case None => ScalaScriptEngine.tmpOutputFolder.toURI.toString
     }
 
-    val classFileURI = List(targetDirectory, "test", "computations", "ExceptionThrowingComputation.class").mkString("/")
+    val classFileURI = List(targetDirectory, "test", "computations", "ExceptionThrowingComputation.class").mkString(java.io.File.separator)
 
     val firstComputation = TestRules(stub[Log]).exceptionThrowingSimpleComputation(shouldPropagate = false)
     val file = new File(new URI(classFileURI))
@@ -81,11 +81,40 @@ class EvalCodeTests extends FlatSpec with Matchers with MockFactory with BeforeA
     file.lastModified should be(lastModifiedTime)
   }
 
+  "EvalCode" should "compile classes to a directory that the user can specify as a URI using the script.classes system property" in {
+    val tmpdir = System.getProperty("java.io.tmpdir")
+    val targetDirName = List(tmpdir, "special").mkString(java.io.File.separator)
+    val targetDir = new java.io.File(targetDirName)
+
+    System.setProperty("script.classes", targetDir.toURI.toString)
+
+    try {
+      (! targetDir.exists || targetDir.list.isEmpty) should be(true)
+
+      val computation = TestRules(stub[Log]).noResultsComputation
+      targetDir.list.isEmpty should be(false)
+      targetDir.list.head should be("test")
+    }
+    finally {
+      targetDir.listFiles.foreach(file => deleteFileTree(file))
+      targetDir.delete() should be(true)
+    }
+  }
+
   private def waitFor(timeoutMillis: Int)(condition: =>Boolean) = {
     val startTime = System.currentTimeMillis
     while (! condition) {
       Thread.sleep(100)
       if ((System.currentTimeMillis - startTime) > timeoutMillis) { throw new RuntimeException("Failed while waiting") }
     }
+  }
+
+  // DANGER! USE CAREFULLY!
+  private def deleteFileTree(fileOrDirectory: File) {
+    if(fileOrDirectory.isDirectory) {
+      fileOrDirectory.listFiles.foreach(file => deleteFileTree(file))
+    }
+    println(s"Deleting ${fileOrDirectory.getPath}")
+    fileOrDirectory.delete()
   }
 }
