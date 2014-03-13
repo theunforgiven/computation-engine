@@ -2,7 +2,6 @@ package com.cyrusinnovation.computation
 
 import com.cyrusinnovation.computation.util.Log
 
-//TODO inline these where they are the classes under test
 case class TestRules(logger: Log) {
 
   val maxValueComputation = new SimpleComputation("test.computations",

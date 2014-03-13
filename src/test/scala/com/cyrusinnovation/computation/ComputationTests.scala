@@ -12,10 +12,25 @@ class ComputationTests extends FlatSpec with Matchers with MockFactory {
   }
 
   "A simple computation" should "apply the Scala expression to get the test entity with the maximum test value" in {
-    val testRules = TestRules(stub[Log])    //Can't stub inside a BeforeEach
     val facts: Map[Symbol, Any] = Map('testValues -> Map('a -> 2, 'b -> 5))
-    val newFacts = testRules.maxValueComputation.compute(facts)
 
+    val maxValueComputation = new SimpleComputation("test.computations",
+                                                    "MaximumTestValueComputation",
+                                                    "Take the maximum of the values of the testValues map",
+                                                    List("scala.collection.mutable.{Map => MutableMap}",
+                                                         "scala.collection.mutable.{Set => MutableSet}"),
+                                                    """{  val toTestImports = MutableSet()
+                                                          val maxTuple = testValues.maxBy(aTuple => aTuple._2)
+                                                          Some(MutableMap(maxTuple)) }
+                                                    """,
+                                                    Map("testValues: Map[String, Int]" -> 'testValues),
+                                                    'maxTestValue,
+                                                    TestSecurityConfiguration,
+                                                    stub[Log],
+                                                    shouldPropagateExceptions = true
+                                                    )
+
+    val newFacts = maxValueComputation.compute(facts)
     newFacts('maxTestValue) should be(Map('b -> 5))
   }
 
