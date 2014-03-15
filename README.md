@@ -44,30 +44,30 @@ To get a better idea of how this all works, look at the tests for the various co
 ### Creating computations
 
 A `SimpleComputation` has:
-    * A package name - This will be the package name of the class compiled from the computation.
-    * A name - This will be the name of the class compiled from the computation, and so ideally should
-    follow Java upper-camel-case naming style.
-    * A description - an ordinary-language description of the computation.
-    * Imports - A list of fully-qualified classnames or other strings that each could be used in a
-    Scala `import` statement (without the "import" keyword).
-    * The computation expression - A string containing a Scala expression. This expression should contain
-    unbound identifiers that will be bound using the input map below. Its result should be of Option[Any]
-    type.
-    * An input identifier mapping - A map of `String -> Symbol` whose keys are of the form `identifer:Type`
-    where the identifiers are unbound in the computation expression and `Type` designates the type of the val
-    that will be created using the identifer. The values of the input identifier map are symbols designating
-    the keys in the domain of facts that will be bound to the specified vals.
-    * A result key - A symbol that will be the key for the result of the computation. The output
-    of the computation is a map containing the entire input data map as well as an entry for the result,
-    using the result key as the key and the computation's result as the value.
-    * A security configuration - An instance of the SecurityConfiguration trait indicating what packages
-    are safe to load, what classes in those packages are unsafe to load, and where the Java security policy
-    file for the current security manager is.
-    * A logger - An instance of `com.cyrusinnovation.computation.util.Log`. A convenience case class
-    `com.cyrusinnovation.computation.util.ComputationEngineLog` extends this trait and wraps an slf4j
-    log passed to its constructor.
-    * A "should propagate exceptions" flag - This flag indicates whether the computation should rethrow an
-    exception when the expression is compiled or applied.
+* A package name - This will be the package name of the class compiled from the computation.
+* A name - This will be the name of the class compiled from the computation, and so ideally should
+  follow Java upper-camel-case naming style.
+* A description - an ordinary-language description of the computation.
+* Imports - A list of fully-qualified classnames or other strings that each could be used in a
+  Scala `import` statement (without the "import" keyword).
+* The computation expression - A string containing a Scala expression. This expression should contain
+  unbound identifiers that will be bound using the input map below. Its result should be of Option[Any]
+  type.
+* An input identifier mapping - A map of `String -> Symbol` whose keys are of the form `identifer:Type`
+  where the identifiers are unbound in the computation expression and `Type` designates the type of the val
+  that will be created using the identifer. The values of the input identifier map are symbols designating
+  the keys in the domain of facts that will be bound to the specified vals.
+* A result key - A symbol that will be the key for the result of the computation. The output
+  of the computation is a map containing the entire input data map as well as an entry for the result,
+  using the result key as the key and the computation's result as the value.
+* A security configuration - An instance of the SecurityConfiguration trait indicating what packages
+  are safe to load, what classes in those packages are unsafe to load, and where the Java security policy
+  file for the current security manager is.
+* A logger - An instance of `com.cyrusinnovation.computation.util.Log`. A convenience case class
+  `com.cyrusinnovation.computation.util.ComputationEngineLog` extends this trait and wraps an slf4j
+  log passed to its constructor.
+* A "should propagate exceptions" flag - This flag indicates whether the computation should rethrow an
+  exception when the expression is compiled or applied.
 
 A `SequentialComputation` is instantiated with a list of computations that will be the steps in the
 sequence.
