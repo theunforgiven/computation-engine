@@ -1,4 +1,7 @@
 package com.cyrusinnovation.computation.util
+/*
+ * Copyright 2014 Cyrus Innovation, LLC. Licensed under Apache license 2.0.
+ */
 
 import org.slf4j.Logger
 

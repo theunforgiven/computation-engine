@@ -1,4 +1,7 @@
 package com.cyrusinnovation.computation
+/*
+ * Copyright 2014 Cyrus Innovation, LLC. Licensed under Apache license 2.0.
+ */
 
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers

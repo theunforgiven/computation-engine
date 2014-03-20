@@ -1,4 +1,7 @@
 package com.cyrusinnovation.computation
+/*
+ * Copyright 2014 Cyrus Innovation, LLC. Licensed under Apache license 2.0.
+ */
 
 /** Establishes the location of the Java SecurityManager policy file, as well as the packages
   * to be allowed in computations. Individual classes within those classes may be blacklisted.

@@ -1,4 +1,7 @@
 package com.cyrusinnovation.computation
+/*
+ * Copyright 2014 Cyrus Innovation, LLC. Licensed under Apache license 2.0.
+ */
 
 import java.io.File
 import java.util.UUID
@@ -14,6 +17,7 @@ import java.net.URI
 
 /**
  * Based on code by kostantinos.kougios for ScalaScriptEngine, tailored for this particular application
+ *
  */
 
 /**

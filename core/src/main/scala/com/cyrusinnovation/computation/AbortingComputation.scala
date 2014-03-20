@@ -1,4 +1,7 @@
 package com.cyrusinnovation.computation
+/*
+ * Copyright 2014 Cyrus Innovation, LLC. Licensed under Apache license 2.0.
+ */
 
 /** Wraps a computation that is used in a series of computations, and signals that the remainder of the sequence
  * should stop being executed if the results fail a specified test.
