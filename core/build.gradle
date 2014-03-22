@@ -19,15 +19,26 @@ def pomConfig = {
     description 'A Scala library for evaluating sequences of computations written as Scala strings, on domains of arbitrary facts.'
     url 'https://github.com/cyrusinnovation/computation-engine'
     licenses {
-        license([:]) {
-            name 'The Apache Software License, Version 2.0'
-            url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
-            distribution 'repo'
-        }
+      license([:]) {
+        name 'The Apache Software License, Version 2.0'
+        url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+        distribution 'repo'
+      }
     }
     scm {
-        url 'https://github.com/cyrusinnovation/computation-engine.git'
+      url 'https://github.com/cyrusinnovation/computation-engine.git'
+      connection 'scm:git:git://github.com/cyrusinnovation/computation-engine.git'
+      developerConnection 'scm:git:git@github.com:cyrusinnovation/computation-engine.git'
     }
+    developers {
+      developer {
+        id 'psfblair'
+        name 'Paul Blair'
+        roles {
+          role 'Project Founder'
+        }
+     }
+   }
 }
 
 publishing {
