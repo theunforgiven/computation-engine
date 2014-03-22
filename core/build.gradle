@@ -12,3 +12,33 @@ dependencies {
     testCompile 'org.scalamock:scalamock-scalatest-support_2.10:3.1.RC1'
     testCompile 'org.scalacheck:scalacheck_2.10:1.11.1'
 }
+
+def pomConfig = {
+    packaging 'jar'
+    name 'Computation Engine core module'
+    description 'A Scala library for evaluating sequences of computations written as Scala strings, on domains of arbitrary facts.'
+    url 'https://github.com/cyrusinnovation/computation-engine'
+    licenses {
+        license([:]) {
+            name 'The Apache Software License, Version 2.0'
+            url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+            distribution 'repo'
+        }
+    }
+    scm {
+        url 'https://github.com/cyrusinnovation/computation-engine.git'
+    }
+}
+
+publishing {
+    publications {
+        mavenCustom(MavenPublication) {
+            artifactId = 'computation-engine-core'
+            from components.java
+
+            pom.withXml {
+                asNode().children().last() + pomConfig
+            }
+        }
+    }
+}

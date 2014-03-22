@@ -39,6 +39,9 @@ subprojects {
     apply plugin: 'scala'
     apply plugin: 'maven-publish'
 
+    version = projectVersion
+    group = artifactGroup
+
     publishToMavenLocal.dependsOn test
 
     test {
@@ -46,12 +49,14 @@ subprojects {
       systemProperties = System.getProperties()
     }
 
-	publishing {
-		publications {
-			mavenJava(MavenPublication) {
-				from components.java
-			}
-		}
-	}
+    jar {
+        manifest {
+            attributes(
+                'Implementation-Title': project.name,
+                'Implementation-Version': project.version,
+                'Implementation-Vendor': project.group
+            )
+        }
+    }
 }
 
