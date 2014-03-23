@@ -44,30 +44,30 @@ To get a better idea of how this all works, look at the tests for the various co
 ### Creating computations
 
 A `SimpleComputation` has:
-    * A package name - This will be the package name of the class compiled from the computation.
-    * A name - This will be the name of the class compiled from the computation, and so ideally should
-    follow Java upper-camel-case naming style.
-    * A description - an ordinary-language description of the computation.
-    * Imports - A list of fully-qualified classnames or other strings that each could be used in a
-    Scala `import` statement (without the "import" keyword).
-    * The computation expression - A string containing a Scala expression. This expression should contain
-    unbound identifiers that will be bound using the input map below. Its result should be of Option[Any]
-    type.
-    * An input identifier mapping - A map of `String -> Symbol` whose keys are of the form `identifer:Type`
-    where the identifiers are unbound in the computation expression and `Type` designates the type of the val
-    that will be created using the identifer. The values of the input identifier map are symbols designating
-    the keys in the domain of facts that will be bound to the specified vals.
-    * A result key - A symbol that will be the key for the result of the computation. The output
-    of the computation is a map containing the entire input data map as well as an entry for the result,
-    using the result key as the key and the computation's result as the value.
-    * A security configuration - An instance of the SecurityConfiguration trait indicating what packages
-    are safe to load, what classes in those packages are unsafe to load, and where the Java security policy
-    file for the current security manager is.
-    * A logger - An instance of `com.cyrusinnovation.computation.util.Log`. A convenience case class
-    `com.cyrusinnovation.computation.util.ComputationEngineLog` extends this trait and wraps an slf4j
-    log passed to its constructor.
-    * A "should propagate exceptions" flag - This flag indicates whether the computation should rethrow an
-    exception when the expression is compiled or applied.
+* A package name - This will be the package name of the class compiled from the computation.
+* A name - This will be the name of the class compiled from the computation, and so ideally should
+  follow Java upper-camel-case naming style.
+* A description - an ordinary-language description of the computation.
+* Imports - A list of fully-qualified classnames or other strings that each could be used in a
+  Scala `import` statement (without the "import" keyword).
+* The computation expression - A string containing a Scala expression. This expression should contain
+  unbound identifiers that will be bound using the input map below. Its result should be of `Option[Any]`
+  type.
+* An input identifier mapping - A map of `String -> Symbol` whose keys are of the form `identifer:Type`
+  where the identifiers are unbound in the computation expression and `Type` designates the type of the val
+  that will be created using the identifer. The values of this input identifier mapping are symbols designating
+  the keys in the domain of facts that will be bound to the specified vals.
+* A result key - A symbol that will be the key for the result of the computation. The output
+  of the computation is a map containing the entire input data map as well as an entry for the result,
+  using the result key as the key and the computation's result as the value.
+* A security configuration - An instance of the `SecurityConfiguration` trait indicating what packages
+  are safe to load, what classes in those packages are unsafe to load, and where the Java security policy
+  file for the current security manager is.
+* A logger - An instance of `com.cyrusinnovation.computation.util.Log`. A convenience case class
+  `com.cyrusinnovation.computation.util.ComputationEngineLog` extends this trait and wraps an slf4j
+  log passed to its constructor.
+* A "should propagate exceptions" flag - This flag indicates whether the computation should rethrow an
+  exception when the expression is compiled or applied.
 
 A `SequentialComputation` is instantiated with a list of computations that will be the steps in the
 sequence.
@@ -118,10 +118,10 @@ for the Scala script engine (see below). To establish blanket file read permissi
     };
 
 The second level of security configuration configures the Scala script engine. You can whitelist packages
-whose classes are referenced within computations, and to blacklist classes within those packages which
-should not be referenced. The `SecurityConfiguration` trait whitelists the packages most likely to be
-used by computations, and blacklists classes that have side effects. You can override these choices by
-extending the trait.
+whose classes are referenced within computations, and blacklist classes within those packages which
+should not be referenced. The `SecurityConfiguration` trait provides a default whitelist of the packages 
+most likely to be used by computations, and a blacklist of classes in those packages that have side effects. 
+You can override these choices by extending the trait.
 
 When using the computation engine, particularly during testing, it can sometimes become onerous to wait
 for the computations to be recompiled each time an application or test suite is run. Since classes are
@@ -144,17 +144,17 @@ Your Scala expression will be turned into code of the following form:
     }
 
 where `$computationExpression` is a substitution variable representing your Scala expression, and
-`$inputAssignments` is a string constructed by iterating over the identifier mapping passed to the
+`$inputAssignments` is a string constructed by iterating over the identifier mapping you passed to the
 constructor of the computation. This string is made up of statements of the following form:
 
     val $valWithType = domainFacts.get($domainKey).get.asInstanceOf[$theType]
 
 where `$valWithType` represents a key in the identifier mapping and `$domainKey` represents the
 corresponding value. The type `$theType` is obtained by taking the portion of `$valWithType` after
-the ":" character. These statements are what assign values to the free identifiers in your Scala
-expression, which correspond to the portion of `$valWithType` preceding the ":" character.
+the colon character. These statements are what assign values to the free identifiers in your Scala
+expression, which correspond to the portion of `$valWithType` preceding the colon.
 
-The result of evaluating `$computationExpression` must be an `Option[Any]` where `None` signifies that
+The result of evaluating `$computationExpression` must be an `Option[Any]`. `None` signifies that
 the computation did not produce any results, and the computation returns an empty map. If the
 computation produces a result (wrapped in a `Some`), the computation returns a map containing
 `$resultKey` as a key and the result as the value. This map later gets combined with the domain of
