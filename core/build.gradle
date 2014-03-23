@@ -16,7 +16,6 @@ dependencies {
 def pomConfig = {
     packaging 'jar'
     name 'Computation Engine core module'
-    description 'A Scala library for evaluating sequences of computations written as Scala strings, on domains of arbitrary facts.'
     url 'https://github.com/cyrusinnovation/computation-engine'
     licenses {
       license([:]) {
@@ -48,7 +47,9 @@ publishing {
             from components.java
 
             pom.withXml {
-                asNode().children().last() + pomConfig
+                //Somehow the description node can't go in the pomConfig.
+                asNode().appendNode('description', 'A Scala library for evaluating sequences of computations ' +
+                        'written as Scala strings, on domains of arbitrary facts.') + pomConfig
             }
         }
     }
