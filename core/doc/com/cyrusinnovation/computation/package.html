@@ -2,9 +2,9 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
 <html>
         <head>
-          <title>computation - com.cyrusinnovation.computation</title>
-          <meta name="description" content="computation - com.cyrusinnovation.computation" />
-          <meta name="keywords" content="computation com.cyrusinnovation.computation" />
+          <title>computation - Computation Engine Core API, version 1.0 - com.cyrusinnovation.computation</title>
+          <meta name="description" content="computation - Computation Engine Core API version 1.0 - com.cyrusinnovation.computation" />
+          <meta name="keywords" content="computation Computation Engine Core API version 1.0 com.cyrusinnovation.computation" />
           <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
           
       <link href="../../../lib/template.css" media="screen" type="text/css" rel="stylesheet" />
@@ -67,10 +67,11 @@
         <span class="kind">case class</span>
       </span>
       <span class="symbol">
-        <a href="AbortIf.html"><span class="name">AbortIf</span></a><span class="params">(<span name="packageName">packageName: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="name">name: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="description">description: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="imports">imports: <span class="extype" name="scala.List">List</span>[<span class="extype" name="scala.Predef.String">String</span>]</span>, <span name="predicateExpression">predicateExpression: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="inputMapWithTypes">inputMapWithTypes: <span class="extype" name="scala.Predef.Map">Map</span>[<span class="extype" name="scala.Predef.String">String</span>, <span class="extype" name="scala.Symbol">Symbol</span>]</span>, <span name="inner">inner: <a href="Computation.html" class="extype" name="com.cyrusinnovation.computation.Computation">Computation</a></span>, <span name="securityConfiguration">securityConfiguration: <a href="SecurityConfiguration.html" class="extype" name="com.cyrusinnovation.computation.SecurityConfiguration">SecurityConfiguration</a></span>, <span name="computationEngineLog">computationEngineLog: &lt;error&gt;</span>, <span name="shouldPropagateExceptions">shouldPropagateExceptions: <span class="extype" name="scala.Boolean">Boolean</span> = <span class="symbol">true</span></span>)</span><span class="result"> extends <a href="AbortingComputation.html" class="extype" name="com.cyrusinnovation.computation.AbortingComputation">AbortingComputation</a> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+        <a href="AbortIf.html"><span class="name">AbortIf</span></a><span class="params">(<span name="packageName">packageName: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="name">name: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="description">description: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="imports">imports: <span class="extype" name="scala.List">List</span>[<span class="extype" name="scala.Predef.String">String</span>]</span>, <span name="predicateExpression">predicateExpression: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="inputMapWithTypes">inputMapWithTypes: <span class="extype" name="scala.Predef.Map">Map</span>[<span class="extype" name="scala.Predef.String">String</span>, <span class="extype" name="scala.Symbol">Symbol</span>]</span>, <span name="inner">inner: <a href="Computation.html" class="extype" name="com.cyrusinnovation.computation.Computation">Computation</a></span>, <span name="securityConfiguration">securityConfiguration: <a href="SecurityConfiguration.html" class="extype" name="com.cyrusinnovation.computation.SecurityConfiguration">SecurityConfiguration</a></span>, <span name="computationEngineLog">computationEngineLog: <span class="extype" name="com.cyrusinnovation.computation.util.Log">Log</span></span>, <span name="shouldPropagateExceptions">shouldPropagateExceptions: <span class="extype" name="scala.Boolean">Boolean</span> = <span class="symbol">true</span></span>)</span><span class="result"> extends <a href="AbortingComputation.html" class="extype" name="com.cyrusinnovation.computation.AbortingComputation">AbortingComputation</a> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
       </span>
       </h4>
-      
+      <p class="comment cmt">Wraps an inner computation that is part of a series of computations, and aborts the series if the
+inner computation's result satisfies a given condition; i.</p>
     </li><li name="com.cyrusinnovation.computation.AbortIfHasResults" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="AbortIfHasResultsextendsAbortingComputationwithProductwithSerializable"></a>
       <a id="AbortIfHasResults:AbortIfHasResults"></a>

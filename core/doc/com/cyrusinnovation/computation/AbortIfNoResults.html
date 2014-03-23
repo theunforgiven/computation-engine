@@ -2,9 +2,9 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
 <html>
         <head>
-          <title>AbortIfNoResults - com.cyrusinnovation.computation.AbortIfNoResults</title>
-          <meta name="description" content="AbortIfNoResults - com.cyrusinnovation.computation.AbortIfNoResults" />
-          <meta name="keywords" content="AbortIfNoResults com.cyrusinnovation.computation.AbortIfNoResults" />
+          <title>AbortIfNoResults - Computation Engine Core API, version 1.0 - com.cyrusinnovation.computation.AbortIfNoResults</title>
+          <meta name="description" content="AbortIfNoResults - Computation Engine Core API version 1.0 - com.cyrusinnovation.computation.AbortIfNoResults" />
+          <meta name="keywords" content="AbortIfNoResults Computation Engine Core API version 1.0 com.cyrusinnovation.computation.AbortIfNoResults" />
           <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
           
       <link href="../../../lib/template.css" media="screen" type="text/css" rel="stylesheet" />
@@ -98,8 +98,7 @@ is not found in the domain of facts returned from the computation.
       </h4>
       <p class="shortcomment cmt">Instantiates an <code>AbortingComputation</code> that stops the sequence if the wrapped
                  computation does not return a result.</p><div class="fullcomment"><div class="comment cmt"><p>Instantiates an <code>AbortingComputation</code> that stops the sequence if the wrapped
-                 computation does not return a result.
-</p></div><dl class="paramcmts block"><dt class="param">inner</dt><dd class="cmt"><p>The wrapped computation whose returned domain map should contain
+                 computation does not return a result.</p></div><dl class="paramcmts block"><dt class="param">inner</dt><dd class="cmt"><p>The wrapped computation whose returned domain map should contain
                  the resultKey for that computation, if the sequence is to continue.
 </p></dd></dl></div>
     </li></ol>
@@ -224,7 +223,8 @@ is not found in the domain of facts returned from the computation.
 pass or fail the test specified by the <code>shouldAbort</code> method.</p><div class="fullcomment"><div class="comment cmt"><p>Returns a new domain of facts with its <code>continue</code> metadata modified depending on whether the results
 pass or fail the test specified by the <code>shouldAbort</code> method. The facts in the returned domain are made
 up of the original set of facts plus the result. Implements <code>compute</code> on the <code>Computation</code> trait.</p></div><dl class="paramcmts block"><dt class="param">domain</dt><dd class="cmt"><p>A <code>Domain</code> containing the facts to be operated on as well as
-                   additional metadata.</p></dd><dt>returns</dt><dd class="cmt"><p>A new domain consisting of the original domain of facts plus
+                   additional metadata.
+</p></dd><dt>returns</dt><dd class="cmt"><p>A new domain consisting of the original domain of facts plus
                    an entry whose key is <code>resultKey</code> and whose value is the result
                    of the computation. The metadata of the domain may also be different
                    from the metadata in the input domain.</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="AbortingComputation.html" class="extype" name="com.cyrusinnovation.computation.AbortingComputation">AbortingComputation</a> → <a href="Computation.html" class="extype" name="com.cyrusinnovation.computation.Computation">Computation</a></dd></dl></div>
@@ -245,8 +245,7 @@ facts plus the result.</p><div class="fullcomment"><div class="comment cmt"><p>T
 facts plus the result. This method is generally the one called by clients to execute
 computations
 </p></div><dl class="paramcmts block"><dt class="param">facts</dt><dd class="cmt"><p>A map whose keys the computation will use to identify the values
-                   to be operated on in the computation.
-</p></dd><dt>returns</dt><dd class="cmt"><p>A new map consisting of the original map of facts plus an entry
+                   to be operated on in the computation.</p></dd><dt>returns</dt><dd class="cmt"><p>A new map consisting of the original map of facts plus an entry
                    whose key is <code>resultKey</code> and whose value is the result of the
                    computation.
 </p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="Computation.html" class="extype" name="com.cyrusinnovation.computation.Computation">Computation</a></dd></dl></div>

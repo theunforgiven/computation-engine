@@ -2,9 +2,9 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
 <html>
         <head>
-          <title>SequentialComputation - com.cyrusinnovation.computation.SequentialComputation</title>
-          <meta name="description" content="SequentialComputation - com.cyrusinnovation.computation.SequentialComputation" />
-          <meta name="keywords" content="SequentialComputation com.cyrusinnovation.computation.SequentialComputation" />
+          <title>SequentialComputation - Computation Engine Core API, version 1.0 - com.cyrusinnovation.computation.SequentialComputation</title>
+          <meta name="description" content="SequentialComputation - Computation Engine Core API version 1.0 - com.cyrusinnovation.computation.SequentialComputation" />
+          <meta name="keywords" content="SequentialComputation Computation Engine Core API version 1.0 com.cyrusinnovation.computation.SequentialComputation" />
           <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
           
       <link href="../../../lib/template.css" media="screen" type="text/css" rel="stylesheet" />
@@ -94,8 +94,7 @@ that it should not continue.</p><p>This type of computation will always propagat
         <span class="name">SequentialComputation</span><span class="params">(<span name="steps">steps: <span class="extype" name="scala.List">List</span>[<a href="Computation.html" class="extype" name="com.cyrusinnovation.computation.Computation">Computation</a>]</span>)</span>
       </span>
       </h4>
-      <p class="shortcomment cmt">Instantiate a SequentialComputation from a list of computations.</p><div class="fullcomment"><div class="comment cmt"><p>Instantiate a SequentialComputation from a list of computations.
-</p></div><dl class="paramcmts block"><dt class="param">steps</dt><dd class="cmt"><p>A list of computations that make up the sequence.</p></dd></dl></div>
+      <p class="shortcomment cmt">Instantiate a SequentialComputation from a list of computations.</p><div class="fullcomment"><div class="comment cmt"><p>Instantiate a SequentialComputation from a list of computations.</p></div><dl class="paramcmts block"><dt class="param">steps</dt><dd class="cmt"><p>A list of computations that make up the sequence.</p></dd></dl></div>
     </li></ol>
             </div>
 
@@ -219,8 +218,7 @@ facts plus the result.</p><div class="fullcomment"><div class="comment cmt"><p>T
 facts plus the result. This method specifies the details of the computation and must be
 implemented by classes that mix in this trait.
 </p></div><dl class="paramcmts block"><dt class="param">domain</dt><dd class="cmt"><p>A <code>Domain</code> containing the facts to be operated on as well as
-                   additional metadata.
-</p></dd><dt>returns</dt><dd class="cmt"><p>A new domain consisting of the original domain of facts plus
+                   additional metadata.</p></dd><dt>returns</dt><dd class="cmt"><p>A new domain consisting of the original domain of facts plus
                    an entry whose key is <code>resultKey</code> and whose value is the result
                    of the computation. The metadata of the domain may also be different
                    from the metadata in the input domain.
@@ -242,8 +240,7 @@ facts plus the result.</p><div class="fullcomment"><div class="comment cmt"><p>T
 facts plus the result. This method is generally the one called by clients to execute
 computations
 </p></div><dl class="paramcmts block"><dt class="param">facts</dt><dd class="cmt"><p>A map whose keys the computation will use to identify the values
-                   to be operated on in the computation.
-</p></dd><dt>returns</dt><dd class="cmt"><p>A new map consisting of the original map of facts plus an entry
+                   to be operated on in the computation.</p></dd><dt>returns</dt><dd class="cmt"><p>A new map consisting of the original map of facts plus an entry
                    whose key is <code>resultKey</code> and whose value is the result of the
                    computation.
 </p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="Computation.html" class="extype" name="com.cyrusinnovation.computation.Computation">Computation</a></dd></dl></div>

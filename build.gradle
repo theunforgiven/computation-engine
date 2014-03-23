@@ -49,14 +49,46 @@ subprojects {
       systemProperties = System.getProperties()
     }
 
+    def manifestAttributes = [
+      'Implementation-Version': version,
+      'Implementation-Vendor': artifactGroup
+    ]
+
     jar {
-        manifest {
-            attributes(
-                'Implementation-Title': project.name,
-                'Implementation-Version': project.version,
-                'Implementation-Vendor': project.group
-            )
+      manifest {
+        attributes( manifestAttributes )
+      }
+    }
+
+    task sourceJar(type: Jar) {
+      from sourceSets.main.allScala
+    }
+
+    scaladoc.destinationDir = file("$projectDir/doc")
+    scaladoc.excludes = ['**com/cyrusinnovation/computation/EvalCode.scala', '**com/cyrusinnovation/computation/util/Logger.scala']
+    scaladoc.title = 'Computation Engine Core API, version ' + version
+
+    task scaladocJar(type: Jar, dependsOn: scaladoc) {
+      from scaladoc.destinationDir
+    }
+
+    publishing {
+      publications {
+        mavenCustom(MavenPublication) {
+          artifact sourceJar {
+            manifest {
+              attributes( manifestAttributes )
+            }
+            classifier 'sources'
+          }
+          artifact scaladocJar {
+            manifest {
+              attributes( manifestAttributes )
+            }
+            classifier 'javadoc'
+          }
         }
+      }
     }
 }
 

@@ -2,9 +2,9 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
 <html>
         <head>
-          <title>SimpleComputation - com.cyrusinnovation.computation.SimpleComputation</title>
-          <meta name="description" content="SimpleComputation - com.cyrusinnovation.computation.SimpleComputation" />
-          <meta name="keywords" content="SimpleComputation com.cyrusinnovation.computation.SimpleComputation" />
+          <title>SimpleComputation - Computation Engine Core API, version 1.0 - com.cyrusinnovation.computation.SimpleComputation</title>
+          <meta name="description" content="SimpleComputation - Computation Engine Core API version 1.0 - com.cyrusinnovation.computation.SimpleComputation" />
+          <meta name="keywords" content="SimpleComputation Computation Engine Core API version 1.0 com.cyrusinnovation.computation.SimpleComputation" />
           <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
           
       <link href="../../../lib/template.css" media="screen" type="text/css" rel="stylesheet" />
@@ -83,7 +83,7 @@ and return a <code>Map[Any, Any]</code> containing the results.</p></div><div cl
         <div id="constructors" class="members">
               <h3>Instance Constructors</h3>
               <ol><li name="com.cyrusinnovation.computation.SimpleComputation#&lt;init&gt;" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="&lt;init&gt;(packageName:String,name:String,description:String,imports:List[String],computationExpression:String,inputMapWithTypes:Map[String,Symbol],resultKey:Symbol,securityConfiguration:com.cyrusinnovation.computation.SecurityConfiguration,computationEngineLog:&lt;error&gt;,shouldPropagateExceptions:Boolean):com.cyrusinnovation.computation.SimpleComputation"></a>
+      <a id="&lt;init&gt;(packageName:String,name:String,description:String,imports:List[String],computationExpression:String,inputMapWithTypes:Map[String,Symbol],resultKey:Symbol,securityConfiguration:com.cyrusinnovation.computation.SecurityConfiguration,computationEngineLog:com.cyrusinnovation.computation.util.Log,shouldPropagateExceptions:Boolean):com.cyrusinnovation.computation.SimpleComputation"></a>
       <a id="&lt;init&gt;:SimpleComputation"></a>
       <h4 class="signature">
       <span class="modifier_kind">
@@ -91,12 +91,11 @@ and return a <code>Map[Any, Any]</code> containing the results.</p></div><div cl
         <span class="kind">new</span>
       </span>
       <span class="symbol">
-        <span class="name">SimpleComputation</span><span class="params">(<span name="packageName">packageName: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="name">name: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="description">description: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="imports">imports: <span class="extype" name="scala.List">List</span>[<span class="extype" name="scala.Predef.String">String</span>]</span>, <span name="computationExpression">computationExpression: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="inputMapWithTypes">inputMapWithTypes: <span class="extype" name="scala.Predef.Map">Map</span>[<span class="extype" name="scala.Predef.String">String</span>, <span class="extype" name="scala.Symbol">Symbol</span>]</span>, <span name="resultKey">resultKey: <span class="extype" name="scala.Symbol">Symbol</span></span>, <span name="securityConfiguration">securityConfiguration: <a href="SecurityConfiguration.html" class="extype" name="com.cyrusinnovation.computation.SecurityConfiguration">SecurityConfiguration</a></span>, <span name="computationEngineLog">computationEngineLog: &lt;error&gt;</span>, <span name="shouldPropagateExceptions">shouldPropagateExceptions: <span class="extype" name="scala.Boolean">Boolean</span> = <span class="symbol">true</span></span>)</span>
+        <span class="name">SimpleComputation</span><span class="params">(<span name="packageName">packageName: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="name">name: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="description">description: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="imports">imports: <span class="extype" name="scala.List">List</span>[<span class="extype" name="scala.Predef.String">String</span>]</span>, <span name="computationExpression">computationExpression: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="inputMapWithTypes">inputMapWithTypes: <span class="extype" name="scala.Predef.Map">Map</span>[<span class="extype" name="scala.Predef.String">String</span>, <span class="extype" name="scala.Symbol">Symbol</span>]</span>, <span name="resultKey">resultKey: <span class="extype" name="scala.Symbol">Symbol</span></span>, <span name="securityConfiguration">securityConfiguration: <a href="SecurityConfiguration.html" class="extype" name="com.cyrusinnovation.computation.SecurityConfiguration">SecurityConfiguration</a></span>, <span name="computationEngineLog">computationEngineLog: <span class="extype" name="com.cyrusinnovation.computation.util.Log">Log</span></span>, <span name="shouldPropagateExceptions">shouldPropagateExceptions: <span class="extype" name="scala.Boolean">Boolean</span> = <span class="symbol">true</span></span>)</span>
       </span>
       </h4>
-      <p class="shortcomment cmt">Instantiate a SimpleComputation.</p><div class="fullcomment"><div class="comment cmt"><p>Instantiate a SimpleComputation. Compilation of the computation expression occurs in the constructor
-             of the computation.
-</p></div><dl class="paramcmts block"><dt class="param">packageName</dt><dd class="cmt"><p>A java package name for the computation, used to hinder naming collisions.
+      <p class="shortcomment cmt">Instantiate a SimpleComputation.</p><div class="fullcomment"><div class="comment cmt"><p>Instantiate a SimpleComputation. Compilation of the computation expression
+                                             occurs in the constructor of the computation.</p></div><dl class="paramcmts block"><dt class="param">packageName</dt><dd class="cmt"><p>A java package name for the computation, used to hinder naming collisions.
                                                This package will be used as the package for the class compiled from the
                                                computation string.</p></dd><dt class="param">name</dt><dd class="cmt"><p>A name for the computation. This should follow Java camel case style
                                                and contain no spaces, since a class is going to be compiled from it.</p></dd><dt class="param">description</dt><dd class="cmt"><p>Free text describing the rule.</p></dd><dt class="param">imports</dt><dd class="cmt"><p>A list of strings, each of which is a fully qualified class name or
@@ -239,7 +238,8 @@ facts plus the result.</p><div class="fullcomment"><div class="comment cmt"><p>T
 facts plus the result. Implements <code>compute</code> on the <code>Computation</code> trait. This method will
 propagate exceptions or not depending on whether the <code>shouldPropagateExceptions</code> constructor
 parameter is set.</p></div><dl class="paramcmts block"><dt class="param">domain</dt><dd class="cmt"><p>A <code>Domain</code> containing the facts to be operated on as well as
-                   additional metadata.</p></dd><dt>returns</dt><dd class="cmt"><p>A new domain consisting of the original domain of facts plus
+                   additional metadata.
+</p></dd><dt>returns</dt><dd class="cmt"><p>A new domain consisting of the original domain of facts plus
                    an entry whose key is <code>resultKey</code> and whose value is the result
                    of the computation. The metadata of the domain may also be different
                    from the metadata in the input domain.</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="com.cyrusinnovation.computation.SimpleComputation">SimpleComputation</a> → <a href="Computation.html" class="extype" name="com.cyrusinnovation.computation.Computation">Computation</a></dd></dl></div>
@@ -260,8 +260,7 @@ facts plus the result.</p><div class="fullcomment"><div class="comment cmt"><p>T
 facts plus the result. This method is generally the one called by clients to execute
 computations
 </p></div><dl class="paramcmts block"><dt class="param">facts</dt><dd class="cmt"><p>A map whose keys the computation will use to identify the values
-                   to be operated on in the computation.
-</p></dd><dt>returns</dt><dd class="cmt"><p>A new map consisting of the original map of facts plus an entry
+                   to be operated on in the computation.</p></dd><dt>returns</dt><dd class="cmt"><p>A new map consisting of the original map of facts plus an entry
                    whose key is <code>resultKey</code> and whose value is the result of the
                    computation.
 </p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="Computation.html" class="extype" name="com.cyrusinnovation.computation.Computation">Computation</a></dd></dl></div>

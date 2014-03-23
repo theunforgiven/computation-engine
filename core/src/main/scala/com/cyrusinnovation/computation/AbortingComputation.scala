@@ -43,7 +43,6 @@ trait AbortingComputation extends Computation {
  *
  * @constructor     Instantiates an `AbortingComputation` that stops the sequence if the wrapped
  *                  computation does not return a result.
- *
  * @param inner     The wrapped computation whose returned domain map should contain
  *                  the resultKey for that computation, if the sequence is to continue.
  */
@@ -67,7 +66,6 @@ sealed case class AbortIfNoResults(inner: Computation) extends AbortingComputati
  *
  * @constructor     Instantiates an AbortingComputation that stops the sequence if the wrapped
  *                  computation returns a result.
- *
  * @param inner     The wrapped computation whose returned domain map should not contain
  *                  the resultKey for that computation, if the sequence is to continue.
  */
@@ -85,6 +83,9 @@ sealed case class AbortIfHasResults(inner: Computation) extends AbortingComputat
   }
 }
 
+import com.cyrusinnovation.computation.util.Log
+// TODO allow nesting - what if the domain returned by the inner computation returns a continue of false? (Is the relationship OR or AND?)
+
 /** Wraps an inner computation that is part of a series of computations, and aborts the series if the
  * inner computation's result satisfies a given condition; i.e. if the facts in the domain returned
  * by the computation satisfy the predicate function passed into the constructor as a string. (A
@@ -93,10 +94,9 @@ sealed case class AbortIfHasResults(inner: Computation) extends AbortingComputat
  * If this computation fails to compile or throws an exception during computation, it will always abort
  * the inner series of computations, whether or not exceptions are propagated.
  *
- * @constructor     Instantiates an `AbortingComputation` that stops the sequence if the wrapped
- *                  computation satisfies a given condition. Compilation of the predicate expression
- *                  occurs in the constructor of the computation.
- *
+ * @constructor                                   Instantiates an `AbortingComputation` that stops the sequence if the wrapped
+ *                                                computation satisfies a given condition. Compilation of the predicate expression
+ *                                                occurs in the constructor of the computation.
  * @param packageName                             A java package name for the computation, used to prevent naming collisions.
  *                                                This package will be used as the package for the class compiled from the
  *                                                computation string.
@@ -126,8 +126,6 @@ sealed case class AbortIfHasResults(inner: Computation) extends AbortingComputat
  *                                                on application, it can throw an exception up the stack, or simply
  *                                                log and return the domain it was passed.
  */
-import com.cyrusinnovation.computation.util.Log
-// TODO allow nesting - what if the domain returned by the inner computation returns a continue of false? (Is the relationship OR or AND?)
 sealed case class AbortIf(packageName: String,
                           name: String,
                           description: String,

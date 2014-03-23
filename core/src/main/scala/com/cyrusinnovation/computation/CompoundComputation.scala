@@ -12,7 +12,6 @@ import scala.collection.{MapLike, LinearSeqOptimized}
  * This type of computation will always propagate exceptions up the stack.
  *
  * @constructor     Instantiate a SequentialComputation from a list of computations.
- *
  * @param steps     A list of computations that make up the sequence.
  *
  */
@@ -46,13 +45,10 @@ class SequentialComputation(val steps: List[Computation]) extends Computation {
  * @constructor           Instantiate an IterativeComputation from another computation, indicating the
  *                        keys in the data map required to carry out the computation and the key that
  *                        will designate the results.
- *
  * @param inner           The computation that will be applied to each element in the value sequence.
- *
  * @param inputMapping    A tuple whose first element is the key that designates the sequence of
  *                        values in the domain, and whose second element designates the key
  *                        required to pass a single value to the inner computation.
- *
  * @param resultKey       The key that will designate the result of the computation in the outgoing
  *                        domain of facts. The result takes the form of a list of the results of
  *                        each inner computation).
@@ -106,13 +102,10 @@ class IterativeComputation[+A, +SeqType <: LinearSeqOptimized[A, SeqType]](val i
  * @constructor           Instantiate a MappingComputation from another computation, indicating the
  *                        keys in the domain required to carry out the computation and the key that
  *                        will designate the results.
- *
  * @param inner           The computation that will be applied to each value in the map.
- *
  * @param inputMapping    A tuple whose first element is the key that designates in the domain the
  *                        value map to be iterated over, and whose second element designates the key
  *                        required to pass a single value to the inner computation.
- *
  * @param resultKey       The key that will designate the result of the computation in the outgoing
  *                        domain of facts. The result takes the form of a Map of the results of each
  *                        inner computation, mapped from the keys of the original value map.

@@ -2,9 +2,9 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
 <html>
         <head>
-          <title>MappingComputation - com.cyrusinnovation.computation.MappingComputation</title>
-          <meta name="description" content="MappingComputation - com.cyrusinnovation.computation.MappingComputation" />
-          <meta name="keywords" content="MappingComputation com.cyrusinnovation.computation.MappingComputation" />
+          <title>MappingComputation - Computation Engine Core API, version 1.0 - com.cyrusinnovation.computation.MappingComputation</title>
+          <meta name="description" content="MappingComputation - Computation Engine Core API version 1.0 - com.cyrusinnovation.computation.MappingComputation" />
+          <meta name="keywords" content="MappingComputation Computation Engine Core API version 1.0 com.cyrusinnovation.computation.MappingComputation" />
           <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
           
       <link href="../../../lib/template.css" media="screen" type="text/css" rel="stylesheet" />
@@ -105,12 +105,9 @@ input data.)</p><p>This type of computation will always propagate exceptions up 
                        keys in the domain required to carry out the computation and the key that
                        will designate the results.</p><div class="fullcomment"><div class="comment cmt"><p>Instantiate a MappingComputation from another computation, indicating the
                        keys in the domain required to carry out the computation and the key that
-                       will designate the results.
-</p></div><dl class="paramcmts block"><dt class="param">inner</dt><dd class="cmt"><p>The computation that will be applied to each value in the map.
-</p></dd><dt class="param">inputMapping</dt><dd class="cmt"><p>A tuple whose first element is the key that designates in the domain the
+                       will designate the results.</p></div><dl class="paramcmts block"><dt class="param">inner</dt><dd class="cmt"><p>The computation that will be applied to each value in the map.</p></dd><dt class="param">inputMapping</dt><dd class="cmt"><p>A tuple whose first element is the key that designates in the domain the
                        value map to be iterated over, and whose second element designates the key
-                       required to pass a single value to the inner computation.
-</p></dd><dt class="param">resultKey</dt><dd class="cmt"><p>The key that will designate the result of the computation in the outgoing
+                       required to pass a single value to the inner computation.</p></dd><dt class="param">resultKey</dt><dd class="cmt"><p>The key that will designate the result of the computation in the outgoing
                        domain of facts. The result takes the form of a Map of the results of each
                        inner computation, mapped from the keys of the original value map.
 </p></dd></dl></div>
@@ -237,8 +234,7 @@ facts plus the result.</p><div class="fullcomment"><div class="comment cmt"><p>T
 facts plus the result. This method specifies the details of the computation and must be
 implemented by classes that mix in this trait.
 </p></div><dl class="paramcmts block"><dt class="param">domain</dt><dd class="cmt"><p>A <code>Domain</code> containing the facts to be operated on as well as
-                   additional metadata.
-</p></dd><dt>returns</dt><dd class="cmt"><p>A new domain consisting of the original domain of facts plus
+                   additional metadata.</p></dd><dt>returns</dt><dd class="cmt"><p>A new domain consisting of the original domain of facts plus
                    an entry whose key is <code>resultKey</code> and whose value is the result
                    of the computation. The metadata of the domain may also be different
                    from the metadata in the input domain.
@@ -260,8 +256,7 @@ facts plus the result.</p><div class="fullcomment"><div class="comment cmt"><p>T
 facts plus the result. This method is generally the one called by clients to execute
 computations
 </p></div><dl class="paramcmts block"><dt class="param">facts</dt><dd class="cmt"><p>A map whose keys the computation will use to identify the values
-                   to be operated on in the computation.
-</p></dd><dt>returns</dt><dd class="cmt"><p>A new map consisting of the original map of facts plus an entry
+                   to be operated on in the computation.</p></dd><dt>returns</dt><dd class="cmt"><p>A new map consisting of the original map of facts plus an entry
                    whose key is <code>resultKey</code> and whose value is the result of the
                    computation.
 </p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="Computation.html" class="extype" name="com.cyrusinnovation.computation.Computation">Computation</a></dd></dl></div>

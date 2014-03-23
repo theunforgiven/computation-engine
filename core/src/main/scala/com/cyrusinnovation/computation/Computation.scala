@@ -18,7 +18,6 @@ trait Computation {
  *
  * @param facts       A map whose keys the computation will use to identify the values
  *                    to be operated on in the computation.
- *
  * @return            A new map consisting of the original map of facts plus an entry
  *                    whose key is `resultKey` and whose value is the result of the
  *                    computation.
@@ -35,7 +34,6 @@ trait Computation {
  *
  * @param domain      A `Domain` containing the facts to be operated on as well as
  *                    additional metadata.
- *
  * @return            A new domain consisting of the original domain of facts plus
  *                    an entry whose key is `resultKey` and whose value is the result
  *                    of the computation. The metadata of the domain may also be different
@@ -70,9 +68,8 @@ object Computation {
  * and return a `Map[Any, Any]` containing the results.
  *
  *
- * @constructor Instantiate a SimpleComputation. Compilation of the computation expression occurs in the constructor
- *              of the computation.
- *
+ * @constructor                                   Instantiate a SimpleComputation. Compilation of the computation expression
+   *                                              occurs in the constructor of the computation.
  * @param packageName                             A java package name for the computation, used to hinder naming collisions.
  *                                                This package will be used as the package for the class compiled from the
  *                                                computation string.

@@ -2,9 +2,9 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
 <html>
         <head>
-          <title>AbortIf - com.cyrusinnovation.computation.AbortIf</title>
-          <meta name="description" content="AbortIf - com.cyrusinnovation.computation.AbortIf" />
-          <meta name="keywords" content="AbortIf com.cyrusinnovation.computation.AbortIf" />
+          <title>AbortIf - Computation Engine Core API, version 1.0 - com.cyrusinnovation.computation.AbortIf</title>
+          <meta name="description" content="AbortIf - Computation Engine Core API version 1.0 - com.cyrusinnovation.computation.AbortIf" />
+          <meta name="keywords" content="AbortIf Computation Engine Core API version 1.0 com.cyrusinnovation.computation.AbortIf" />
           <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
           
       <link href="../../../lib/template.css" media="screen" type="text/css" rel="stylesheet" />
@@ -35,11 +35,35 @@
         <span class="kind">case class</span>
       </span>
       <span class="symbol">
-        <span class="name">AbortIf</span><span class="params">(<span name="packageName">packageName: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="name">name: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="description">description: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="imports">imports: <span class="extype" name="scala.List">List</span>[<span class="extype" name="scala.Predef.String">String</span>]</span>, <span name="predicateExpression">predicateExpression: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="inputMapWithTypes">inputMapWithTypes: <span class="extype" name="scala.Predef.Map">Map</span>[<span class="extype" name="scala.Predef.String">String</span>, <span class="extype" name="scala.Symbol">Symbol</span>]</span>, <span name="inner">inner: <a href="Computation.html" class="extype" name="com.cyrusinnovation.computation.Computation">Computation</a></span>, <span name="securityConfiguration">securityConfiguration: <a href="SecurityConfiguration.html" class="extype" name="com.cyrusinnovation.computation.SecurityConfiguration">SecurityConfiguration</a></span>, <span name="computationEngineLog">computationEngineLog: &lt;error&gt;</span>, <span name="shouldPropagateExceptions">shouldPropagateExceptions: <span class="extype" name="scala.Boolean">Boolean</span> = <span class="symbol">true</span></span>)</span><span class="result"> extends <a href="AbortingComputation.html" class="extype" name="com.cyrusinnovation.computation.AbortingComputation">AbortingComputation</a> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+        <span class="name">AbortIf</span><span class="params">(<span name="packageName">packageName: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="name">name: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="description">description: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="imports">imports: <span class="extype" name="scala.List">List</span>[<span class="extype" name="scala.Predef.String">String</span>]</span>, <span name="predicateExpression">predicateExpression: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="inputMapWithTypes">inputMapWithTypes: <span class="extype" name="scala.Predef.Map">Map</span>[<span class="extype" name="scala.Predef.String">String</span>, <span class="extype" name="scala.Symbol">Symbol</span>]</span>, <span name="inner">inner: <a href="Computation.html" class="extype" name="com.cyrusinnovation.computation.Computation">Computation</a></span>, <span name="securityConfiguration">securityConfiguration: <a href="SecurityConfiguration.html" class="extype" name="com.cyrusinnovation.computation.SecurityConfiguration">SecurityConfiguration</a></span>, <span name="computationEngineLog">computationEngineLog: <span class="extype" name="com.cyrusinnovation.computation.util.Log">Log</span></span>, <span name="shouldPropagateExceptions">shouldPropagateExceptions: <span class="extype" name="scala.Boolean">Boolean</span> = <span class="symbol">true</span></span>)</span><span class="result"> extends <a href="AbortingComputation.html" class="extype" name="com.cyrusinnovation.computation.AbortingComputation">AbortingComputation</a> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
       </span>
       </h4>
       
-          <div id="comment" class="fullcommenttop"><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>Wraps an inner computation that is part of a series of computations, and aborts the series if the
+inner computation's result satisfies a given condition; i.e. if the facts in the domain returned
+by the computation satisfy the predicate function passed into the constructor as a string. (A
+series of computations can be a <code>SequentialComputation</code>, an <code>IterativeComputation</code>, or a <code>MappingComputation</code>.)</p><p>If this computation fails to compile or throws an exception during computation, it will always abort
+the inner series of computations, whether or not exceptions are propagated.
+</p></div><dl class="paramcmts block"><dt class="param">packageName</dt><dd class="cmt"><p>A java package name for the computation, used to prevent naming collisions.
+                                               This package will be used as the package for the class compiled from the
+                                               computation string.</p></dd><dt class="param">name</dt><dd class="cmt"><p>A name for the computation. This should follow Java camel case style
+                                               and contain no spaces, since a class is going to be compiled from it.</p></dd><dt class="param">description</dt><dd class="cmt"><p>Free text describing the rule.</p></dd><dt class="param">imports</dt><dd class="cmt"><p>A list of strings, each of which is a fully qualified class name or
+                                               otherwise valid Scala identifier/expression that is supplied to an import
+                                               statement (not including the word &quot;import&quot;).</p></dd><dt class="param">predicateExpression</dt><dd class="cmt"><p>A string that is valid Scala source code for an expression returning a
+                                               Boolean, containing free variables which will be bound by the keys in the
+                                               input map. The sequence should abort if this expression returns true.</p></dd><dt class="param">inputMapWithTypes</dt><dd class="cmt"><p>A map whose keys are the free variables in the transformationExpression,
+                                               with their types, separated by a colon as in a Scala type annotation
+                                               (space allowed). The values of the map are the keys that will be applied
+                                               to the incoming domain of facts in order to select the values with which
+                                               to bind the variables.</p></dd><dt class="param">inner</dt><dd class="cmt"><p>The wrapped computation whose returned domain map should contain values
+                                               that satisfy the predicate expression.</p></dd><dt class="param">securityConfiguration</dt><dd class="cmt"><p>An instance of the <code>SecurityConfiguration</code> trait indicating what packages
+                                               are safe to load, what classes in those packages are unsafe to load, and
+                                               where the Java security policy file for the current security manager is.</p></dd><dt class="param">computationEngineLog</dt><dd class="cmt"><p>An instance of <code>com.cyrusinnovation.computation.util.Log</code>. A convenience
+                                               case class <code>com.cyrusinnovation.computation.util.ComputationEngineLog</code>
+                                               extends this trait and wraps an slf4j log passed to its constructor.</p></dd><dt class="param">shouldPropagateExceptions</dt><dd class="cmt"><p>If a computation fails to compile or if it throws an exception
+                                               on application, it can throw an exception up the stack, or simply
+                                               log and return the domain it was passed.
+</p></dd></dl><div class="toggleContainer block">
           <span class="toggle">Linear Supertypes</span>
           <div class="superTypes hiddenContent"><span class="extype" name="scala.Serializable">Serializable</span>, <span class="extype" name="java.io.Serializable">Serializable</span>, <span class="extype" name="scala.Product">Product</span>, <span class="extype" name="scala.Equals">Equals</span>, <a href="AbortingComputation.html" class="extype" name="com.cyrusinnovation.computation.AbortingComputation">AbortingComputation</a>, <a href="Computation.html" class="extype" name="com.cyrusinnovation.computation.Computation">Computation</a>, <span class="extype" name="scala.AnyRef">AnyRef</span>, <span class="extype" name="scala.Any">Any</span></div>
         </div></div>
@@ -79,8 +103,8 @@
         <div id="allMembers">
         <div id="constructors" class="members">
               <h3>Instance Constructors</h3>
-              <ol><li name="com.cyrusinnovation.computation.AbortIf#&lt;init&gt;" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="&lt;init&gt;(packageName:String,name:String,description:String,imports:List[String],predicateExpression:String,inputMapWithTypes:Map[String,Symbol],inner:com.cyrusinnovation.computation.Computation,securityConfiguration:com.cyrusinnovation.computation.SecurityConfiguration,computationEngineLog:&lt;error&gt;,shouldPropagateExceptions:Boolean):com.cyrusinnovation.computation.AbortIf"></a>
+              <ol><li name="com.cyrusinnovation.computation.AbortIf#&lt;init&gt;" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="&lt;init&gt;(packageName:String,name:String,description:String,imports:List[String],predicateExpression:String,inputMapWithTypes:Map[String,Symbol],inner:com.cyrusinnovation.computation.Computation,securityConfiguration:com.cyrusinnovation.computation.SecurityConfiguration,computationEngineLog:com.cyrusinnovation.computation.util.Log,shouldPropagateExceptions:Boolean):com.cyrusinnovation.computation.AbortIf"></a>
       <a id="&lt;init&gt;:AbortIf"></a>
       <h4 class="signature">
       <span class="modifier_kind">
@@ -88,10 +112,32 @@
         <span class="kind">new</span>
       </span>
       <span class="symbol">
-        <span class="name">AbortIf</span><span class="params">(<span name="packageName">packageName: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="name">name: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="description">description: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="imports">imports: <span class="extype" name="scala.List">List</span>[<span class="extype" name="scala.Predef.String">String</span>]</span>, <span name="predicateExpression">predicateExpression: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="inputMapWithTypes">inputMapWithTypes: <span class="extype" name="scala.Predef.Map">Map</span>[<span class="extype" name="scala.Predef.String">String</span>, <span class="extype" name="scala.Symbol">Symbol</span>]</span>, <span name="inner">inner: <a href="Computation.html" class="extype" name="com.cyrusinnovation.computation.Computation">Computation</a></span>, <span name="securityConfiguration">securityConfiguration: <a href="SecurityConfiguration.html" class="extype" name="com.cyrusinnovation.computation.SecurityConfiguration">SecurityConfiguration</a></span>, <span name="computationEngineLog">computationEngineLog: &lt;error&gt;</span>, <span name="shouldPropagateExceptions">shouldPropagateExceptions: <span class="extype" name="scala.Boolean">Boolean</span> = <span class="symbol">true</span></span>)</span>
+        <span class="name">AbortIf</span><span class="params">(<span name="packageName">packageName: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="name">name: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="description">description: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="imports">imports: <span class="extype" name="scala.List">List</span>[<span class="extype" name="scala.Predef.String">String</span>]</span>, <span name="predicateExpression">predicateExpression: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="inputMapWithTypes">inputMapWithTypes: <span class="extype" name="scala.Predef.Map">Map</span>[<span class="extype" name="scala.Predef.String">String</span>, <span class="extype" name="scala.Symbol">Symbol</span>]</span>, <span name="inner">inner: <a href="Computation.html" class="extype" name="com.cyrusinnovation.computation.Computation">Computation</a></span>, <span name="securityConfiguration">securityConfiguration: <a href="SecurityConfiguration.html" class="extype" name="com.cyrusinnovation.computation.SecurityConfiguration">SecurityConfiguration</a></span>, <span name="computationEngineLog">computationEngineLog: <span class="extype" name="com.cyrusinnovation.computation.util.Log">Log</span></span>, <span name="shouldPropagateExceptions">shouldPropagateExceptions: <span class="extype" name="scala.Boolean">Boolean</span> = <span class="symbol">true</span></span>)</span>
       </span>
       </h4>
-      
+      <p class="shortcomment cmt">Instantiates an <code>AbortingComputation</code> that stops the sequence if the wrapped
+                                               computation satisfies a given condition.</p><div class="fullcomment"><div class="comment cmt"><p>Instantiates an <code>AbortingComputation</code> that stops the sequence if the wrapped
+                                               computation satisfies a given condition. Compilation of the predicate expression
+                                               occurs in the constructor of the computation.</p></div><dl class="paramcmts block"><dt class="param">packageName</dt><dd class="cmt"><p>A java package name for the computation, used to prevent naming collisions.
+                                               This package will be used as the package for the class compiled from the
+                                               computation string.</p></dd><dt class="param">name</dt><dd class="cmt"><p>A name for the computation. This should follow Java camel case style
+                                               and contain no spaces, since a class is going to be compiled from it.</p></dd><dt class="param">description</dt><dd class="cmt"><p>Free text describing the rule.</p></dd><dt class="param">imports</dt><dd class="cmt"><p>A list of strings, each of which is a fully qualified class name or
+                                               otherwise valid Scala identifier/expression that is supplied to an import
+                                               statement (not including the word &quot;import&quot;).</p></dd><dt class="param">predicateExpression</dt><dd class="cmt"><p>A string that is valid Scala source code for an expression returning a
+                                               Boolean, containing free variables which will be bound by the keys in the
+                                               input map. The sequence should abort if this expression returns true.</p></dd><dt class="param">inputMapWithTypes</dt><dd class="cmt"><p>A map whose keys are the free variables in the transformationExpression,
+                                               with their types, separated by a colon as in a Scala type annotation
+                                               (space allowed). The values of the map are the keys that will be applied
+                                               to the incoming domain of facts in order to select the values with which
+                                               to bind the variables.</p></dd><dt class="param">inner</dt><dd class="cmt"><p>The wrapped computation whose returned domain map should contain values
+                                               that satisfy the predicate expression.</p></dd><dt class="param">securityConfiguration</dt><dd class="cmt"><p>An instance of the <code>SecurityConfiguration</code> trait indicating what packages
+                                               are safe to load, what classes in those packages are unsafe to load, and
+                                               where the Java security policy file for the current security manager is.</p></dd><dt class="param">computationEngineLog</dt><dd class="cmt"><p>An instance of <code>com.cyrusinnovation.computation.util.Log</code>. A convenience
+                                               case class <code>com.cyrusinnovation.computation.util.ComputationEngineLog</code>
+                                               extends this trait and wraps an slf4j log passed to its constructor.</p></dd><dt class="param">shouldPropagateExceptions</dt><dd class="cmt"><p>If a computation fails to compile or if it throws an exception
+                                               on application, it can throw an exception up the stack, or simply
+                                               log and return the domain it was passed.
+</p></dd></dl></div>
     </li></ol>
             </div>
 
@@ -198,19 +244,21 @@
     </span>)</span>
               
         </dd></dl></div>
-    </li><li name="com.cyrusinnovation.computation.AbortIf#computationEngineLog" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="computationEngineLog:&lt;error&gt;"></a>
-      <a id="computationEngineLog:&lt;error&gt;"></a>
+    </li><li name="com.cyrusinnovation.computation.AbortIf#computationEngineLog" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="computationEngineLog:com.cyrusinnovation.computation.util.Log"></a>
+      <a id="computationEngineLog:Log"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">computationEngineLog</span><span class="result">: &lt;error&gt;</span>
+        <span class="name">computationEngineLog</span><span class="result">: <span class="extype" name="com.cyrusinnovation.computation.util.Log">Log</span></span>
       </span>
       </h4>
-      
+      <p class="shortcomment cmt">An instance of <code>com.cyrusinnovation.computation.util.Log</code>.</p><div class="fullcomment"><div class="comment cmt"><p>An instance of <code>com.cyrusinnovation.computation.util.Log</code>. A convenience
+                                               case class <code>com.cyrusinnovation.computation.util.ComputationEngineLog</code>
+                                               extends this trait and wraps an slf4j log passed to its constructor.</p></div></div>
     </li><li name="com.cyrusinnovation.computation.AbortIf#compute" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="compute(domain:com.cyrusinnovation.computation.Domain):com.cyrusinnovation.computation.Domain"></a>
       <a id="compute(Domain):Domain"></a>
@@ -228,7 +276,8 @@ facts plus the result.</p><div class="fullcomment"><div class="comment cmt"><p>T
 facts plus the result. Implements <code>compute</code> on the <code>Computation</code> trait. This method will
 propagate exceptions or not depending on whether the <code>shouldPropagateExceptions</code> constructor
 parameter is set.</p></div><dl class="paramcmts block"><dt class="param">domain</dt><dd class="cmt"><p>A <code>Domain</code> containing the facts to be operated on as well as
-                   additional metadata.</p></dd><dt>returns</dt><dd class="cmt"><p>A new domain consisting of the original domain of facts plus
+                   additional metadata.
+</p></dd><dt>returns</dt><dd class="cmt"><p>A new domain consisting of the original domain of facts plus
                    an entry whose key is <code>resultKey</code> and whose value is the result
                    of the computation. The metadata of the domain may also be different
                    from the metadata in the input domain.</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="com.cyrusinnovation.computation.AbortIf">AbortIf</a> → <a href="AbortingComputation.html" class="extype" name="com.cyrusinnovation.computation.AbortingComputation">AbortingComputation</a> → <a href="Computation.html" class="extype" name="com.cyrusinnovation.computation.Computation">Computation</a></dd></dl></div>
@@ -249,8 +298,7 @@ facts plus the result.</p><div class="fullcomment"><div class="comment cmt"><p>T
 facts plus the result. This method is generally the one called by clients to execute
 computations
 </p></div><dl class="paramcmts block"><dt class="param">facts</dt><dd class="cmt"><p>A map whose keys the computation will use to identify the values
-                   to be operated on in the computation.
-</p></dd><dt>returns</dt><dd class="cmt"><p>A new map consisting of the original map of facts plus an entry
+                   to be operated on in the computation.</p></dd><dt>returns</dt><dd class="cmt"><p>A new map consisting of the original map of facts plus an entry
                    whose key is <code>resultKey</code> and whose value is the result of the
                    computation.
 </p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="Computation.html" class="extype" name="com.cyrusinnovation.computation.Computation">Computation</a></dd></dl></div>
@@ -266,7 +314,7 @@ computations
         <span class="name">description</span><span class="result">: <span class="extype" name="scala.Predef.String">String</span></span>
       </span>
       </h4>
-      
+      <p class="shortcomment cmt">Free text describing the rule.</p>
     </li><li name="com.cyrusinnovation.computation.AbortIf#disabledComputationWarning" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="disabledComputationWarning:String"></a>
       <a id="disabledComputationWarning:String"></a>
@@ -337,7 +385,9 @@ computations
         <span class="name">imports</span><span class="result">: <span class="extype" name="scala.List">List</span>[<span class="extype" name="scala.Predef.String">String</span>]</span>
       </span>
       </h4>
-      
+      <p class="shortcomment cmt">A list of strings, each of which is a fully qualified class name or
+                                               otherwise valid Scala identifier/expression that is supplied to an import
+                                               statement (not including the word &quot;import&quot;).</p>
     </li><li name="com.cyrusinnovation.computation.AbortIf#inner" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="inner:com.cyrusinnovation.computation.Computation"></a>
       <a id="inner:Computation"></a>
@@ -350,10 +400,10 @@ computations
         <span class="name">inner</span><span class="result">: <a href="Computation.html" class="extype" name="com.cyrusinnovation.computation.Computation">Computation</a></span>
       </span>
       </h4>
-      <p class="shortcomment cmt">Returns the inner computation whose results will be tested (and returned by this computation).</p><div class="fullcomment"><div class="comment cmt"><p>Returns the inner computation whose results will be tested (and returned by this computation).
-This method must be implemented by classes that mix in this trait.
-</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="com.cyrusinnovation.computation.AbortIf">AbortIf</a> → <a href="AbortingComputation.html" class="extype" name="com.cyrusinnovation.computation.AbortingComputation">AbortingComputation</a></dd></dl></div>
-    </li><li name="com.cyrusinnovation.computation.AbortIf#inputMapWithTypes" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <p class="shortcomment cmt">The wrapped computation whose returned domain map should contain values
+                                               that satisfy the predicate expression.</p><div class="fullcomment"><div class="comment cmt"><p>The wrapped computation whose returned domain map should contain values
+                                               that satisfy the predicate expression.</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="com.cyrusinnovation.computation.AbortIf">AbortIf</a> → <a href="AbortingComputation.html" class="extype" name="com.cyrusinnovation.computation.AbortingComputation">AbortingComputation</a></dd></dl></div>
+    </li><li name="com.cyrusinnovation.computation.AbortIf#inputMapWithTypes" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="inputMapWithTypes:Map[String,Symbol]"></a>
       <a id="inputMapWithTypes:Map[String,Symbol]"></a>
       <h4 class="signature">
@@ -365,7 +415,13 @@ This method must be implemented by classes that mix in this trait.
         <span class="name">inputMapWithTypes</span><span class="result">: <span class="extype" name="scala.Predef.Map">Map</span>[<span class="extype" name="scala.Predef.String">String</span>, <span class="extype" name="scala.Symbol">Symbol</span>]</span>
       </span>
       </h4>
-      
+      <p class="shortcomment cmt">A map whose keys are the free variables in the transformationExpression,
+                                               with their types, separated by a colon as in a Scala type annotation
+                                               (space allowed).</p><div class="fullcomment"><div class="comment cmt"><p>A map whose keys are the free variables in the transformationExpression,
+                                               with their types, separated by a colon as in a Scala type annotation
+                                               (space allowed). The values of the map are the keys that will be applied
+                                               to the incoming domain of facts in order to select the values with which
+                                               to bind the variables.</p></div></div>
     </li><li name="scala.Any#isInstanceOf" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="isInstanceOf[T0]:Boolean"></a>
       <a id="isInstanceOf[T0]:Boolean"></a>
@@ -379,7 +435,7 @@ This method must be implemented by classes that mix in this trait.
       </span>
       </h4>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
-    </li><li name="com.cyrusinnovation.computation.AbortIf#name" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+    </li><li name="com.cyrusinnovation.computation.AbortIf#name" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="name:String"></a>
       <a id="name:String"></a>
       <h4 class="signature">
@@ -391,7 +447,8 @@ This method must be implemented by classes that mix in this trait.
         <span class="name">name</span><span class="result">: <span class="extype" name="scala.Predef.String">String</span></span>
       </span>
       </h4>
-      
+      <p class="shortcomment cmt">A name for the computation.</p><div class="fullcomment"><div class="comment cmt"><p>A name for the computation. This should follow Java camel case style
+                                               and contain no spaces, since a class is going to be compiled from it.</p></div></div>
     </li><li name="scala.AnyRef#ne" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="ne(x$1:AnyRef):Boolean"></a>
       <a id="ne(AnyRef):Boolean"></a>
@@ -431,7 +488,7 @@ This method must be implemented by classes that mix in this trait.
       </span>
       </h4>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
-    </li><li name="com.cyrusinnovation.computation.AbortIf#packageName" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+    </li><li name="com.cyrusinnovation.computation.AbortIf#packageName" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="packageName:String"></a>
       <a id="packageName:String"></a>
       <h4 class="signature">
@@ -443,8 +500,10 @@ This method must be implemented by classes that mix in this trait.
         <span class="name">packageName</span><span class="result">: <span class="extype" name="scala.Predef.String">String</span></span>
       </span>
       </h4>
-      
-    </li><li name="com.cyrusinnovation.computation.AbortIf#predicateExpression" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <p class="shortcomment cmt">A java package name for the computation, used to prevent naming collisions.</p><div class="fullcomment"><div class="comment cmt"><p>A java package name for the computation, used to prevent naming collisions.
+                                               This package will be used as the package for the class compiled from the
+                                               computation string.</p></div></div>
+    </li><li name="com.cyrusinnovation.computation.AbortIf#predicateExpression" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="predicateExpression:String"></a>
       <a id="predicateExpression:String"></a>
       <h4 class="signature">
@@ -456,7 +515,11 @@ This method must be implemented by classes that mix in this trait.
         <span class="name">predicateExpression</span><span class="result">: <span class="extype" name="scala.Predef.String">String</span></span>
       </span>
       </h4>
-      
+      <p class="shortcomment cmt">A string that is valid Scala source code for an expression returning a
+                                               Boolean, containing free variables which will be bound by the keys in the
+                                               input map.</p><div class="fullcomment"><div class="comment cmt"><p>A string that is valid Scala source code for an expression returning a
+                                               Boolean, containing free variables which will be bound by the keys in the
+                                               input map. The sequence should abort if this expression returns true.</p></div></div>
     </li><li name="com.cyrusinnovation.computation.AbortingComputation#resultKey" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="resultKey:Symbol"></a>
       <a id="resultKey:Symbol"></a>
@@ -485,7 +548,9 @@ returned by <code>compute</code>. Implements <code>resultKey</code> on the <code
         <span class="name">securityConfiguration</span><span class="result">: <a href="SecurityConfiguration.html" class="extype" name="com.cyrusinnovation.computation.SecurityConfiguration">SecurityConfiguration</a></span>
       </span>
       </h4>
-      
+      <p class="shortcomment cmt">An instance of the <code>SecurityConfiguration</code> trait indicating what packages
+                                               are safe to load, what classes in those packages are unsafe to load, and
+                                               where the Java security policy file for the current security manager is.</p>
     </li><li name="com.cyrusinnovation.computation.AbortIf#shouldAbort" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="shouldAbort(domain:com.cyrusinnovation.computation.Domain):Boolean"></a>
       <a id="shouldAbort(Domain):Boolean"></a>
@@ -515,7 +580,9 @@ obtained from the domain using the resultKey causes the predicate expression to 
         <span class="name">shouldPropagateExceptions</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
       </span>
       </h4>
-      
+      <p class="shortcomment cmt">If a computation fails to compile or if it throws an exception
+                                               on application, it can throw an exception up the stack, or simply
+                                               log and return the domain it was passed.</p>
     </li><li name="scala.AnyRef#synchronized" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="synchronized[T0](x$1:=&gt;T0):T0"></a>
       <a id="synchronized[T0](⇒T0):T0"></a>
