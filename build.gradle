@@ -65,8 +65,6 @@ subprojects {
     }
 
     scaladoc.destinationDir = file("$projectDir/doc")
-    scaladoc.excludes = ['**com/cyrusinnovation/computation/EvalCode.scala', '**com/cyrusinnovation/computation/util/Logger.scala']
-    scaladoc.title = 'Computation Engine Core API, version ' + version
 
     task scaladocJar(type: Jar, dependsOn: scaladoc) {
       from scaladoc.destinationDir

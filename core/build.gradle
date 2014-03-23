@@ -13,6 +13,9 @@ dependencies {
     testCompile 'org.scalacheck:scalacheck_2.10:1.11.1'
 }
 
+scaladoc.excludes = ['**com/cyrusinnovation/computation/EvalCode.scala', '**com/cyrusinnovation/computation/util/Logger.scala']
+scaladoc.title = 'Computation Engine Core API, version ' + version
+
 def pomConfig = {
     packaging 'jar'
     name 'Computation Engine core module'
