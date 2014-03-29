@@ -21,39 +21,44 @@ def pomConfig = {
     name 'Computation Engine core module'
     url 'https://github.com/cyrusinnovation/computation-engine'
     licenses {
-      license([:]) {
-        name 'The Apache Software License, Version 2.0'
-        url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
-        distribution 'repo'
-      }
+        license([:]) {
+            name 'The Apache Software License, Version 2.0'
+            url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+            distribution 'repo'
+        }
     }
     scm {
-      url 'https://github.com/cyrusinnovation/computation-engine.git'
-      connection 'scm:git:git://github.com/cyrusinnovation/computation-engine.git'
-      developerConnection 'scm:git:git@github.com:cyrusinnovation/computation-engine.git'
+        url 'https://github.com/cyrusinnovation/computation-engine.git'
+        connection 'scm:git:git://github.com/cyrusinnovation/computation-engine.git'
+        developerConnection 'scm:git:git@github.com:cyrusinnovation/computation-engine.git'
     }
     developers {
-      developer {
-        id 'psfblair'
-        name 'Paul Blair'
-        roles {
-          role 'Project Founder'
+        developer {
+            id 'psfblair'
+            name 'Paul Blair'
+            roles {
+                role 'Project Founder'
+            }
         }
-     }
    }
 }
 
 publishing {
     publications {
-        mavenCustom(MavenPublication) {
-            artifactId = 'computation-engine-core'
-            from components.java
+        code(MavenPublication) {
+            artifactId = project.publishedArtifactId
 
             pom.withXml {
                 //Somehow the description node can't go in the pomConfig.
                 asNode().appendNode('description', 'A Scala library for evaluating sequences of computations ' +
                         'written as Scala strings, on domains of arbitrary facts.') + pomConfig
             }
+        }
+        jarSignatures(MavenPublication) {
+           artifactId = project.publishedArtifactId
+        }
+        pomSignature(MavenPublication) {
+            artifactId = project.publishedArtifactId
         }
     }
 }
