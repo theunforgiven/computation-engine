@@ -19,11 +19,14 @@ simpler computations in different contexts. For example, you may want to apply a
 single value in one place in your application, but apply the same computation to a series or map
 of values in another (using an `IterativeComputation` or a `MappingComputation`). If you need to
 change the rule represented by the computation, re-using the same computation in both contexts
-lets you make changes in just one place Similarly, chaining computations together in a sequence
+lets you make changes in just one place. Similarly, chaining computations together in a sequence
 (using a `SequentialComputation`) allows the steps in the chained computation to be used separately
 elsewhere.
 
 ### How to use it:
+
+The core library can be obtained from Maven Central with the group ID `com.cyrusinnovation.computation-engine`
+and the artifact ID `computation-engine-core`. To code against it:
 
 1. Instantiate your computations. (For details, see "Creating computations" below.)
 
