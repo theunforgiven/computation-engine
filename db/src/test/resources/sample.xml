@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<version versionNumber="1.0" state="Editable" lastEditDate="2014-04-07T09:30:10Z">
+<computations>
+    <simpleComputation package="test.computations" name="MaximumTestValueComputation" changedInVersion="1.0"
+                description="Take the maximum of the values of the testValues map" shouldPropagateExceptions="false">
+        <computationExpression>
+            <![CDATA[ val toTestImports = MutableSet()
+                      val maxTuple = testValues.maxBy(aTuple => aTuple._2)
+                      Some(MutableMap(maxTuple))
+                     ]]>
+        </computationExpression>
+        <imports>
+            <import>scala.collection.mutable.{Map => MutableMap}</import>
+            <import>scala.collection.mutable.{Set => MutableSet}</import>
+        </imports>
+        <input>
+            <inputMapping>
+                <key>testValues: Map[String, Int]></key>
+                <value>testValues></value>
+            </inputMapping>
+        </input>
+        <resultKey>maxTestValue</resultKey>
+        <logger>computationLogger</logger>
+        <securityConfiguration>testSecurityConfiguration</securityConfiguration>
+    </simpleComputation>
+
+    <abortIfComputation package="test.computations" name="AbortIfContainsMapWithDesiredEntry" changedInVersion="1.0"
+                    description="See if the value is a map with one key 'b and value 5" shouldPropagateExceptions="false">
+        <predicateExpression>
+            <![CDATA[  x == MutableMap('b -> 5) ]]>
+        </predicateExpression>
+        <innerComputation><ref>test.computations.MaximumTestValueComputation</ref></innerComputation>
+        <imports>
+            <import>scala.collection.mutable.{Map => MutableMap}</import>
+        </imports>
+        <input>
+            <inputMapping>
+                <key>x: MutableMap[Symbol, Int]></key>
+                <value>maxTestValue></value>
+            </inputMapping>
+        </input>
+        <logger>computationLogger</logger>
+        <securityConfiguration>testSecurityConfiguration</securityConfiguration>
+    </abortIfComputation>
+
+    <namedComputation package="test.computations" name="SequentialMaxComputation" changedInVersion="1.0"
+                      description="Compute the maximum and then do a mapping computation">
+        <sequentialComputation>
+            <innerComputations>
+                <innerComputation><ref>test.computations.MaximumTestValueComputation</ref></innerComputation>
+                <innerComputation>
+                    <mappingComputation>
+                        <innerComputation><ref>test.computations.AbortIfContainsMapWithDesiredEntry</ref></innerComputation>
+                        <input>
+                            <inputMapping>
+                                <key>testValues: Map[String, Int]></key>
+                                <value>testValues></value>
+                            </inputMapping>
+                        </input>
+                        <resultKey>maxTestValue</resultKey>
+                    </mappingComputation>
+                </innerComputation>
+            </innerComputations>
+        </sequentialComputation>
+    </namedComputation>
+
+</computations>
+</version>

@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           version="1.0" xsi:schemaLocation="http://www.w3.org/2001/XMLSchema-datatypes ">
+
+    <xs:element name="version" type="versionType"/>
+
+    <xs:complexType name="versionType">
+        <xs:all minOccurs="1">
+            <xs:element name="namedComputation" type="namedComputationType"/>
+            <xs:element name="simpleComputation" type="simpleComputationType"/>
+            <xs:element name="abortIfComputation" type="abortIfComputationType"/>
+        </xs:all>
+        <xs:attribute name="versionNumber" type="versionNumberEntry"/>
+        <xs:attribute name="state" type="versionState"/>
+        <xs:attribute name="commitDate" type="xs:dateTime"/>
+        <xs:attribute name="lastEditDate" type="xs:dateTime"/>
+    </xs:complexType>
+
+    <xs:simpleType name="versionNumberEntry">
+      <xs:restriction base="xs:string">
+        <xs:pattern value="(([0-9])+\.)?(([0-9])+\.)?([0-9])+"/>
+      </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="versionState">
+      <xs:restriction base="xs:string">
+        <xs:enumeration value="Editable" />
+        <xs:enumeration value="Committed" />
+      </xs:restriction>
+    </xs:simpleType>
+
+    <xs:complexType name="namedComputationType">
+        <xs:choice>
+            <xs:element name="abortIfHasResultsComputation" type="simpleAbortComputationType"/>
+            <xs:element name="abortIfNoResultsComputation" type="simpleAbortComputationType"/>
+            <xs:element name="iterativeComputation" type="simpleAggregateComputationType"/>
+            <xs:element name="mappingComputation" type="simpleAggregateComputationType"/>
+            <xs:element name="sequentialComputation" type="sequentialComputationType"/>
+        </xs:choice>
+        <xs:attribute name="package" type="xs:string" use="required"/>
+        <xs:attribute name="name" type="xs:string" use="required"/>
+        <xs:attribute name="changedInVersion" type="versionNumberEntry" use="required"/>
+        <xs:attribute name="description" type="xs:string" use="required"/>
+    </xs:complexType>
+
+    <xs:complexType name="innerComputationType">
+        <xs:choice>
+            <xs:element name="ref" type="xs:string"/>
+            <xs:element name="simpleComputation" type="simpleComputationType"/>
+            <xs:element name="abortIfHasResultsComputation" type="simpleAbortComputationType"/>
+            <xs:element name="abortIfNoResultsComputation" type="simpleAbortComputationType"/>
+            <xs:element name="abortIfComputation" type="abortIfComputationType"/>
+            <xs:element name="iterativeComputation" type="simpleAggregateComputationType"/>
+            <xs:element name="mappingComputation" type="simpleAggregateComputationType"/>
+            <xs:element name="sequentialComputation" type="sequentialComputationType"/>
+            <xs:element name="namedComputation" type="namedComputationType"/>
+        </xs:choice>
+    </xs:complexType>
+
+    <xs:complexType name="simpleComputationType">
+        <xs:all minOccurs="1" maxOccurs="1">
+            <xs:element name="computationExpression" type="xs:string"/>
+            <xs:element name="imports" type="importType"/>
+            <xs:element name="input" type="inputType"/>
+            <xs:element name="resultKey" type="xs:string"/>
+            <xs:element name="logger" type="xs:string"/>
+            <xs:element name="securityConfiguration" type="xs:string"/>
+        </xs:all>
+        <xs:attribute name="package" type="xs:string" use="required"/>
+        <xs:attribute name="name" type="xs:string" use="required"/>
+        <xs:attribute name="changedInVersion" type="versionNumberEntry" use="required"/>
+        <xs:attribute name="description" type="xs:string" use="required"/>
+        <xs:attribute name="shouldPropagateExceptions" type="xs:boolean" use="required"/>
+    </xs:complexType>
+
+    <xs:complexType name="importType">
+        <xs:all minOccurs="1">
+            <xs:element name="import" type="xs:string"/>
+        </xs:all>
+    </xs:complexType>
+
+    <xs:complexType name="inputType">
+        <xs:all minOccurs="1">
+            <xs:element name="inputMapping">
+                <xs:complexType>
+                    <xs:all minOccurs="1" maxOccurs="1">
+                        <xs:element name="key" type="xs:string"/>
+                        <xs:element name="value" type="xs:string"/>
+                    </xs:all>
+                </xs:complexType>
+            </xs:element>
+        </xs:all>
+    </xs:complexType>
+
+    <xs:complexType name="simpleAbortComputationType">
+        <xs:all minOccurs="1" maxOccurs="1">
+            <xs:element name="innerComputation" type="innerComputationType"/>
+        </xs:all>
+    </xs:complexType>
+
+    <xs:complexType name="abortIfComputationType">
+        <xs:all minOccurs="1" maxOccurs="1">
+            <xs:element name="predicateExpression" type="xs:string"/>
+            <xs:element name="imports" type="importType"/>
+            <xs:element name="input" type="inputType"/>
+            <xs:element name="logger" type="xs:string"/>
+            <xs:element name="securityConfiguration" type="xs:string"/>
+            <xs:element name="innerComputation" type="innerComputationType"/>
+        </xs:all>
+        <xs:attribute name="package" type="xs:string" use="required"/>
+        <xs:attribute name="name" type="xs:string" use="required"/>
+        <xs:attribute name="changedInVersion" type="versionNumberEntry" use="required"/>
+        <xs:attribute name="description" type="xs:string" use="required"/>
+        <xs:attribute name="shouldPropagateExceptions" type="xs:boolean" use="required"/>
+    </xs:complexType>
+    
+    <xs:complexType name="simpleAggregateComputationType">
+        <xs:all minOccurs="1" maxOccurs="1">
+            <xs:element name="input" type="inputType"/>
+            <xs:element name="resultKey" type="xs:string"/>
+            <xs:element name="innerComputation" type="innerComputationType"/>
+        </xs:all>
+    </xs:complexType>
+
+    <xs:complexType name="sequentialComputationType">
+        <xs:all minOccurs="1" maxOccurs="1">
+            <xs:element name="innerComputations">
+                <xs:complexType>
+                    <xs:sequence minOccurs="2">
+                        <xs:element name="innerComputation" type="innerComputationType"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+        </xs:all>
+    </xs:complexType>
+</xs:schema>
