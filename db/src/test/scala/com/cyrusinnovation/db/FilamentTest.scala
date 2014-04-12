@@ -3,11 +3,8 @@ package com.cyrusinnovation.db
 import org.scalatest.{Matchers, FlatSpec}
 import org.fgraph.base.DefaultGraph
 import org.fgraph.tstore.mem.HashTripleStore
-import org.fgraph.{Direction, Edge}
 import org.fgraph.traverse.NodeTraverser
 import collection.JavaConversions._
-import java.util
-import java.util.Map.Entry
 
 // import org.fgraph.tstore.sql.PostgresTableAdapter
 

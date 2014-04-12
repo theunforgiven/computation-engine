@@ -17,7 +17,7 @@ dependencies {
     compile "org.scala-lang:scala-compiler:$scalaVersion"
     compile "org.scala-lang:scala-library:$scalaVersion"
     compile "com.googlecode.scalascriptengine:scalascriptengine:1.3.7-$scalaVersion"
-    compile "org.filamentgraph:core:0.15.2"
+    compile "org.filamentgraph:filament-core:0.15.2"
     compile "org.meta-jb:meta-jb-util:0.20.1"
 
     testCompile 'junit:junit:4.11'

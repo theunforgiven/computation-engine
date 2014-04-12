@@ -1,9 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified">
 
+    <xs:element name="library">
+        <xs:complexType>
+            <xs:sequence minOccurs="1" maxOccurs="unbounded">
+                <xs:element ref="version"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
     <xs:element name="version">
         <xs:complexType>
-            <xs:all minOccurs="1">
+            <xs:all minOccurs="1" maxOccurs="1">
                 <xs:element ref="computations"/>
             </xs:all>
             <xs:attribute name="commitDate" type="xs:dateTime"/>
@@ -82,7 +90,6 @@
     <xs:element name="namedComputation">
         <xs:complexType>
             <xs:choice>
-                <xs:element ref="simpleComputation"/>
                 <xs:element ref="abortIfNoResultsComputation"/>
                 <xs:element ref="abortIfHasResultsComputation"/>
                 <xs:element ref="iterativeComputation"/>
