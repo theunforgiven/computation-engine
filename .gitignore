@@ -1,7 +1,8 @@
 .gradle/
 .idea/
 build/
-computation-engine.iml
-computation-engine.ipr
-computation-engine.iws
+*.iml
+*.ipr
+*.iws
 out/
+.DS_Store
