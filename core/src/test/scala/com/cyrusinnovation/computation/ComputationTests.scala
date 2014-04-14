@@ -22,9 +22,9 @@ class ComputationTests extends FlatSpec with Matchers with MockFactory {
                                                     "Take the maximum of the values of the testValues map",
                                                     List("scala.collection.mutable.{Map => MutableMap}",
                                                          "scala.collection.mutable.{Set => MutableSet}"),
-                                                    """{  val toTestImports = MutableSet()
-                                                          val maxTuple = testValues.maxBy(aTuple => aTuple._2)
-                                                          Some(MutableMap(maxTuple)) }
+                                                    """val toTestImports = MutableSet()
+                                                       val maxTuple = testValues.maxBy(aTuple => aTuple._2)
+                                                       Some(MutableMap(maxTuple))
                                                     """,
                                                     Map("testValues: Map[String, Int]" -> 'testValues),
                                                     'maxTestValue,
@@ -161,7 +161,7 @@ class ComputationTests extends FlatSpec with Matchers with MockFactory {
 
     val expectedFunctionString =
       """val a: Int = domainFacts.get('foo).get.asInstanceOf[Int]
-        |(Some(a) : Option[Any]) match {
+        |( { Some(a) } : Option[Any]) match {
         |  case Some(value) => Map('A -> value)
         |  case None => Map()
         |}""".stripMargin
@@ -179,7 +179,7 @@ class ComputationTests extends FlatSpec with Matchers with MockFactory {
     val expectedFunctionString =
       """val a: Int = domainFacts.get('foo).get.asInstanceOf[Int]
         |val b: String = domainFacts.get('bar).get.asInstanceOf[String]
-        |(Some(a,b) : Option[Any]) match {
+        |( { Some(a,b) } : Option[Any]) match {
         |  case Some(value) => Map('A -> value)
         |  case None => Map()
         |}""".stripMargin
@@ -196,7 +196,7 @@ class ComputationTests extends FlatSpec with Matchers with MockFactory {
 
     // Needs initial blank line
     val expectedFunctionString = """
-        |(Some(a,b) : Option[Any]) match {
+        |( { Some(a,b) } : Option[Any]) match {
         |  case Some(value) => Map('A -> value)
         |  case None => Map()
         |}""".stripMargin
@@ -213,7 +213,7 @@ class ComputationTests extends FlatSpec with Matchers with MockFactory {
 
     // Needs initial blank line
     val expectedFunctionString = """
-        |(Some(a,b) : Option[Any]) match {
+        |( { Some(a,b) } : Option[Any]) match {
         |  case Some(value) => Map('A -> value)
         |  case None => Map()
         |}""".stripMargin
@@ -231,7 +231,7 @@ class ComputationTests extends FlatSpec with Matchers with MockFactory {
     val expectedFunctionString =
       """val a: Int = domainFacts.get('foo).get.asInstanceOf[Int]
         |val b: String = domainFacts.get('bar).get.asInstanceOf[String]
-        |( : Option[Any]) match {
+        |( { } : Option[Any]) match {
         |  case Some(value) => Map('A -> value)
         |  case None => Map()
         |}""".stripMargin
