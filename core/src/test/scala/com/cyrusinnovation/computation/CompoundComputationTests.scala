@@ -82,8 +82,6 @@ class CompoundComputationTests extends FlatSpec with Matchers with MockFactory {
 
     newFacts('negatives) should be(Map('a -> -2, 'b -> -5, 'c -> -7, 'd -> -9))
   }
-  
-  
 
   "A mapping computation" should "be able to be aborted given an arbitrary condition" in {
     val stubLogger = stub[Log]
@@ -109,6 +107,49 @@ class CompoundComputationTests extends FlatSpec with Matchers with MockFactory {
     val newDomain = mappingComputation.compute(domain)
 
     newDomain.facts('negatives) should be(Map('a -> -2, 'b -> -5))
+    newDomain.continue should be(true)
+  }
+
+  "A folding computation" should "accumulate a single value by applying a computation and an accumulator to a sequence of values "in {
+    val testRules = TestRules(stub[Log])
+    val facts: Map[Symbol, Any] = Map('testValues -> List(2, 5, 7, 9), 'initialAccumulator -> 5)
+
+    val foldingComputation = new FoldingComputation('initialAccumulator,
+                                                    ('testValues -> 'addend1),
+                                                    ('sumAccumulator -> 'addend2),
+                                                    testRules.sumComputation)
+    val newFacts = foldingComputation.compute(facts)
+
+    newFacts('sumAccumulator) should be(28)
+  }
+
+  "A folding computation" should "be able to be aborted given an arbitrary condition" in {
+    val stubLogger = stub[Log]
+    val testRules = TestRules(stub[Log])
+    val facts: Map[Symbol, Any] = Map('testValues -> List(2, 5, 7, 9), 'initialAccumulator -> 5)
+
+    val domain = Domain(facts, true)
+
+    val abortingComputation = AbortIf("test.computations",
+                                      "AbortWhenSequenceReachesSeven",
+                                      "See if the input value was 5; if so stop.",
+                                      List(),
+                                      "x == 5",
+                                      Map("x: Int" -> 'addend2),
+                                      testRules.sumComputation,
+                                      TestSecurityConfiguration,
+                                      stubLogger,
+                                      shouldPropagateExceptions = true)
+
+
+    val foldingComputation = new FoldingComputation('initialAccumulator,
+                                                    ('testValues -> 'addend1),
+                                                    ('sumAccumulator -> 'addend2),
+                                                    abortingComputation)
+
+    val newDomain = foldingComputation.compute(domain)
+
+    newDomain.facts('sumAccumulator) should be(7)
     newDomain.continue should be(true)
   }
 }

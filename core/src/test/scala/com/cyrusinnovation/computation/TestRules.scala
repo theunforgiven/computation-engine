@@ -35,6 +35,17 @@ case class TestRules(logger: Log) {
                                                   logger,
                                                   shouldPropagateExceptions = true)
 
+  val sumComputation = new SimpleComputation("test.computations",
+                                             "SumComputation",
+                                             "Take the sum of the values passed in",
+                                             List(),
+                                             "Some(addend1 + addend2)",
+                                             Map("addend1:Int" -> 'addend1, "addend2:Int" -> 'addend2),
+                                             'sum,
+                                             TestSecurityConfiguration,
+                                             logger,
+                                             shouldPropagateExceptions = true)
+
   val noResultsComputation = new SimpleComputation( "test.computations",
                                                     "NoResultsComputation",
                                                     "Return no results",
@@ -107,7 +118,7 @@ case class TestRules(logger: Log) {
                                                         "NegationComputation",
                                                         "Take the negative of the input value",
                                                         List(),
-                                                        """Some(- testValue)""",
+                                                        "Some(- testValue)",
                                                         Map("testValue: Int" -> 'testValue),
                                                         'negTestValue,
                                                         TestSecurityConfiguration,

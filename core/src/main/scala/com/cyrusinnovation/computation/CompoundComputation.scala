@@ -18,6 +18,17 @@ import scala.collection.{MapLike, LinearSeqOptimized}
 class SequentialComputation(val steps: List[Computation]) extends Computation {
   def resultKey = steps.last.resultKey
 
+  /** Takes a domain of facts and returns a new domain of facts made up of the original set of
+    * facts plus the result. This method specifies the details of the computation and must be
+    * implemented by classes that mix in this trait.
+    *
+    * @param domain      A `Domain` containing the facts to be operated on as well as
+    *                    additional metadata.
+    * @return            A new domain consisting of the original domain of facts plus
+    *                    an entry whose key is `resultKey` and whose value is the result
+    *                    of the computation. The metadata of the domain may also be different
+    *                    from the metadata in the input domain.
+    */
   def compute(domain: Domain): Domain = {
     steps.foldLeft(domain) {
       (domainSoFar: Domain, step: Computation) => {
@@ -58,6 +69,17 @@ class IterativeComputation[+A, +SeqType <: LinearSeqOptimized[A, SeqType]](val i
                            inputMapping: (Symbol, Symbol),
                            val resultKey: Symbol) extends Computation {
 
+  /** Takes a domain of facts and returns a new domain of facts made up of the original set of
+    * facts plus the result. This method specifies the details of the computation and must be
+    * implemented by classes that mix in this trait.
+    *
+    * @param domain      A `Domain` containing the facts to be operated on as well as
+    *                    additional metadata.
+    * @return            A new domain consisting of the original domain of facts plus
+    *                    an entry whose key is `resultKey` and whose value is the result
+    *                    of the computation. The metadata of the domain may also be different
+    *                    from the metadata in the input domain.
+    */
   def compute(domain: Domain): Domain = {
     val input: Any = domain.facts.get(inputMapping._1).get
     val reversedResultSequence = computeResultSequence(input, domain)
@@ -114,6 +136,17 @@ class MappingComputation[A, +B, +MapType <: MapLike[A, B, MapType] with Map[A, B
                            inputMapping: (Symbol, Symbol),
                            val resultKey: Symbol) extends Computation {
 
+  /** Takes a domain of facts and returns a new domain of facts made up of the original set of
+    * facts plus the result. This method specifies the details of the computation and must be
+    * implemented by classes that mix in this trait.
+    *
+    * @param domain      A `Domain` containing the facts to be operated on as well as
+    *                    additional metadata.
+    * @return            A new domain consisting of the original domain of facts plus
+    *                    an entry whose key is `resultKey` and whose value is the result
+    *                    of the computation. The metadata of the domain may also be different
+    *                    from the metadata in the input domain.
+    */
   def compute(domain: Domain): Domain = {
     val input: Any = domain.facts.get(inputMapping._1).get
     val resultMap = computeResultSequence(input, domain)
@@ -138,4 +171,48 @@ class MappingComputation[A, +B, +MapType <: MapLike[A, B, MapType] with Map[A, B
       }
     }
   }
+}
+
+class FoldingComputation[+A, +SeqType <: LinearSeqOptimized[A, SeqType]] (initialAccumulatorKey: Symbol,
+                                                                          inputMapping: (Symbol, Symbol),
+                                                                          accumulatorMapping: (Symbol, Symbol),
+                                                                          inner: Computation)
+                                                              extends Computation {
+
+  /** Takes a domain of facts and returns a new domain of facts made up of the original set of
+    * facts plus the result. This method specifies the details of the computation and must be
+    * implemented by classes that mix in this trait.
+    *
+    * @param domain      A `Domain` containing the facts to be operated on as well as
+    *                    additional metadata.
+    * @return            A new domain consisting of the original domain of facts plus
+    *                    an entry whose key is `resultKey` and whose value is the result
+    *                    of the computation. The metadata of the domain may also be different
+    *                    from the metadata in the input domain.
+    */
+  def compute(domain: Domain): Domain = {
+    val inputSequence = domain.facts(inputMapping._1)
+    val initialAccumulator = domain.facts(initialAccumulatorKey)
+    val accumulatedResult = computeAccumulatedResult(initialAccumulator, inputSequence, domain)
+
+    Domain.combine(Map(accumulatorMapping._1 -> accumulatedResult), domain)
+  }
+
+
+  private def computeAccumulatedResult(initialAccumulator: Any, inputSequence: Any, domain: Domain): Any = {
+    val valuesToFoldOver = inputSequence.asInstanceOf[LinearSeqOptimized[A, SeqType]]
+    valuesToFoldOver.foldLeft(initialAccumulator) {
+      (resultsSoFar, value) => {
+        val domainWithSingleValueAdded = Domain.combine(Map(inputMapping._2 -> value, accumulatorMapping._2 -> resultsSoFar), domain)
+        val innerResults = inner.compute(domainWithSingleValueAdded)
+        val result = innerResults.facts(inner.resultKey)
+        if (innerResults.continue) result else return result
+      }
+    }
+  }
+
+  /** Returns the symbol that identifies the results of the computation in the domain of facts
+    * returned by `compute`. This method must be implemented by classes that mix in this trait.
+    */
+  def resultKey: Symbol = accumulatorMapping._1
 }
