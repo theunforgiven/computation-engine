@@ -2,9 +2,9 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
 <html>
         <head>
-          <title>computation - Computation Engine Core API, version 1.0 - com.cyrusinnovation.computation</title>
-          <meta name="description" content="computation - Computation Engine Core API version 1.0 - com.cyrusinnovation.computation" />
-          <meta name="keywords" content="computation Computation Engine Core API version 1.0 com.cyrusinnovation.computation" />
+          <title>computation - Computation Engine Core API, version 1.1 - com.cyrusinnovation.computation</title>
+          <meta name="description" content="computation - Computation Engine Core API version 1.1 - com.cyrusinnovation.computation" />
+          <meta name="keywords" content="computation Computation Engine Core API version 1.1 com.cyrusinnovation.computation" />
           <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
           
       <link href="../../../lib/template.css" media="screen" type="text/css" rel="stylesheet" />
@@ -142,6 +142,19 @@ the same form.</p>
       </h4>
       <p class="comment cmt">Contains the facts to be operated on in a computation as well as metadata indicating
 whether the caller should continue or not (e.</p>
+    </li><li name="com.cyrusinnovation.computation.FoldingComputation" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="FoldingComputation[+A,+SeqType&lt;:scala.collection.LinearSeqOptimized[A,SeqType]]extendsComputation"></a>
+      <a id="FoldingComputation[+A,+SeqType&lt;:LinearSeqOptimized[A,SeqType]]:FoldingComputation[A,SeqType]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="FoldingComputation.html"><span class="name">FoldingComputation</span></a><span class="tparams">[<span name="A">+A</span>, <span name="SeqType">+SeqType &lt;: <span class="extype" name="scala.collection.LinearSeqOptimized">LinearSeqOptimized</span>[<span class="extype" name="com.cyrusinnovation.computation.FoldingComputation.A">A</span>, <span class="extype" name="com.cyrusinnovation.computation.FoldingComputation.SeqType">SeqType</span>]</span>]</span><span class="result"> extends <a href="Computation.html" class="extype" name="com.cyrusinnovation.computation.Computation">Computation</a></span>
+      </span>
+      </h4>
+      <p class="comment cmt">A computation that applies another computation serially to a sequence of values (i.</p>
     </li><li name="com.cyrusinnovation.computation.IterativeComputation" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="IterativeComputation[+A,+SeqType&lt;:scala.collection.LinearSeqOptimized[A,SeqType]]extendsComputation"></a>
       <a id="IterativeComputation[+A,+SeqType&lt;:LinearSeqOptimized[A,SeqType]]:IterativeComputation[A,SeqType]"></a>
