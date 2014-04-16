@@ -1,4 +1,4 @@
-/*
+    /*
  * Copyright 2014 Cyrus Innovation, LLC. Licensed under Apache license 2.0.
  */
 apply plugin: 'scala'
@@ -141,6 +141,7 @@ subprojects {
         }
     }
 
+    // You need to execute publishToMavenLocal before using publish to push to Sonatype
     publishing {
         //Sonatype username and password should go in user gradle.properties file ( ~/.gradle/gradle.properties)
         repositories {

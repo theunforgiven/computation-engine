@@ -1,0 +1,49 @@
+Before publishing:
+
+* Make sure build and all tests pass
+* Complete scaladocs
+* Run gradle scaladoc to generate new docs
+* Adjust README
+* Bump version number in gradle.properties to release number
+
+Publishing:
+* Uncomment Sonatype passwords in ~/.gradle/gradle.properties
+* Publish jar to MavenCentral by using the gradle tasks
+	publishToMavenLocal, then publish
+* Manage the release at Sonatype:
+	* Login to the Nexus UI at https://oss.sonatype.org 
+		(be sure to log in and not just visit the page).
+	* Click on "Staging Repositories" on menu at left
+	* Scroll down in the top middle pane to find the staging
+		repository. Its name should look like the groupId 
+		without punctuation followed by a number 
+		(e.g., comcyrusinnovation-1015)
+	* You can verify that the content was correctly uploaded
+		by clicking the "Content" tab in the lower pane.
+	* At the top, make sure only the checkbox for the
+		desired staging repository is checkedm and then 
+		click the "Close" button at the top of the top
+		center pane.
+	* Enter a description for the release. Close the
+		repository.
+	* Nexus has staging rules for Staging Close and Release. 
+		They will validate that the deployment has the correct 
+		POM, javadoc, source, pgp signatures, checksums etc. 
+		If there is a problem, you will get a report. Then you 
+		have to drop the staging repository, fix the release, and 
+		deploy again.
+	* When you see that the repository is successfully closed 
+		(you will receive a mail), select the checkbox again and
+		click the Release button at the top. Add a description 
+		for the release. Staging rules will run again. If the 
+		repository is released  successfully, you will get a 
+		notification email. Now your artifacts are in the Releases 
+		repository, which is synced to Maven Central about every 2 hours. 
+
+After publishing:
+* Tag repository with release version number
+* Push tag to GitHub ( git push --tags origin master )
+* Re-comment out Sonatype passwords
+* Bump version number in gradle.properties to next version + "-SNAPSHOT"
+* Add post on Cyrus GitHub page announcing the release
+
