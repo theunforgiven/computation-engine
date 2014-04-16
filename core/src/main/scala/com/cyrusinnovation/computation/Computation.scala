@@ -163,9 +163,8 @@ object SimpleComputation {
 
     val inputAssignments  = Computation.createInputMappings(inputMap)
 
-    //TODO wrap expression in curly braces so it doesn't have to be passed in that way.
     s"""$inputAssignments
-      | ($computationExpression : Option[Any]) match {
+      | ( { $computationExpression } : Option[Any]) match {
       |   case Some(value) => Map($resultKey -> value)
       |   case None => Map()
       |}""".stripMargin

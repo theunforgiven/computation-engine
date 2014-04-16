@@ -17,7 +17,7 @@ represented as a domain of facts represented generically as Scala maps of `Symbo
 The computation engine provides several types of compound computation to allow the re-use of
 simpler computations in different contexts. For example, you may want to apply a computation to a
 single value in one place in your application, but apply the same computation to a series or map
-of values in another (using an `IterativeComputation` or a `MappingComputation`). If you need to
+of values in another (using an `IterativeComputation,` `MappingComputation,` or `FoldingComputation`). If you need to
 change the rule represented by the computation, re-using the same computation in both contexts
 lets you make changes in just one place. Similarly, chaining computations together in a sequence
 (using a `SequentialComputation`) allows the steps in the chained computation to be used separately
@@ -75,10 +75,11 @@ A `SimpleComputation` has:
 A `SequentialComputation` is instantiated with a list of computations that will be the steps in the
 sequence.
 
-An `IterativeComputation` takes a single computation over which it will iterate. It also takes a tuple
-of symbols that specifies its input: The first element identifies the key in the domain of facts whose value is
-the sequence to be iterated over, and the second element of the tuple is the key used to designate a single
-element of that sequence in the domain of facts that is passed to the inner computation. Finally,
+An `IterativeComputation` performs the same computation on a sequence of values, resulting in a sequence of
+results in the same order. Its constructor takes as its first parameter the computation to be applied. Next,
+it takes a tuple of symbols that specifies its input: The first element identifies the key in the domain of
+facts whose value is the sequence to be iterated over, and the second element is the key in the inner
+computation to which each value from the sequence should be assigned in turn. Finally,
 the constructor takes a symbol identifying the result key for the iterative computation; the computation's
 result will be a list that is assigned to that result key in the result map. (The results of the inner
 computation are extracted using the inner computation's result key.)
@@ -88,11 +89,19 @@ iterated over are the values of a map rather than a simple sequence. The result 
 inner computation is assigned to the original key in the map returned in the results. The constructor of a
 `MappingComputation` is the same as that of an `IterativeComputation.`
 
+A `FoldingComputation` folds or reduces a computation (leftwards) over a sequence of values; its result is the
+accumulated value. It takes, first, a symbol that will point to the initial value of the accumulator in the
+input domain. Next, it takes a tuple of symbols whose first element points to the sequence of values in
+the input domain, and whose second element is the key in the inner computation to which a single value
+should be assigned. Third, it takes another tuple of symbols whose first element points to the value accumulated
+so far (and is also the result key of the computation); the second element is the key in the inner computation
+to which the accumulated value should be assigned. Finally, it takes the inner computation.
+
 An `AbortingComputation` wraps another computation and comes in several flavors. The `AbortIfNoResults`
 and `AbortIfHasResults` abort a series of computations (a `SequentialComputation,` `IterativeComputation,`
-or `MappingComputation`) if the inner computation has no results or has results, respectively. The `AbortIf`
-allows for more sophisticated tests on the data map returned from the inner computation, using a predicate
-expression specified as a Scala string.
+`FoldingComputation,` or `MappingComputation`) if the inner computation has no results or has results,
+respectively. The `AbortIf` allows for more sophisticated tests on the data map returned from the inner
+computation, using a predicate expression specified as a Scala string.
 
 ### Using the jar
 
