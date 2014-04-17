@@ -15,10 +15,10 @@
                     <import>scala.collection.mutable.{Set => MutableSet}</import>
                 </imports>
                 <input>
-                    <inputMapping>
+                    <mapping>
                         <key>testValues: Map[String, Int]></key>
                         <value>testValues></value>
-                    </inputMapping>
+                    </mapping>
                 </input>
                 <resultKey>maxTestValue</resultKey>
                 <logger>computationLogger</logger>
@@ -35,10 +35,10 @@
                     <import>scala.collection.mutable.{Map => MutableMap}</import>
                 </imports>
                 <input>
-                    <inputMapping>
+                    <mapping>
                         <key>x: MutableMap[Symbol, Int]></key>
                         <value>maxTestValue></value>
-                    </inputMapping>
+                    </mapping>
                 </input>
                 <logger>computationLogger</logger>
                 <securityConfiguration>testSecurityConfiguration</securityConfiguration>
@@ -53,10 +53,10 @@
                             <mappingComputation>
                                 <innerComputation><ref>test.computations.AbortIfContainsMapWithDesiredEntry</ref></innerComputation>
                                 <input>
-                                    <inputMapping>
+                                    <mapping>
                                         <key>testValues: Map[String, Int]></key>
                                         <value>testValues></value>
-                                    </inputMapping>
+                                    </mapping>
                                 </input>
                                 <resultKey>maxTestValue</resultKey>
                             </mappingComputation>
@@ -65,6 +65,49 @@
                 </sequentialComputation>
             </namedComputation>
 
+            <namedComputation package="test.computations" name="FoldingSumComputation" changedInVersion="1.0"
+                              description="Sum all the values in a sequence">
+                <foldingComputation>
+                    <initialAccumulatorKey>initialAccumulator</initialAccumulatorKey>
+                    <inputTuple>
+                        <mapping>
+                            <key>testValues></key>
+                            <value>addend1></value>
+                        </mapping>
+                    </inputTuple>
+                    <accumulatorTuple>
+                        <mapping>
+                            <key>sumAccumulator></key>
+                            <value>addend2></value>
+                        </mapping>
+                    </accumulatorTuple>
+
+                    <innerComputation>
+                        <simpleComputation package="test.computations" name="SumComputation" changedInVersion="1.0"
+                                    description="Take the sum of two addends" shouldPropagateExceptions="false">
+                            <computationExpression>
+                                <![CDATA[ Some(addend1 + addend2) ]]>
+                            </computationExpression>
+                            <imports></imports>
+                            <input>
+                                <mapping>
+                                    <key>addend1:Int></key>
+                                    <value>addend1></value>
+                                </mapping>
+                            </input>
+                            <input>
+                                <mapping>
+                                    <key>addend2:Int></key>
+                                    <value>addend2></value>
+                                </mapping>
+                            </input>
+                            <resultKey>sum</resultKey>
+                            <logger>computationLogger</logger>
+                            <securityConfiguration>testSecurityConfiguration</securityConfiguration>
+                        </simpleComputation>
+                    </innerComputation>
+                </foldingComputation>
+            </namedComputation>
         </computations>
     </version>
 </library>

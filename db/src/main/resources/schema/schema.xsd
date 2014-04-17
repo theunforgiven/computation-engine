@@ -94,6 +94,7 @@
                 <xs:element ref="abortIfHasResultsComputation"/>
                 <xs:element ref="iterativeComputation"/>
                 <xs:element ref="mappingComputation"/>
+                <xs:element ref="foldingComputation"/>
                 <xs:element ref="sequentialComputation"/>
             </xs:choice>
             <xs:attribute name="package" type="xs:string" use="required"/>
@@ -105,7 +106,7 @@
 
     <xs:element name="imports">
         <xs:complexType>
-            <xs:sequence minOccurs="1" maxOccurs="unbounded">
+            <xs:sequence minOccurs="0" maxOccurs="unbounded">
                 <xs:element ref="import"/>
             </xs:sequence>
         </xs:complexType>
@@ -116,12 +117,12 @@
     <xs:element name="input">
         <xs:complexType>
             <xs:sequence minOccurs="1" maxOccurs="unbounded">
-                <xs:element ref="inputMapping"/>
+                <xs:element ref="mapping"/>
             </xs:sequence>
         </xs:complexType>
     </xs:element>
 
-    <xs:element name="inputMapping">
+    <xs:element name="mapping">
         <xs:complexType>
             <xs:all minOccurs="1" maxOccurs="1">
                 <xs:element ref="key"/>
@@ -148,10 +149,39 @@
     <xs:complexType name="simpleAggregateComputationType">
         <xs:all minOccurs="1" maxOccurs="1">
             <xs:element ref="innerComputation"/>
-            <xs:element ref="input"/>
+            <xs:element ref="inputTuple"/> <!-- Is this really an input? -->
             <xs:element ref="resultKey"/>
         </xs:all>
     </xs:complexType>
+
+    <xs:element name="inputTuple">
+        <xs:complexType>
+            <xs:sequence minOccurs="1" maxOccurs="1">
+                <xs:element ref="mapping"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="foldingComputation">
+        <xs:complexType>
+            <xs:all minOccurs="1" maxOccurs="1">
+                <xs:element ref="initialAccumulatorKey"/>
+                <xs:element ref="inputTuple"/>
+                <xs:element ref="accumulatorTuple"/>
+                <xs:element ref="innerComputations"/>
+            </xs:all>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="initialAccumulatorKey" type="xs:string"/>
+
+    <xs:element name="accumulatorTuple">
+        <xs:complexType>
+            <xs:sequence minOccurs="1" maxOccurs="1">
+                <xs:element ref="mapping"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
 
     <xs:element name="innerComputation" type="innerComputationType"/>
 
@@ -164,6 +194,7 @@
              <xs:element ref="abortIfComputation"/>
              <xs:element ref="iterativeComputation"/>
              <xs:element ref="mappingComputation"/>
+             <xs:element ref="foldingComputation"/>
              <xs:element ref="sequentialComputation"/>
              <xs:element ref="namedComputation"/>
          </xs:choice>
