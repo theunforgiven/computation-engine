@@ -22,7 +22,9 @@ case object Editable extends VersionState { override def toString = "Editable" }
 case object Committed extends VersionState { override def toString = "Committed" }
 
 
-case class Computations(topLevelComputation: TopLevelComputationType*)
+case class Computations(firstTopLevelComputation: TopLevelComputationType, moreTopLevelComputations: TopLevelComputationType*) {
+  def topLevelComputations = firstTopLevelComputation :: moreTopLevelComputations
+}
 
 trait TopLevelComputationType
 
@@ -62,7 +64,10 @@ case class NamedComputation(
 case class Imports(importSequence: ImportSequence*)
 case class ImportSequence(importValue: String)
 
-case class Inputs(inputTypeSequence: InputMapping*)
+case class Inputs(firstInputMapping: InputMapping, moreInputMappings: InputMapping*) {
+  def inputMappings = firstInputMapping :: moreInputMappings
+}
+
 case class InputMapping(key: String, value: String)
 
 trait NamableComputation
@@ -76,7 +81,10 @@ case class SimpleAggregateComputationType(
 
 case class SequentialComputation(innerComputations: InnerComputations) extends NamableComputation with InnerComputationType
 
-case class InnerComputations(innerComputationSequence: InnerComputationType*)
+case class InnerComputations(firstInnerComputation: InnerComputationType, moreInnerComputations: InnerComputationType*) {
+  def innerComputations = firstInnerComputation :: moreInnerComputations
+}
+
 trait InnerComputationType
 
 case class Ref(referencedComputation: String) extends InnerComputationType
