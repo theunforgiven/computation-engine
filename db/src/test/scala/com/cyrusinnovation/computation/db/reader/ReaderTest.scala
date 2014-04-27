@@ -3,33 +3,29 @@ package com.cyrusinnovation.computation.db.reader
 import org.scalatest.{Matchers, FlatSpec}
 import scala.xml.{Elem, XML}
 import org.joda.time.DateTime
-import org.joda.time.format.{ISODateTimeFormat, DateTimeFormat, DateTimeFormatter}
+import org.joda.time.format.ISODateTimeFormat
 import com.cyrusinnovation.computation.db._
-import scala.Some
-import scala.Some
-import scala.Some
-import scala.Some
-import scala.Some
-import scala.Some
 import com.cyrusinnovation.computation.db.Imports
 import com.cyrusinnovation.computation.db.MappingComputationFactory
 import com.cyrusinnovation.computation.db.Ref
 import com.cyrusinnovation.computation.db.AbortIfComputationFactory
 import com.cyrusinnovation.computation.db.SimpleComputationFactory
-import com.cyrusinnovation.computation.db.Library
 import scala.Some
 import com.cyrusinnovation.computation.db.SequentialComputationFactory
 import com.cyrusinnovation.computation.db.NamedComputationFactory
 import com.cyrusinnovation.computation.db.Inputs
 import java.io.InputStream
 
-class XmlReaderTest extends FlatSpec with Matchers {
+class ReaderTest extends FlatSpec with Matchers {
 
   "A library" should "be able to be read from XML" in {
     val inputStream: InputStream = getClass.getResourceAsStream("/sample.xml")
     val nodes: Elem = XML.load(inputStream)
     val reader = new XmlReader(nodes)
-
+    verifyAST(reader)
+  }
+  
+  def verifyAST(reader: Reader) = {
     val root = reader.unmarshal
     root.name should be("test")
     root.versions.size should be(1)
