@@ -6,6 +6,7 @@
             <xs:sequence minOccurs="1" maxOccurs="unbounded">
                 <xs:element ref="version"/>
             </xs:sequence>
+            <xs:attribute name="name" type="xs:string" use="required"/>
         </xs:complexType>
     </xs:element>
 
@@ -149,7 +150,7 @@
     <xs:complexType name="simpleAggregateComputationType">
         <xs:all minOccurs="1" maxOccurs="1">
             <xs:element ref="innerComputation"/>
-            <xs:element ref="inputTuple"/> <!-- Is this really an input? -->
+            <xs:element ref="inputTuple"/>
             <xs:element ref="resultKey"/>
         </xs:all>
     </xs:complexType>
@@ -168,7 +169,7 @@
                 <xs:element ref="initialAccumulatorKey"/>
                 <xs:element ref="inputTuple"/>
                 <xs:element ref="accumulatorTuple"/>
-                <xs:element ref="innerComputations"/>
+                <xs:element ref="innerComputation"/>
             </xs:all>
         </xs:complexType>
     </xs:element>

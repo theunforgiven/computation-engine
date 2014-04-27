@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<library>
+<library name="test">
     <version versionNumber="1.0" state="Editable" lastEditDate="2014-04-07T09:30:10Z">
         <computations>
             <simpleComputation package="test.computations" name="MaximumTestValueComputation" changedInVersion="1.0"
@@ -16,8 +16,8 @@
                 </imports>
                 <input>
                     <mapping>
-                        <key>testValues: Map[String, Int]></key>
-                        <value>testValues></value>
+                        <key>testValues: Map[String, Int]</key>
+                        <value>testValues</value>
                     </mapping>
                 </input>
                 <resultKey>maxTestValue</resultKey>
@@ -36,8 +36,8 @@
                 </imports>
                 <input>
                     <mapping>
-                        <key>x: MutableMap[Symbol, Int]></key>
-                        <value>maxTestValue></value>
+                        <key>x: MutableMap[Symbol, Int]</key>
+                        <value>maxTestValue</value>
                     </mapping>
                 </input>
                 <logger>computationLogger</logger>
@@ -52,12 +52,12 @@
                         <innerComputation>
                             <mappingComputation>
                                 <innerComputation><ref>test.computations.AbortIfContainsMapWithDesiredEntry</ref></innerComputation>
-                                <input>
+                                <inputTuple>
                                     <mapping>
-                                        <key>testValues: Map[String, Int]></key>
-                                        <value>testValues></value>
+                                        <key>testValues: Map[String, Int]</key>
+                                        <value>testValues</value>
                                     </mapping>
-                                </input>
+                                </inputTuple>
                                 <resultKey>maxTestValue</resultKey>
                             </mappingComputation>
                         </innerComputation>
@@ -71,14 +71,14 @@
                     <initialAccumulatorKey>initialAccumulator</initialAccumulatorKey>
                     <inputTuple>
                         <mapping>
-                            <key>testValues></key>
-                            <value>addend1></value>
+                            <key>testValues</key>
+                            <value>addend1</value>
                         </mapping>
                     </inputTuple>
                     <accumulatorTuple>
                         <mapping>
-                            <key>sumAccumulator></key>
-                            <value>addend2></value>
+                            <key>sumAccumulator</key>
+                            <value>addend2</value>
                         </mapping>
                     </accumulatorTuple>
 
@@ -91,14 +91,12 @@
                             <imports></imports>
                             <input>
                                 <mapping>
-                                    <key>addend1:Int></key>
-                                    <value>addend1></value>
+                                    <key>addend1:Int</key>
+                                    <value>addend1</value>
                                 </mapping>
-                            </input>
-                            <input>
                                 <mapping>
-                                    <key>addend2:Int></key>
-                                    <value>addend2></value>
+                                    <key>addend2:Int</key>
+                                    <value>addend2</value>
                                 </mapping>
                             </input>
                             <resultKey>sum</resultKey>
