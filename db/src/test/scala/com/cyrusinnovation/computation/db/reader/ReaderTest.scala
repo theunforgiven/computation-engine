@@ -22,22 +22,22 @@ class ReaderTest extends FlatSpec with Matchers {
     val inputStream: InputStream = getClass.getResourceAsStream("/sample.xml")
     val nodes: Elem = XML.load(inputStream)
     val reader = new XmlReader(nodes)
-    verifyAST(reader)
+    verifyThatLibraryIsConstructedProperly(reader)
   }
   
-  def verifyAST(reader: Reader) = {
+  def verifyThatLibraryIsConstructedProperly(reader: Reader) = {
     val root = reader.unmarshal
     root.name should be("test")
     root.versions.size should be(1)
     
-    val version = root.versions.get("1.0").get
+    val version = root.versions("1.0")
     version.versionNumber should be("1.0")
     version.state should be(Editable)
     version.commitDate should be(None)
     version.lastEditDate should be(Some(time("2014-04-07T09:30:10Z")))
     version.topLevelFactories.size should be(4)
 
-    val firstTopLevelFactory = version.topLevelFactories.get("test.computations.MaximumTestValueComputation").get.asInstanceOf[SimpleComputationFactory]
+    val firstTopLevelFactory = version.topLevelFactories("test.computations.MaximumTestValueComputation").asInstanceOf[SimpleComputationFactory]
     firstTopLevelFactory.packageValue should be("test.computations")
     firstTopLevelFactory.name should be("MaximumTestValueComputation")
     firstTopLevelFactory.description should be("Take the maximum of the values of the testValues map")
@@ -55,7 +55,7 @@ class ReaderTest extends FlatSpec with Matchers {
     firstTopLevelFactory.logger should be("computationLogger")
     firstTopLevelFactory.securityConfiguration should be("testSecurityConfiguration")
 
-    val secondTopLevelFactory = version.topLevelFactories.get("test.computations.AbortIfContainsMapWithDesiredEntry").get.asInstanceOf[AbortIfComputationFactory]
+    val secondTopLevelFactory = version.topLevelFactories("test.computations.AbortIfContainsMapWithDesiredEntry").asInstanceOf[AbortIfComputationFactory]
 
     secondTopLevelFactory.packageValue should be("test.computations")
     secondTopLevelFactory.name should be("AbortIfContainsMapWithDesiredEntry")
@@ -63,13 +63,13 @@ class ReaderTest extends FlatSpec with Matchers {
     secondTopLevelFactory.changedInVersion should be("1.0")
     secondTopLevelFactory.shouldPropagateExceptions should be(false)
     normalizeSpace(secondTopLevelFactory.predicateExpression) should be("x == MutableMap('b -> 5)")
-    secondTopLevelFactory.innerFactory should be(Ref("test.computations.MaximumTestValueComputation"))
+    secondTopLevelFactory.innerFactory.asInstanceOf[Ref].referencedFactoryName should be("test.computations.MaximumTestValueComputation")
     secondTopLevelFactory.imports should be(Imports("scala.collection.mutable.{Map => MutableMap}"))
     secondTopLevelFactory.input should be(Inputs(Mapping("x: MutableMap[Symbol, Int]", "maxTestValue")))
     secondTopLevelFactory.logger should be("computationLogger")
     secondTopLevelFactory.securityConfiguration should be("testSecurityConfiguration")
 
-    val thirdTopLevelFactory = version.topLevelFactories.get("test.computations.SequentialMaxComputation").get.asInstanceOf[NamedComputationFactory]
+    val thirdTopLevelFactory = version.topLevelFactories("test.computations.SequentialMaxComputation").asInstanceOf[NamedComputationFactory]
 
     thirdTopLevelFactory.packageValue should be("test.computations")
     thirdTopLevelFactory.name should be("SequentialMaxComputation")
@@ -79,13 +79,13 @@ class ReaderTest extends FlatSpec with Matchers {
     val sequentialComputationFactory = thirdTopLevelFactory.factoryForNamableComputation.asInstanceOf[SequentialComputationFactory]
     sequentialComputationFactory.innerFactories.size should be(2)
     val firstInnerFactory = sequentialComputationFactory.innerFactories.head.asInstanceOf[Ref]
-    firstInnerFactory should be(Ref("test.computations.MaximumTestValueComputation"))
+    firstInnerFactory.asInstanceOf[Ref].referencedFactoryName should be("test.computations.MaximumTestValueComputation")
     val secondInnerFactory = sequentialComputationFactory.innerFactories.tail.head.asInstanceOf[MappingComputationFactory]
-    secondInnerFactory.innerFactory should be(Ref("test.computations.AbortIfContainsMapWithDesiredEntry"))
+    secondInnerFactory.innerFactory.asInstanceOf[Ref].referencedFactoryName should be("test.computations.AbortIfContainsMapWithDesiredEntry")
     secondInnerFactory.inputTuple should be(Mapping("testValues: Map[String, Int]", "testValues"))
     secondInnerFactory.resultKey should be("maxTestValue")
 
-    val fourthTopLevelFactory = version.topLevelFactories.get("test.computations.FoldingSumComputation").get.asInstanceOf[NamedComputationFactory]
+    val fourthTopLevelFactory = version.topLevelFactories("test.computations.FoldingSumComputation").asInstanceOf[NamedComputationFactory]
     fourthTopLevelFactory.packageValue should be("test.computations")
     fourthTopLevelFactory.name should be("FoldingSumComputation")
     fourthTopLevelFactory.description should be("Sum all the values in a sequence")

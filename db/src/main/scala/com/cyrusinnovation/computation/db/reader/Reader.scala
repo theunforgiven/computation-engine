@@ -177,7 +177,7 @@ trait Reader {
   }
 
   protected def reference(node: PersistentNode) : Ref = {
-    Ref(unmarshalToString(node))
+    new Ref(unmarshalToString(node))
   }
 
   protected def imports(node: PersistentNode) : Imports = {
