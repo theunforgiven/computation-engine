@@ -6,13 +6,13 @@ import org.joda.time.DateTime
 import org.joda.time.format.ISODateTimeFormat
 import com.cyrusinnovation.computation.db._
 import com.cyrusinnovation.computation.db.Imports
-import com.cyrusinnovation.computation.db.MappingComputationFactory
+import com.cyrusinnovation.computation.db.MappingComputationSpecification
 import com.cyrusinnovation.computation.db.Ref
-import com.cyrusinnovation.computation.db.AbortIfComputationFactory
-import com.cyrusinnovation.computation.db.SimpleComputationFactory
+import com.cyrusinnovation.computation.db.AbortIfComputationSpecification
+import com.cyrusinnovation.computation.db.SimpleComputationSpecification
 import scala.Some
-import com.cyrusinnovation.computation.db.SequentialComputationFactory
-import com.cyrusinnovation.computation.db.NamedComputationFactory
+import com.cyrusinnovation.computation.db.SequentialComputationSpecification
+import com.cyrusinnovation.computation.db.NamedComputationSpecification
 import com.cyrusinnovation.computation.db.Inputs
 import java.io.InputStream
 
@@ -35,9 +35,9 @@ class ReaderTest extends FlatSpec with Matchers {
     version.state should be(Editable)
     version.commitDate should be(None)
     version.lastEditDate should be(Some(time("2014-04-07T09:30:10Z")))
-    version.topLevelFactories.size should be(4)
+    version.topLevelSpecifications.size should be(4)
 
-    val firstTopLevelFactory = version.topLevelFactories("test.computations.MaximumTestValueComputation").asInstanceOf[SimpleComputationFactory]
+    val firstTopLevelFactory = version.topLevelSpecifications("test.computations.MaximumTestValueComputation").asInstanceOf[SimpleComputationSpecification]
     firstTopLevelFactory.packageValue should be("test.computations")
     firstTopLevelFactory.name should be("MaximumTestValueComputation")
     firstTopLevelFactory.description should be("Take the maximum of the values of the testValues map")
@@ -55,7 +55,7 @@ class ReaderTest extends FlatSpec with Matchers {
     firstTopLevelFactory.logger should be("computationLogger")
     firstTopLevelFactory.securityConfiguration should be("testSecurityConfiguration")
 
-    val secondTopLevelFactory = version.topLevelFactories("test.computations.AbortIfContainsMapWithDesiredEntry").asInstanceOf[AbortIfComputationFactory]
+    val secondTopLevelFactory = version.topLevelSpecifications("test.computations.AbortIfContainsMapWithDesiredEntry").asInstanceOf[AbortIfComputationSpecification]
 
     secondTopLevelFactory.packageValue should be("test.computations")
     secondTopLevelFactory.name should be("AbortIfContainsMapWithDesiredEntry")
@@ -63,40 +63,40 @@ class ReaderTest extends FlatSpec with Matchers {
     secondTopLevelFactory.changedInVersion should be("1.0")
     secondTopLevelFactory.shouldPropagateExceptions should be(false)
     normalizeSpace(secondTopLevelFactory.predicateExpression) should be("x == MutableMap('b -> 5)")
-    secondTopLevelFactory.innerFactory.asInstanceOf[Ref].referencedFactoryName should be("test.computations.MaximumTestValueComputation")
+    secondTopLevelFactory.innerSpecification.asInstanceOf[Ref].referencedSpecification should be("test.computations.MaximumTestValueComputation")
     secondTopLevelFactory.imports should be(Imports("scala.collection.mutable.{Map => MutableMap}"))
     secondTopLevelFactory.input should be(Inputs(Mapping("x: MutableMap[Symbol, Int]", "maxTestValue")))
     secondTopLevelFactory.logger should be("computationLogger")
     secondTopLevelFactory.securityConfiguration should be("testSecurityConfiguration")
 
-    val thirdTopLevelFactory = version.topLevelFactories("test.computations.SequentialMaxComputation").asInstanceOf[NamedComputationFactory]
+    val thirdTopLevelFactory = version.topLevelSpecifications("test.computations.SequentialMaxComputation").asInstanceOf[NamedComputationSpecification]
 
     thirdTopLevelFactory.packageValue should be("test.computations")
     thirdTopLevelFactory.name should be("SequentialMaxComputation")
     thirdTopLevelFactory.description should be("Compute the maximum and then do a mapping computation")
     thirdTopLevelFactory.changedInVersion should be("1.0")
 
-    val sequentialComputationFactory = thirdTopLevelFactory.factoryForNamableComputation.asInstanceOf[SequentialComputationFactory]
-    sequentialComputationFactory.innerFactories.size should be(2)
-    val firstInnerFactory = sequentialComputationFactory.innerFactories.head.asInstanceOf[Ref]
-    firstInnerFactory.asInstanceOf[Ref].referencedFactoryName should be("test.computations.MaximumTestValueComputation")
-    val secondInnerFactory = sequentialComputationFactory.innerFactories.tail.head.asInstanceOf[MappingComputationFactory]
-    secondInnerFactory.innerFactory.asInstanceOf[Ref].referencedFactoryName should be("test.computations.AbortIfContainsMapWithDesiredEntry")
+    val sequentialComputationFactory = thirdTopLevelFactory.specForNamableComputation.asInstanceOf[SequentialComputationSpecification]
+    sequentialComputationFactory.innerSpecs.size should be(2)
+    val firstInnerFactory = sequentialComputationFactory.innerSpecs.head.asInstanceOf[Ref]
+    firstInnerFactory.asInstanceOf[Ref].referencedSpecification should be("test.computations.MaximumTestValueComputation")
+    val secondInnerFactory = sequentialComputationFactory.innerSpecs.tail.head.asInstanceOf[MappingComputationSpecification]
+    secondInnerFactory.innerSpecification.asInstanceOf[Ref].referencedSpecification should be("test.computations.AbortIfContainsMapWithDesiredEntry")
     secondInnerFactory.inputTuple should be(Mapping("testValues: Map[String, Int]", "testValues"))
     secondInnerFactory.resultKey should be("maxTestValue")
 
-    val fourthTopLevelFactory = version.topLevelFactories("test.computations.FoldingSumComputation").asInstanceOf[NamedComputationFactory]
+    val fourthTopLevelFactory = version.topLevelSpecifications("test.computations.FoldingSumComputation").asInstanceOf[NamedComputationSpecification]
     fourthTopLevelFactory.packageValue should be("test.computations")
     fourthTopLevelFactory.name should be("FoldingSumComputation")
     fourthTopLevelFactory.description should be("Sum all the values in a sequence")
     fourthTopLevelFactory.changedInVersion should be("1.0")
 
-    val foldingComputationFactory = fourthTopLevelFactory.factoryForNamableComputation.asInstanceOf[FoldingComputationFactory]
+    val foldingComputationFactory = fourthTopLevelFactory.specForNamableComputation.asInstanceOf[FoldingComputationSpecification]
     foldingComputationFactory.initialAccumulatorKey should be("initialAccumulator")
     foldingComputationFactory.inputTuple should be(Mapping("testValues", "addend1"))
     foldingComputationFactory.accumulatorTuple should be(Mapping("sumAccumulator", "addend2"))
 
-    val foldedInnerFactory = foldingComputationFactory.innerFactory.asInstanceOf[SimpleComputationFactory]
+    val foldedInnerFactory = foldingComputationFactory.innerSpecification.asInstanceOf[SimpleComputationSpecification]
     foldedInnerFactory.packageValue should be("test.computations")
     foldedInnerFactory.name should be("SumComputation")
     foldedInnerFactory.description should be("Take the sum of two addends")

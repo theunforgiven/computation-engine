@@ -3,18 +3,18 @@ package com.cyrusinnovation.computation.db.reader
 import com.cyrusinnovation.computation.db._
 import com.cyrusinnovation.computation.db.Imports
 import com.cyrusinnovation.computation.db.Mapping
-import com.cyrusinnovation.computation.db.AbortIfHasResultsComputationFactory
-import com.cyrusinnovation.computation.db.NamedComputationFactory
-import com.cyrusinnovation.computation.db.MappingComputationFactory
+import com.cyrusinnovation.computation.db.AbortIfHasResultsComputationSpecification
+import com.cyrusinnovation.computation.db.NamedComputationSpecification
+import com.cyrusinnovation.computation.db.MappingComputationSpecification
 import com.cyrusinnovation.computation.db.Ref
-import com.cyrusinnovation.computation.db.AbortIfComputationFactory
-import com.cyrusinnovation.computation.db.AbortIfNoResultsComputationFactory
-import com.cyrusinnovation.computation.db.SimpleComputationFactory
-import com.cyrusinnovation.computation.db.IterativeComputationFactory
+import com.cyrusinnovation.computation.db.AbortIfComputationSpecification
+import com.cyrusinnovation.computation.db.AbortIfNoResultsComputationSpecification
+import com.cyrusinnovation.computation.db.SimpleComputationSpecification
+import com.cyrusinnovation.computation.db.IterativeComputationSpecification
 import com.cyrusinnovation.computation.db.Version
 import com.cyrusinnovation.computation.db.Library
-import com.cyrusinnovation.computation.db.SequentialComputationFactory
-import com.cyrusinnovation.computation.db.FoldingComputationFactory
+import com.cyrusinnovation.computation.db.SequentialComputationSpecification
+import com.cyrusinnovation.computation.db.FoldingComputationSpecification
 import com.cyrusinnovation.computation.db.Inputs
 import org.joda.time.DateTime
 
@@ -78,8 +78,8 @@ trait Reader {
             versionState(attrValue(versionNode, "state")),
             optionalAttrValue(versionNode, "commitDate").map(timeString => dateTime(timeString)),
             optionalAttrValue(versionNode, "lastEditDate").map(timeString => dateTime(timeString)),
-            unmarshal(topLevelComputations.head).asInstanceOf[TopLevelComputationFactory],
-            topLevelComputations.tail.map(computationNode => unmarshal(computationNode).asInstanceOf[TopLevelComputationFactory]):_*
+            unmarshal(topLevelComputations.head).asInstanceOf[TopLevelComputationSpecification],
+            topLevelComputations.tail.map(computationNode => unmarshal(computationNode).asInstanceOf[TopLevelComputationSpecification]):_*
     )
   }
 
@@ -87,8 +87,8 @@ trait Reader {
     VersionState.fromString(stateString)
   }
 
-  protected def simpleComputationFactory(node: PersistentNode) : SimpleComputationFactory = {
-    SimpleComputationFactory(
+  protected def simpleComputationFactory(node: PersistentNode) : SimpleComputationSpecification = {
+    SimpleComputationSpecification(
       attrValue(node, "package"),
       attrValue(node, "name"),
       attrValue(node, "description"),
@@ -103,8 +103,8 @@ trait Reader {
     )
   }
 
-  protected def abortIfComputationFactory(node: PersistentNode) : AbortIfComputationFactory = {
-    AbortIfComputationFactory(
+  protected def abortIfComputationFactory(node: PersistentNode) : AbortIfComputationSpecification = {
+    AbortIfComputationSpecification(
       attrValue(node, "package"),
       attrValue(node, "name"),
       attrValue(node, "description"),
@@ -119,46 +119,46 @@ trait Reader {
     )
   }
 
-  protected def namedComputation(node: PersistentNode) : NamedComputationFactory = {
-    NamedComputationFactory(
+  protected def namedComputation(node: PersistentNode) : NamedComputationSpecification = {
+    NamedComputationSpecification(
       attrValue(node, "package"),
       attrValue(node, "name"),
       attrValue(node, "description"),
       attrValue(node, "changedInVersion"),
-      unmarshal(child(node)).asInstanceOf[NamableComputationFactory]
+      unmarshal(child(node)).asInstanceOf[NamableComputationSpecification]
     )
   }
 
-  protected def abortIfNoResultsComputation(node: PersistentNode) : AbortIfNoResultsComputationFactory = {
-    AbortIfNoResultsComputationFactory(
+  protected def abortIfNoResultsComputation(node: PersistentNode) : AbortIfNoResultsComputationSpecification = {
+    AbortIfNoResultsComputationSpecification(
       extractInnerComputationFrom(childOfType(node, "innerComputation"))
     )
   }
 
-  protected def abortIfHasResultsComputation(node: PersistentNode) : AbortIfHasResultsComputationFactory = {
-    AbortIfHasResultsComputationFactory(
+  protected def abortIfHasResultsComputation(node: PersistentNode) : AbortIfHasResultsComputationSpecification = {
+    AbortIfHasResultsComputationSpecification(
       extractInnerComputationFrom(childOfType(node, "innerComputation"))
     )
   }
 
-  protected def mappingComputation(node: PersistentNode) : MappingComputationFactory = {
-    MappingComputationFactory(
+  protected def mappingComputation(node: PersistentNode) : MappingComputationSpecification = {
+    MappingComputationSpecification(
       extractInnerComputationFrom(childOfType(node, "innerComputation")),
       unmarshal(childOfType(node, "inputTuple")).asInstanceOf[Mapping],
       unmarshalToString(childOfType(node, "resultKey"))
     )
   }
 
-  protected def iterativeComputation(node: PersistentNode) : IterativeComputationFactory = {
-    IterativeComputationFactory(
+  protected def iterativeComputation(node: PersistentNode) : IterativeComputationSpecification = {
+    IterativeComputationSpecification(
       extractInnerComputationFrom(childOfType(node, "innerComputation")),
       unmarshal(childOfType(node, "inputTuple")).asInstanceOf[Mapping],
       unmarshalToString(childOfType(node, "resultKey"))
     )
   }
 
-  protected def foldingComputation(node: PersistentNode) : FoldingComputationFactory = {
-    FoldingComputationFactory(
+  protected def foldingComputation(node: PersistentNode) : FoldingComputationSpecification = {
+    FoldingComputationSpecification(
       extractInnerComputationFrom(childOfType(node, "innerComputation")),
       unmarshalToString(childOfType(node, "initialAccumulatorKey")),
       unmarshal(childOfType(node, "inputTuple")).asInstanceOf[Mapping],
@@ -166,11 +166,11 @@ trait Reader {
     )
   }
 
-  protected def sequentialComputation(node: PersistentNode) : SequentialComputationFactory = {
+  protected def sequentialComputation(node: PersistentNode) : SequentialComputationSpecification = {
     val innerComputationsNode = childOfType(node, "innerComputations")
     val innerComputations = allChildren(innerComputationsNode).map(x => extractInnerComputationFrom(x))
 
-    SequentialComputationFactory (
+    SequentialComputationSpecification (
       innerComputations.head,
       innerComputations.tail:_*
     )
@@ -201,10 +201,10 @@ trait Reader {
     unmarshal(childOfType(node, "mapping")).asInstanceOf[Mapping]
   }
 
-  protected def extractInnerComputationFrom(innerComputationNode: PersistentNode) : InnerComputationFactory = {
+  protected def extractInnerComputationFrom(innerComputationNode: PersistentNode) : InnerComputationSpecification = {
     assert(allChildren(innerComputationNode).size == 1)
     val innerComputation = allChildren(innerComputationNode).head
-    unmarshal(innerComputation).asInstanceOf[InnerComputationFactory]
+    unmarshal(innerComputation).asInstanceOf[InnerComputationSpecification]
   }
 
   protected def attrValue(node: PersistentNode, key: String) : String

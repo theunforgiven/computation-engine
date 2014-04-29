@@ -14,10 +14,10 @@ class SchemaTest extends FlatSpec with Matchers with MockFactory {
   "A syntax tree" should "not allow cyclical references" in {
     val testAST = Library("test", Map("1.0" -> Version("1.0", VersionState.fromString("Editable"), None, None,
 
-      AbortIfComputationFactory("test.computation", "ComputationA", "Refers to B", "1.0", false, "",
+      AbortIfComputationSpecification("test.computation", "ComputationA", "Refers to B", "1.0", false, "",
         new Ref("test.computation.ComputationB"), Imports(), Inputs(Mapping("x", "y")), "logger", "config"),
 
-      AbortIfComputationFactory("test.computation", "ComputationB", "Refers to A", "1.0", false, "",
+      AbortIfComputationSpecification("test.computation", "ComputationB", "Refers to A", "1.0", false, "",
         new Ref("test.computation.ComputationA"), Imports(), Inputs(Mapping("x", "y")), "logger", "config")
     )))
 
@@ -56,11 +56,11 @@ class SchemaTest extends FlatSpec with Matchers with MockFactory {
                      securityConfigurations: Map[String, SecurityConfiguration],
                      loggers: Map[String, Log]): Computation = {
 
-    val factories = aLibrary.versions(version).topLevelFactories
-    val factoryForThisComputation = factories(computationName)
-    factoryForThisComputation.securityConfigurations = securityConfigurations
-    factoryForThisComputation.loggers = loggers
-    factories(computationName).build(factories)
+    val specifications = aLibrary.versions(version).topLevelSpecifications
+    val specificationForThisComputation = specifications(computationName)
+    specificationForThisComputation.securityConfigurations = securityConfigurations
+    specificationForThisComputation.loggers = loggers
+    specifications(computationName).build(specifications)
   }
 }
 

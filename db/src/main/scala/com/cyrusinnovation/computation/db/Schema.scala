@@ -5,18 +5,18 @@ import com.cyrusinnovation.computation._
 import com.cyrusinnovation.computation.util.Log
 
 trait AstNode {
-  def verifyNoCyclicalReferences(topLevelFactoryMap: Map[String, TopLevelComputationFactory], refNodesVisited: Set[Ref]) : Set[Ref] = this match {
+  def verifyNoCyclicalReferences(topLevelSpecificationMap: Map[String, TopLevelComputationSpecification], refNodesVisited: Set[Ref]) : Set[Ref] = this match {
     case thisRefNode: Ref => {
       if(refNodesVisited.contains(thisRefNode)) {
         throw new InvalidComputationSpecException("Computation hierarchy may not contain cyclical references")
       } else {
-        val nextNodeToVisit = topLevelFactoryMap(thisRefNode.referencedFactoryName)
-        nextNodeToVisit.verifyNoCyclicalReferences(topLevelFactoryMap, (refNodesVisited + thisRefNode))
+        val nextNodeToVisit = topLevelSpecificationMap(thisRefNode.referencedSpecification)
+        nextNodeToVisit.verifyNoCyclicalReferences(topLevelSpecificationMap, (refNodesVisited + thisRefNode))
       }
     }
     case _ => {
       children.foldLeft(refNodesVisited){
-        (nodesVisitedSoFar, node) => node.verifyNoCyclicalReferences(topLevelFactoryMap, nodesVisitedSoFar)
+        (nodesVisitedSoFar, node) => node.verifyNoCyclicalReferences(topLevelSpecificationMap, nodesVisitedSoFar)
       }
     }
   }
@@ -40,8 +40,8 @@ case class Library(name: String, versions: Map[String, Version]) extends AstNode
   }
 
   //To verify that there are no cycles, go down each top level branch separately and make sure it isn't traversed more than once.
-  override def verifyNoCyclicalReferences(topLevelFactoryMap: Map[String, TopLevelComputationFactory], refNodesVisited: Set[Ref]) = {
-    topLevelFactoryMap.values.flatMap(topLevelFactory => topLevelFactory.verifyNoCyclicalReferences(topLevelFactoryMap, Set())).toSet
+  override def verifyNoCyclicalReferences(topLevelSpecificationMap: Map[String, TopLevelComputationSpecification], refNodesVisited: Set[Ref]) = {
+    topLevelSpecificationMap.values.flatMap(topLevelSpecification => topLevelSpecification.verifyNoCyclicalReferences(topLevelSpecificationMap, Set())).toSet
   }
 }
 
@@ -49,24 +49,24 @@ case class Version(versionNumber: String,
                    state: VersionState,
                    commitDate: Option[DateTime],
                    lastEditDate: Option[DateTime],
-                   firstTopLevelComputation: TopLevelComputationFactory,
-                   moreTopLevelComputations: TopLevelComputationFactory*) extends AstNode {
+                   firstTopLevelComputation: TopLevelComputationSpecification,
+                   moreTopLevelComputations: TopLevelComputationSpecification*) extends AstNode {
 
-  def children = topLevelFactories.values.toList
+  def children = topLevelSpecifications.values.toList
 
-  def topLevelFactories = createFactoryMap(firstTopLevelComputation :: moreTopLevelComputations.toList)
+  def topLevelSpecifications = createSpecificationMap(firstTopLevelComputation :: moreTopLevelComputations.toList)
   
-  def createFactoryMap(factories: List[TopLevelComputationFactory]) : Map[String, TopLevelComputationFactory] = {
-    factories.foldLeft(Map[String, TopLevelComputationFactory]()) {
-      (mapSoFar, factory) => mapSoFar + (factory.fullyQualifiedName -> factory)
+  def createSpecificationMap(specs: List[TopLevelComputationSpecification]) : Map[String, TopLevelComputationSpecification] = {
+    specs.foldLeft(Map[String, TopLevelComputationSpecification]()) {
+      (mapSoFar, specification) => mapSoFar + (specification.fullyQualifiedName -> specification)
     }
   }
 
-  def verifyNoCyclicalReferences() : Set[Ref] = verifyNoCyclicalReferences(this.topLevelFactories, Set())
+  def verifyNoCyclicalReferences() : Set[Ref] = verifyNoCyclicalReferences(this.topLevelSpecifications, Set())
 
   //To verify that there are no cycles, go down each top level branch separately and make sure it isn't traversed more than once.
-  override def verifyNoCyclicalReferences(topLevelFactoryMap: Map[String, TopLevelComputationFactory], refNodesVisited: Set[Ref]) = {
-    topLevelFactoryMap.values.flatMap(topLevelFactory => topLevelFactory.verifyNoCyclicalReferences(topLevelFactoryMap, Set())).toSet
+  override def verifyNoCyclicalReferences(topLevelSpecificationMap: Map[String, TopLevelComputationSpecification], refNodesVisited: Set[Ref]) = {
+    topLevelSpecificationMap.values.flatMap(topLevelSpecification => topLevelSpecification.verifyNoCyclicalReferences(topLevelSpecificationMap, Set())).toSet
   }
 }
 
@@ -82,21 +82,21 @@ sealed trait VersionState
 case object Editable extends VersionState { override def toString = "Editable" }
 case object Committed extends VersionState { override def toString = "Committed" }
 
-trait ComputationFactory extends AstNode {
+trait ComputationSpecification extends AstNode {
   private var cachedComputation : Option[Computation] = None
-  protected def computation(topLevelFactories: Map[String, TopLevelComputationFactory]) : Computation
+  protected def computation(topLevelSpecs: Map[String, TopLevelComputationSpecification]) : Computation
 
-  def build(topLevelFactories: Map[String, TopLevelComputationFactory]) : Computation = cachedComputation match {
+  def build(topLevelSpecs: Map[String, TopLevelComputationSpecification]) : Computation = cachedComputation match {
     case Some(computation) => computation
     case None => {
-      val theComputation = computation(topLevelFactories)
+      val theComputation = computation(topLevelSpecs)
       cachedComputation = Some(theComputation)
       theComputation
     }
   }
 }
 
-trait TopLevelComputationFactory extends ComputationFactory {
+trait TopLevelComputationSpecification extends ComputationSpecification {
   val packageValue: String
   val name: String
   def fullyQualifiedName = packageValue + "." + name
@@ -112,7 +112,7 @@ trait TopLevelComputationFactory extends ComputationFactory {
   }
 }
 
-case class SimpleComputationFactory(
+case class SimpleComputationSpecification(
     packageValue: String,
     name: String,
     description: String,
@@ -123,10 +123,10 @@ case class SimpleComputationFactory(
     input: Inputs,
     resultKey: String,
     logger: String,
-    securityConfiguration: String) extends TopLevelComputationFactory with InnerComputationFactory {
+    securityConfiguration: String) extends TopLevelComputationSpecification with InnerComputationSpecification {
 
   def children = List()
-  protected def computation(topLevelFactories: Map[String, TopLevelComputationFactory]) = new SimpleComputation(
+  protected def computation(topLevelSpecs: Map[String, TopLevelComputationSpecification]) = new SimpleComputation(
     packageValue,
     name,
     description,
@@ -139,35 +139,35 @@ case class SimpleComputationFactory(
     shouldPropagateExceptions)
 }
 
-case class AbortIfComputationFactory(
+case class AbortIfComputationSpecification(
     packageValue: String,
     name: String,
     description: String,
     changedInVersion: String,
     shouldPropagateExceptions: Boolean,
     predicateExpression: String,
-    innerFactory: InnerComputationFactory,
+    innerSpecification: InnerComputationSpecification,
     imports: Imports,
     input: Inputs,
     logger: String,
-    securityConfiguration: String) extends TopLevelComputationFactory with InnerComputationFactory {
+    securityConfiguration: String) extends TopLevelComputationSpecification with InnerComputationSpecification {
 
-  def children = List(imports, input, innerFactory)
+  def children = List(imports, input, innerSpecification)
   
-  protected def computation(topLevelFactories: Map[String, TopLevelComputationFactory]) = AbortIf(
+  protected def computation(topLevelSpecs: Map[String, TopLevelComputationSpecification]) = AbortIf(
     packageValue,
     name,
     description,
     imports.toList,
     predicateExpression,
     input.toMap,
-    innerFactory.build(topLevelFactories),
+    innerSpecification.build(topLevelSpecs),
     securityConfiguration(securityConfiguration),
     logger(logger),
     shouldPropagateExceptions)
 }
 
-trait InnerComputationFactory extends ComputationFactory
+trait InnerComputationSpecification extends ComputationSpecification
 
 case class Imports(importSequence: String*) extends AstNode {
   def children = List()
@@ -188,97 +188,97 @@ case class Mapping(key: String, value: String) extends AstNode {
   def symbolTuple = (Symbol(key), Symbol(value))
 }
 
-case class NamedComputationFactory(
+case class NamedComputationSpecification(
     packageValue: String,
     name: String,
     description: String,
     changedInVersion: String,
-    factoryForNamableComputation: NamableComputationFactory) extends TopLevelComputationFactory with InnerComputationFactory {
+    specForNamableComputation: NamableComputationSpecification) extends TopLevelComputationSpecification with InnerComputationSpecification {
 
-  def children = List(factoryForNamableComputation)
+  def children = List(specForNamableComputation)
   
-  protected def computation(topLevelFactories: Map[String, TopLevelComputationFactory]) = factoryForNamableComputation.build(topLevelFactories)
+  protected def computation(topLevelSpecs: Map[String, TopLevelComputationSpecification]) = specForNamableComputation.build(topLevelSpecs)
 }
 
-trait NamableComputationFactory extends ComputationFactory
+trait NamableComputationSpecification extends ComputationSpecification
 
-trait SimpleAbortComputationFactory extends NamableComputationFactory with InnerComputationFactory {
-  val inner: InnerComputationFactory
+trait SimpleAbortComputationSpecification extends NamableComputationSpecification with InnerComputationSpecification {
+  val inner: InnerComputationSpecification
   def children = List(inner)
 }
-case class AbortIfNoResultsComputationFactory(inner: InnerComputationFactory) extends SimpleAbortComputationFactory {
-  protected def computation(topLevelFactories: Map[String, TopLevelComputationFactory]) = AbortIfNoResults(inner.build(topLevelFactories))
+case class AbortIfNoResultsComputationSpecification(inner: InnerComputationSpecification) extends SimpleAbortComputationSpecification {
+  protected def computation(topLevelSpecs: Map[String, TopLevelComputationSpecification]) = AbortIfNoResults(inner.build(topLevelSpecs))
 }
-case class AbortIfHasResultsComputationFactory(inner: InnerComputationFactory) extends SimpleAbortComputationFactory {
-  protected def computation(topLevelFactories: Map[String, TopLevelComputationFactory]) = AbortIfHasResults(inner.build(topLevelFactories))
+case class AbortIfHasResultsComputationSpecification(inner: InnerComputationSpecification) extends SimpleAbortComputationSpecification {
+  protected def computation(topLevelSpecs: Map[String, TopLevelComputationSpecification]) = AbortIfHasResults(inner.build(topLevelSpecs))
 }
 
-trait SimpleAggregateComputationFactory extends NamableComputationFactory with InnerComputationFactory {
-  val innerFactory: InnerComputationFactory
+trait SimpleAggregateComputationSpecification extends NamableComputationSpecification with InnerComputationSpecification {
+  val innerSpecification: InnerComputationSpecification
   val inputTuple: Mapping
   val resultKey: String
-  def children = List(inputTuple, innerFactory)
+  def children = List(inputTuple, innerSpecification)
 }
 
-case class IterativeComputationFactory(
-    innerFactory: InnerComputationFactory,
+case class IterativeComputationSpecification(
+    innerSpecification: InnerComputationSpecification,
     inputTuple: Mapping,
-    resultKey: String) extends SimpleAggregateComputationFactory {
+    resultKey: String) extends SimpleAggregateComputationSpecification {
 
-  protected def computation(topLevelFactories: Map[String, TopLevelComputationFactory]) = new IterativeComputation(
-    innerFactory.build(topLevelFactories),
+  protected def computation(topLevelSpecs: Map[String, TopLevelComputationSpecification]) = new IterativeComputation(
+    innerSpecification.build(topLevelSpecs),
     inputTuple.symbolTuple,
     Symbol(resultKey))
 }
 
-case class MappingComputationFactory(
-    innerFactory: InnerComputationFactory,
+case class MappingComputationSpecification(
+    innerSpecification: InnerComputationSpecification,
     inputTuple: Mapping,
-    resultKey: String) extends SimpleAggregateComputationFactory{
+    resultKey: String) extends SimpleAggregateComputationSpecification{
     
-  protected def computation(topLevelFactories: Map[String, TopLevelComputationFactory]) = new MappingComputation(
-    innerFactory.build(topLevelFactories),
+  protected def computation(topLevelSpecs: Map[String, TopLevelComputationSpecification]) = new MappingComputation(
+    innerSpecification.build(topLevelSpecs),
     inputTuple.symbolTuple,
     Symbol(resultKey))
 }
 
-case class FoldingComputationFactory(
-    innerFactory: InnerComputationFactory,
+case class FoldingComputationSpecification(
+    innerSpecification: InnerComputationSpecification,
     initialAccumulatorKey: String,
     inputTuple: Mapping,
-    accumulatorTuple: Mapping) extends NamableComputationFactory with InnerComputationFactory {
+    accumulatorTuple: Mapping) extends NamableComputationSpecification with InnerComputationSpecification {
   
-  def children = List(inputTuple, accumulatorTuple, innerFactory)
+  def children = List(inputTuple, accumulatorTuple, innerSpecification)
     
-  protected def computation(topLevelFactories: Map[String, TopLevelComputationFactory]) = new FoldingComputation(
+  protected def computation(topLevelSpecs: Map[String, TopLevelComputationSpecification]) = new FoldingComputation(
     Symbol(initialAccumulatorKey),
     inputTuple.symbolTuple,
     accumulatorTuple.symbolTuple,
-    innerFactory.build(topLevelFactories))
+    innerSpecification.build(topLevelSpecs))
 }
 
-case class SequentialComputationFactory(
-  firstInnerComputation: InnerComputationFactory, 
-  moreInnerComputations: InnerComputationFactory*) extends NamableComputationFactory with InnerComputationFactory {
+case class SequentialComputationSpecification(
+  firstInnerComputation: InnerComputationSpecification, 
+  moreInnerComputations: InnerComputationSpecification*) extends NamableComputationSpecification with InnerComputationSpecification {
   
-  def innerFactories = firstInnerComputation :: moreInnerComputations.toList
-  def children = innerFactories
+  def innerSpecs = firstInnerComputation :: moreInnerComputations.toList
+  def children = innerSpecs
 
-  protected def computation(topLevelFactories: Map[String, TopLevelComputationFactory]) = new SequentialComputation(
-    innerFactories.map(factory => factory.build(topLevelFactories)))
+  protected def computation(topLevelSpecs: Map[String, TopLevelComputationSpecification]) = new SequentialComputation(
+    innerSpecs.map(specification => specification.build(topLevelSpecs)))
 }
 
 // Ref is not a case class because we don't want multiple instances referring to the same thing to be equal.
 // This allows us to determine if we've already visited a Ref node when validating the syntax tree for cyclical references.
-class Ref(val referencedFactoryName: String) extends InnerComputationFactory {
+class Ref(val referencedSpecification: String) extends InnerComputationSpecification {
   def children = List()
   override def equals(other : Any) : Boolean = other match {
     case that : Ref => that eq this
     case _ => false
   }
 
-  protected def computation(topLevelFactories: Map[String, TopLevelComputationFactory]) = {
-    topLevelFactories(referencedFactoryName).build(topLevelFactories)
+  protected def computation(topLevelSpecs: Map[String, TopLevelComputationSpecification]) = {
+    topLevelSpecs(referencedSpecification).build(topLevelSpecs)
   }
 }
 
