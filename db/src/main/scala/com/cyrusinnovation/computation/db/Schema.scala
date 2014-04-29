@@ -82,19 +82,7 @@ sealed trait VersionState
 case object Editable extends VersionState { override def toString = "Editable" }
 case object Committed extends VersionState { override def toString = "Committed" }
 
-trait ComputationSpecification extends AstNode {
-  private var cachedComputation : Option[Computation] = None
-  protected def computation(topLevelSpecs: Map[String, TopLevelComputationSpecification]) : Computation
-
-  def build(topLevelSpecs: Map[String, TopLevelComputationSpecification]) : Computation = cachedComputation match {
-    case Some(computation) => computation
-    case None => {
-      val theComputation = computation(topLevelSpecs)
-      cachedComputation = Some(theComputation)
-      theComputation
-    }
-  }
-}
+trait ComputationSpecification extends AstNode
 
 trait TopLevelComputationSpecification extends ComputationSpecification {
   val packageValue: String
@@ -126,17 +114,6 @@ case class SimpleComputationSpecification(
     securityConfiguration: String) extends TopLevelComputationSpecification with InnerComputationSpecification {
 
   def children = List()
-  protected def computation(topLevelSpecs: Map[String, TopLevelComputationSpecification]) = new SimpleComputation(
-    packageValue,
-    name,
-    description,
-    imports.toList,
-    computationExpression,
-    input.toMap,
-    Symbol(resultKey),
-    securityConfiguration(securityConfiguration),
-    logger(logger),
-    shouldPropagateExceptions)
 }
 
 case class AbortIfComputationSpecification(
@@ -153,39 +130,21 @@ case class AbortIfComputationSpecification(
     securityConfiguration: String) extends TopLevelComputationSpecification with InnerComputationSpecification {
 
   def children = List(imports, input, innerSpecification)
-  
-  protected def computation(topLevelSpecs: Map[String, TopLevelComputationSpecification]) = AbortIf(
-    packageValue,
-    name,
-    description,
-    imports.toList,
-    predicateExpression,
-    input.toMap,
-    innerSpecification.build(topLevelSpecs),
-    securityConfiguration(securityConfiguration),
-    logger(logger),
-    shouldPropagateExceptions)
 }
 
 trait InnerComputationSpecification extends ComputationSpecification
 
 case class Imports(importSequence: String*) extends AstNode {
   def children = List()
-  def toList = importSequence.toList
 }
 
 case class Inputs(firstInputMapping: Mapping, moreInputMappings: Mapping*) extends AstNode {
   def inputMappings = firstInputMapping :: moreInputMappings.toList
   def children = inputMappings
-  def toMap = inputMappings.foldLeft(Map[String, Symbol]()) {
-    (mapSoFar, mapping) => mapSoFar + mapping.stringSymbolTuple
-  }
 }
 
 case class Mapping(key: String, value: String) extends AstNode {
   def children = List()
-  def stringSymbolTuple = (key, Symbol(value))
-  def symbolTuple = (Symbol(key), Symbol(value))
 }
 
 case class NamedComputationSpecification(
@@ -196,8 +155,6 @@ case class NamedComputationSpecification(
     specForNamableComputation: NamableComputationSpecification) extends TopLevelComputationSpecification with InnerComputationSpecification {
 
   def children = List(specForNamableComputation)
-  
-  protected def computation(topLevelSpecs: Map[String, TopLevelComputationSpecification]) = specForNamableComputation.build(topLevelSpecs)
 }
 
 trait NamableComputationSpecification extends ComputationSpecification
@@ -206,12 +163,9 @@ trait SimpleAbortComputationSpecification extends NamableComputationSpecificatio
   val inner: InnerComputationSpecification
   def children = List(inner)
 }
-case class AbortIfNoResultsComputationSpecification(inner: InnerComputationSpecification) extends SimpleAbortComputationSpecification {
-  protected def computation(topLevelSpecs: Map[String, TopLevelComputationSpecification]) = AbortIfNoResults(inner.build(topLevelSpecs))
-}
-case class AbortIfHasResultsComputationSpecification(inner: InnerComputationSpecification) extends SimpleAbortComputationSpecification {
-  protected def computation(topLevelSpecs: Map[String, TopLevelComputationSpecification]) = AbortIfHasResults(inner.build(topLevelSpecs))
-}
+case class AbortIfNoResultsComputationSpecification(inner: InnerComputationSpecification) extends SimpleAbortComputationSpecification
+
+case class AbortIfHasResultsComputationSpecification(inner: InnerComputationSpecification) extends SimpleAbortComputationSpecification
 
 trait SimpleAggregateComputationSpecification extends NamableComputationSpecification with InnerComputationSpecification {
   val innerSpecification: InnerComputationSpecification
@@ -223,24 +177,12 @@ trait SimpleAggregateComputationSpecification extends NamableComputationSpecific
 case class IterativeComputationSpecification(
     innerSpecification: InnerComputationSpecification,
     inputTuple: Mapping,
-    resultKey: String) extends SimpleAggregateComputationSpecification {
-
-  protected def computation(topLevelSpecs: Map[String, TopLevelComputationSpecification]) = new IterativeComputation(
-    innerSpecification.build(topLevelSpecs),
-    inputTuple.symbolTuple,
-    Symbol(resultKey))
-}
+    resultKey: String) extends SimpleAggregateComputationSpecification
 
 case class MappingComputationSpecification(
     innerSpecification: InnerComputationSpecification,
     inputTuple: Mapping,
-    resultKey: String) extends SimpleAggregateComputationSpecification{
-    
-  protected def computation(topLevelSpecs: Map[String, TopLevelComputationSpecification]) = new MappingComputation(
-    innerSpecification.build(topLevelSpecs),
-    inputTuple.symbolTuple,
-    Symbol(resultKey))
-}
+    resultKey: String) extends SimpleAggregateComputationSpecification
 
 case class FoldingComputationSpecification(
     innerSpecification: InnerComputationSpecification,
@@ -249,12 +191,6 @@ case class FoldingComputationSpecification(
     accumulatorTuple: Mapping) extends NamableComputationSpecification with InnerComputationSpecification {
   
   def children = List(inputTuple, accumulatorTuple, innerSpecification)
-    
-  protected def computation(topLevelSpecs: Map[String, TopLevelComputationSpecification]) = new FoldingComputation(
-    Symbol(initialAccumulatorKey),
-    inputTuple.symbolTuple,
-    accumulatorTuple.symbolTuple,
-    innerSpecification.build(topLevelSpecs))
 }
 
 case class SequentialComputationSpecification(
@@ -263,9 +199,6 @@ case class SequentialComputationSpecification(
   
   def innerSpecs = firstInnerComputation :: moreInnerComputations.toList
   def children = innerSpecs
-
-  protected def computation(topLevelSpecs: Map[String, TopLevelComputationSpecification]) = new SequentialComputation(
-    innerSpecs.map(specification => specification.build(topLevelSpecs)))
 }
 
 // Ref is not a case class because we don't want multiple instances referring to the same thing to be equal.
@@ -275,10 +208,6 @@ class Ref(val referencedSpecification: String) extends InnerComputationSpecifica
   override def equals(other : Any) : Boolean = other match {
     case that : Ref => that eq this
     case _ => false
-  }
-
-  protected def computation(topLevelSpecs: Map[String, TopLevelComputationSpecification]) = {
-    topLevelSpecs(referencedSpecification).build(topLevelSpecs)
   }
 }
 
