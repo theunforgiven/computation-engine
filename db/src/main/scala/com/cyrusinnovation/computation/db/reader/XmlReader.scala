@@ -3,10 +3,9 @@ package com.cyrusinnovation.computation.db.reader
 import scala.xml.{Elem, Node, NodeSeq}
 import com.cyrusinnovation.computation.db._
 import javax.xml.bind.DatatypeConverter
-import com.cyrusinnovation.computation.db.Version
-import com.cyrusinnovation.computation.db.Library
 import org.joda.time.DateTime
 import org.joda.time.format.ISODateTimeFormat
+import com.cyrusinnovation.computation.specification.{Version, Library}
 
 class XmlPersistentNode(val xmlNode: Node) extends PersistentNode {
   def label = xmlNode.label

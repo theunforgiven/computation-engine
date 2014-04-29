@@ -3,11 +3,16 @@ package com.cyrusinnovation.computation.builder
 import com.cyrusinnovation.computation._
 import com.cyrusinnovation.computation.util.Log
 import com.cyrusinnovation.computation.db._
-import com.cyrusinnovation.computation.db.AbortIfNoResultsComputationSpecification
-import com.cyrusinnovation.computation.db.AbortIfComputationSpecification
-import com.cyrusinnovation.computation.db.Version
-import com.cyrusinnovation.computation.db.SimpleComputationSpecification
 import scala.collection.mutable.{Map => MutableMap}
+import com.cyrusinnovation.computation.specification._
+import com.cyrusinnovation.computation.AbortIfHasResults
+import scala.Some
+import com.cyrusinnovation.computation.AbortIfNoResults
+import com.cyrusinnovation.computation.specification.AbortIfNoResultsComputationSpecification
+import com.cyrusinnovation.computation.builder.InvalidBuilderException
+import com.cyrusinnovation.computation.specification.AbortIfComputationSpecification
+import com.cyrusinnovation.computation.specification.Version
+import com.cyrusinnovation.computation.specification.SimpleComputationSpecification
 
 class ComputationBuilder(version: Version, securityConfigurations: Map[String, SecurityConfiguration], loggers: Map[String, Log]) {
   private val computations = MutableMap[String, Computation]()

@@ -1,34 +1,10 @@
-package com.cyrusinnovation.computation.db
+package com.cyrusinnovation.computation.specification
 
 import org.joda.time.DateTime
 import com.cyrusinnovation.computation._
 import com.cyrusinnovation.computation.util.Log
 
-trait AstNode {
-  def verifyNoCyclicalReferences(topLevelSpecificationMap: Map[String, TopLevelComputationSpecification], refNodesVisited: Set[Ref]) : Set[Ref] = this match {
-    case thisRefNode: Ref => {
-      if(refNodesVisited.contains(thisRefNode)) {
-        throw new InvalidComputationSpecException("Computation hierarchy may not contain cyclical references")
-      } else {
-        val nextNodeToVisit = topLevelSpecificationMap(thisRefNode.referencedSpecification)
-        nextNodeToVisit.verifyNoCyclicalReferences(topLevelSpecificationMap, (refNodesVisited + thisRefNode))
-      }
-    }
-    case _ => {
-      children.foldLeft(refNodesVisited){
-        (nodesVisitedSoFar, node) => node.verifyNoCyclicalReferences(topLevelSpecificationMap, nodesVisitedSoFar)
-      }
-    }
-  }
-
-  def children : List[AstNode]
-}
-
-case class AstTextNode(text: String) extends AstNode {
-  def children = List()
-}
-
-case class Library(name: String, versions: Map[String, Version]) extends AstNode {
+case class Library(name: String, versions: Map[String, Version]) extends SyntaxTreeNode {
   def children = versions.values.toList
 
   def verifyNoCyclicalReferences() : Set[Ref] = {
@@ -50,7 +26,7 @@ case class Version(versionNumber: String,
                    commitDate: Option[DateTime],
                    lastEditDate: Option[DateTime],
                    firstTopLevelComputation: TopLevelComputationSpecification,
-                   moreTopLevelComputations: TopLevelComputationSpecification*) extends AstNode {
+                   moreTopLevelComputations: TopLevelComputationSpecification*) extends SyntaxTreeNode {
 
   def children = topLevelSpecifications.values.toList
 
@@ -82,7 +58,7 @@ sealed trait VersionState
 case object Editable extends VersionState { override def toString = "Editable" }
 case object Committed extends VersionState { override def toString = "Committed" }
 
-trait ComputationSpecification extends AstNode
+trait ComputationSpecification extends SyntaxTreeNode
 
 trait TopLevelComputationSpecification extends ComputationSpecification {
   val packageValue: String
@@ -134,16 +110,16 @@ case class AbortIfComputationSpecification(
 
 trait InnerComputationSpecification extends ComputationSpecification
 
-case class Imports(importSequence: String*) extends AstNode {
+case class Imports(importSequence: String*) extends SyntaxTreeNode {
   def children = List()
 }
 
-case class Inputs(firstInputMapping: Mapping, moreInputMappings: Mapping*) extends AstNode {
+case class Inputs(firstInputMapping: Mapping, moreInputMappings: Mapping*) extends SyntaxTreeNode {
   def inputMappings = firstInputMapping :: moreInputMappings.toList
   def children = inputMappings
 }
 
-case class Mapping(key: String, value: String) extends AstNode {
+case class Mapping(key: String, value: String) extends SyntaxTreeNode {
   def children = List()
 }
 

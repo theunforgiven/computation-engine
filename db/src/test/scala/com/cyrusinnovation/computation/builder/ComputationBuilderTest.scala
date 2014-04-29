@@ -8,13 +8,12 @@ import scala.xml.{XML, Elem}
 import com.cyrusinnovation.computation.db.reader.XmlReader
 import com.cyrusinnovation.computation.{TestSecurityConfiguration, Computation, SimpleComputation, SecurityConfiguration}
 import com.cyrusinnovation.computation.util.{ComputationEngineLog, Log}
-import com.cyrusinnovation.computation.db.{Version, Library}
 import com.cyrusinnovation.computation.builder.ComputationBuilder
+import com.cyrusinnovation.computation.specification.Version
 
 class ComputationBuilderTest extends FlatSpec with Matchers with MockFactory {
-  //NOTE: Run configurations for tests involving security policy must have the working directory as the module root,
-  //in order to put the security policy file on the classpath
-  //TODO document this.
+  //NOTE: Run configurations for tests involving security policy must have the module's root directory as the working directory,
+  //in order to pick up the security policy file for the TestSecurityConfiguration.
   "The computation builder" should "generate the computations for the library version" in {
 
     val version = createLibraryVersion("1.0")

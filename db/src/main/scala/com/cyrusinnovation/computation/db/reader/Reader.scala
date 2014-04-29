@@ -1,22 +1,22 @@
 package com.cyrusinnovation.computation.db.reader
 
 import com.cyrusinnovation.computation.db._
-import com.cyrusinnovation.computation.db.Imports
-import com.cyrusinnovation.computation.db.Mapping
-import com.cyrusinnovation.computation.db.AbortIfHasResultsComputationSpecification
-import com.cyrusinnovation.computation.db.NamedComputationSpecification
-import com.cyrusinnovation.computation.db.MappingComputationSpecification
-import com.cyrusinnovation.computation.db.Ref
-import com.cyrusinnovation.computation.db.AbortIfComputationSpecification
-import com.cyrusinnovation.computation.db.AbortIfNoResultsComputationSpecification
-import com.cyrusinnovation.computation.db.SimpleComputationSpecification
-import com.cyrusinnovation.computation.db.IterativeComputationSpecification
-import com.cyrusinnovation.computation.db.Version
-import com.cyrusinnovation.computation.db.Library
-import com.cyrusinnovation.computation.db.SequentialComputationSpecification
-import com.cyrusinnovation.computation.db.FoldingComputationSpecification
-import com.cyrusinnovation.computation.db.Inputs
 import org.joda.time.DateTime
+import com.cyrusinnovation.computation.specification._
+import com.cyrusinnovation.computation.specification.Inputs
+import com.cyrusinnovation.computation.specification.Imports
+import com.cyrusinnovation.computation.specification.Mapping
+import com.cyrusinnovation.computation.specification.MappingComputationSpecification
+import com.cyrusinnovation.computation.specification.AbortIfNoResultsComputationSpecification
+import com.cyrusinnovation.computation.specification.IterativeComputationSpecification
+import com.cyrusinnovation.computation.specification.AbortIfHasResultsComputationSpecification
+import com.cyrusinnovation.computation.specification.NamedComputationSpecification
+import com.cyrusinnovation.computation.specification.AbortIfComputationSpecification
+import com.cyrusinnovation.computation.specification.Version
+import com.cyrusinnovation.computation.specification.Library
+import com.cyrusinnovation.computation.specification.SequentialComputationSpecification
+import com.cyrusinnovation.computation.specification.FoldingComputationSpecification
+import com.cyrusinnovation.computation.specification.SimpleComputationSpecification
 
 trait PersistentNode {
   def label : String
@@ -30,7 +30,7 @@ trait Reader {
   val rootNode : PersistentNode
   def unmarshal: Library = unmarshal(rootNode).asInstanceOf[Library]
 
-  def unmarshal(node: PersistentNode) : AstNode = node.label match {
+  def unmarshal(node: PersistentNode) : SyntaxTreeNode = node.label match {
     case "library" => Library(attrValue(node, "name"), versionMap(node))
     case "version" => version(node)
     case "computations" => throw new RuntimeException("computations node should not be unmarshaled directly")

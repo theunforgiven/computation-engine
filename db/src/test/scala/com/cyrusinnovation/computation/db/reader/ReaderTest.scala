@@ -5,16 +5,22 @@ import scala.xml.{Elem, XML}
 import org.joda.time.DateTime
 import org.joda.time.format.ISODateTimeFormat
 import com.cyrusinnovation.computation.db._
-import com.cyrusinnovation.computation.db.Imports
-import com.cyrusinnovation.computation.db.MappingComputationSpecification
-import com.cyrusinnovation.computation.db.Ref
-import com.cyrusinnovation.computation.db.AbortIfComputationSpecification
-import com.cyrusinnovation.computation.db.SimpleComputationSpecification
 import scala.Some
-import com.cyrusinnovation.computation.db.SequentialComputationSpecification
-import com.cyrusinnovation.computation.db.NamedComputationSpecification
-import com.cyrusinnovation.computation.db.Inputs
 import java.io.InputStream
+import com.cyrusinnovation.computation.specification._
+import scala.Some
+import scala.Some
+import scala.Some
+import com.cyrusinnovation.computation.specification.Inputs
+import com.cyrusinnovation.computation.specification.Imports
+import com.cyrusinnovation.computation.specification.MappingComputationSpecification
+import com.cyrusinnovation.computation.specification.Mapping
+import com.cyrusinnovation.computation.specification.NamedComputationSpecification
+import com.cyrusinnovation.computation.specification.AbortIfComputationSpecification
+import scala.Some
+import com.cyrusinnovation.computation.specification.SequentialComputationSpecification
+import com.cyrusinnovation.computation.specification.FoldingComputationSpecification
+import com.cyrusinnovation.computation.specification.SimpleComputationSpecification
 
 class ReaderTest extends FlatSpec with Matchers {
 
