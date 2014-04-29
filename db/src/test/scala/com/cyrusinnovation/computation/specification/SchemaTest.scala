@@ -5,10 +5,6 @@ import java.io.InputStream
 import scala.xml.{XML, Elem}
 import com.cyrusinnovation.computation.db.reader.XmlReader
 import org.scalamock.scalatest.MockFactory
-import com.cyrusinnovation.computation.specification._
-import com.cyrusinnovation.computation.specification.AbortIfComputationSpecification
-import com.cyrusinnovation.computation.specification.Version
-import com.cyrusinnovation.computation.specification.Library
 
 class SchemaTest extends FlatSpec with Matchers with MockFactory {
 

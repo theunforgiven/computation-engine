@@ -2,14 +2,12 @@ package com.cyrusinnovation.computation.builder
 
 import com.cyrusinnovation.computation._
 import com.cyrusinnovation.computation.util.Log
-import com.cyrusinnovation.computation.db._
 import scala.collection.mutable.{Map => MutableMap}
 import com.cyrusinnovation.computation.specification._
 import com.cyrusinnovation.computation.AbortIfHasResults
 import scala.Some
 import com.cyrusinnovation.computation.AbortIfNoResults
 import com.cyrusinnovation.computation.specification.AbortIfNoResultsComputationSpecification
-import com.cyrusinnovation.computation.builder.InvalidBuilderException
 import com.cyrusinnovation.computation.specification.AbortIfComputationSpecification
 import com.cyrusinnovation.computation.specification.Version
 import com.cyrusinnovation.computation.specification.SimpleComputationSpecification
@@ -18,14 +16,21 @@ class ComputationBuilder(version: Version, securityConfigurations: Map[String, S
   private val computations = MutableMap[String, Computation]()
 
   def build : Map[String, Computation] = {
-    version.children.foreach((spec: TopLevelComputationSpecification) => buildComputationFrom(spec))
+    version.children.foreach((spec: TopLevelComputationSpecification) => build(spec))
     computations.toMap
   }
 
   // We aggregate top level computations into a mutable map as we go along because Ref nodes need to check as we go along
   // to see if the referenced computations have already been built.
-  def build(spec: TopLevelComputationSpecification) = {
-    computations += (spec.fullyQualifiedName -> buildComputationFrom(spec))
+  def build(spec: TopLevelComputationSpecification) : Computation = {
+    computations.get(spec.fullyQualifiedName) match {
+      case Some(computation) => computation
+      case None => {
+        val computation = buildComputationFrom(spec)
+        computations += spec.fullyQualifiedName -> computation
+        computation
+      }
+    }
   }
 
   def buildComputationFrom(spec: ComputationSpecification) : Computation = spec match {
@@ -110,13 +115,7 @@ class ComputationBuilder(version: Version, securityConfigurations: Map[String, S
   }
 
   def visit(spec: Ref): Computation = {
-    computations.get(spec.referencedSpecification) match {
-      case Some(computation) => computation
-      case None => {
-        build(version.topLevelSpecifications(spec.referencedSpecification))
-        computations(spec.referencedSpecification)
-      }
-    }
+    build(version.topLevelSpecifications(spec.referencedSpecification))
   }
 
   def visit(importSpec: Imports) : List[String] = {

@@ -2,14 +2,14 @@ package com.cyrusinnovation.computation.db.builder
 
 import org.scalatest.{Matchers, FlatSpec}
 import org.scalamock.scalatest.MockFactory
-import org.slf4j.{Marker, Logger}
 import java.io.InputStream
 import scala.xml.{XML, Elem}
 import com.cyrusinnovation.computation.db.reader.XmlReader
-import com.cyrusinnovation.computation.{TestSecurityConfiguration, Computation, SimpleComputation, SecurityConfiguration}
-import com.cyrusinnovation.computation.util.{ComputationEngineLog, Log}
+import com.cyrusinnovation.computation._
+import com.cyrusinnovation.computation.util.{StdOutLogger, ComputationEngineLog, Log}
 import com.cyrusinnovation.computation.builder.ComputationBuilder
 import com.cyrusinnovation.computation.specification.Version
+import com.cyrusinnovation.computation.util.TestUtils._
 
 class ComputationBuilderTest extends FlatSpec with Matchers with MockFactory {
   //NOTE: Run configurations for tests involving security policy must have the module's root directory as the working directory,
@@ -17,16 +17,41 @@ class ComputationBuilderTest extends FlatSpec with Matchers with MockFactory {
   "The computation builder" should "generate the computations for the library version" in {
 
     val version = createLibraryVersion("1.0")
+    val log: ComputationEngineLog = ComputationEngineLog(StdOutLogger)
+    val loggers : Map[String, Log] = Map("computationLogger" -> log)
     val securityConfigurations: Map[String, SecurityConfiguration] = Map("testSecurityConfiguration" -> TestSecurityConfiguration)
-    val loggers : Map[String, Log] = Map("computationLogger" -> ComputationEngineLog(StdOutLogger))
 
     val computationBuilder = new ComputationBuilder(version, securityConfigurations, loggers)
     val computations : Map[String, Computation] = computationBuilder.build
 
-    val firstComputation = computations("test.computations.MaximumTestValueComputation").asInstanceOf[SimpleComputation]
+    computations.size should be(4)
+
+    val firstComputation = computations("test.computations.MaximumTestValueComputation").asInstanceOf[SimpleComputation]    
     assertResult('maxTestValue)(firstComputation.resultKey) // Can't use "should" matcher on a symbol
-    val results = firstComputation.compute(Map('testValues -> Map("first" -> 1, "second" -> 5, "third" -> 3)))
-    results(firstComputation.resultKey) should be(Map("second" -> 5))
+    val resultsForFirstComputation = firstComputation.compute(Map('testValues -> Map("first" -> 1, "second" -> 5, "third" -> 3)))
+    resultsForFirstComputation(firstComputation.resultKey) should be(Map("second" -> 5))
+
+    val secondComputation = computations("test.computations.AbortIfContainsMapWithDesiredEntry").asInstanceOf[AbortIf]
+    secondComputation.packageName should be("test.computations")
+    secondComputation.name should be("AbortIfContainsMapWithDesiredEntry")
+    secondComputation.description should be("See if the value is a map with one key 'b and value 5")
+    normalizeSpace(secondComputation.predicateExpression) should be("x == MutableMap('b -> 5)")
+    secondComputation.inputMapWithTypes should be(Map("x: MutableMap[Symbol, Int]" -> 'maxTestValue))
+    secondComputation.inner should be(firstComputation)
+    secondComputation.securityConfiguration should be(TestSecurityConfiguration)
+    secondComputation.computationEngineLog should be(log)
+    secondComputation.shouldPropagateExceptions should be(false)
+    
+    val thirdComputation = computations("test.computations.SequentialMaxComputation").asInstanceOf[SequentialComputation]
+    thirdComputation.steps.head should be(firstComputation)
+    val secondInnerComputationOfThirdComputation = thirdComputation.steps.tail.head.asInstanceOf[MappingComputation[String, Int, Map[String, Int]]]
+    secondInnerComputationOfThirdComputation.inner should be(secondComputation)
+    assertResult('maxTestValue)(secondInnerComputationOfThirdComputation.resultKey)
+    
+    val fourthComputation = computations("test.computations.FoldingSumComputation").asInstanceOf[FoldingComputation[Int, List[Int]]]
+    assertResult('sumAccumulator)(fourthComputation.resultKey)
+    val resultsForFourthComputation = fourthComputation.compute(Map('initialAccumulator -> 5, 'testValues -> List(1, 2, 3, 4, 5)))
+    resultsForFourthComputation(fourthComputation.resultKey) should be(20)
   }
 
   def createLibraryVersion(versionNumber: String) : Version = {
@@ -36,78 +61,6 @@ class ComputationBuilderTest extends FlatSpec with Matchers with MockFactory {
     val library = reader.unmarshal
     library.verifyNoCyclicalReferences()
 
-    val securityConfigurations: Map[String, SecurityConfiguration] = Map("testSecurityConfiguration" -> TestSecurityConfiguration)
-    val loggers : Map[String, Log] = Map("computationLogger" -> ComputationEngineLog(StdOutLogger))
-
     library.versions(versionNumber)
   }
-}
-
-object StdOutLogger extends Logger {
-  def error(marker: Marker, msg: String, t: Throwable) = println(s"ERROR: $msg: ${t.getMessage}\n${t.printStackTrace()}")
-  def error(marker: Marker, format: String, argArray: Array[AnyRef]) = ???
-  def error(marker: Marker, format: String, arg1: scala.Any, arg2: scala.Any) = ???
-  def error(marker: Marker, format: String, arg: scala.Any) = ???
-  def error(marker: Marker, msg: String) = println(s"ERROR: $msg")
-  def error(msg: String, t: Throwable) = println(s"ERROR: $msg: ${t.getMessage}\n${t.printStackTrace()}")
-  def error(format: String, argArray: Array[AnyRef]) = ???
-  def error(format: String, arg1: scala.Any, arg2: scala.Any) = ???
-  def error(format: String, arg: scala.Any) = ???
-  def error(msg: String) = println(s"ERROR: $msg")
-
-  def warn(marker: Marker, msg: String, t: Throwable) = println(s"WARN: $msg: ${t.getMessage}\n${t.printStackTrace()}")
-  def warn(marker: Marker, format: String, argArray: Array[AnyRef]) = ???
-  def warn(marker: Marker, format: String, arg1: scala.Any, arg2: scala.Any) = ???
-  def warn(marker: Marker, format: String, arg: scala.Any) = ???
-  def warn(marker: Marker, msg: String) = println(s"WARN: $msg")
-  def warn(msg: String, t: Throwable) = println(s"WARN: $msg: ${t.getMessage}\n${t.printStackTrace()}")
-  def warn(format: String, arg1: scala.Any, arg2: scala.Any) = ???
-  def warn(format: String, argArray: Array[AnyRef]) = ???
-  def warn(format: String, arg: scala.Any) = ???
-  def warn(msg: String) = println(s"WARN: $msg")
-
-  def info(marker: Marker, msg: String, t: Throwable) = println(s"INFO: $msg: ${t.getMessage}\n${t.printStackTrace()}")
-  def info(marker: Marker, format: String, argArray: Array[AnyRef]) = ???
-  def info(marker: Marker, format: String, arg1: scala.Any, arg2: scala.Any) = ???
-  def info(marker: Marker, format: String, arg: scala.Any) = ???
-  def info(marker: Marker, msg: String) = println(s"INFO: $msg")
-  def info(msg: String, t: Throwable) = println(s"INFO: $msg: ${t.getMessage}\n${t.printStackTrace()}")
-  def info(format: String, argArray: Array[AnyRef]) = ???
-  def info(format: String, arg1: scala.Any, arg2: scala.Any) = ???
-  def info(format: String, arg: scala.Any) = ???
-  def info(msg: String) = println(s"INFO: $msg")
-
-  def debug(marker: Marker, msg: String, t: Throwable) = println(s"DEBUG: ${t.getMessage}\n${t.printStackTrace()}")
-  def debug(marker: Marker, format: String, argArray: Array[AnyRef]) = ???
-  def debug(marker: Marker, format: String, arg1: scala.Any, arg2: scala.Any) = ???
-  def debug(marker: Marker, format: String, arg: scala.Any) = ???
-  def debug(marker: Marker, msg: String) = println(s"DEBUG: $msg")
-  def debug(msg: String, t: Throwable) = println(s"DEBUG: $msg: ${t.getMessage}\n${t.printStackTrace()}")
-  def debug(format: String, argArray: Array[AnyRef]) = ???
-  def debug(format: String, arg1: scala.Any, arg2: scala.Any) = ???
-  def debug(format: String, arg: scala.Any) = ???
-  def debug(msg: String) = println(s"DEBUG: $msg")
-
-  def trace(marker: Marker, msg: String, t: Throwable) = println(s"TRACE: $msg: ${t.getMessage}\n${t.printStackTrace()}")
-  def trace(marker: Marker, format: String, argArray: Array[AnyRef]) = ???
-  def trace(marker: Marker, format: String, arg1: scala.Any, arg2: scala.Any) = ???
-  def trace(marker: Marker, format: String, arg: scala.Any) = ???
-  def trace(marker: Marker, msg: String) = println(s"TRACE: $msg")
-  def trace(msg: String, t: Throwable) = println(s"TRACE: $msg: ${t.getMessage}\n${t.printStackTrace()}")
-  def trace(format: String, argArray: Array[AnyRef]) = ???
-  def trace(format: String, arg1: scala.Any, arg2: scala.Any) = ???
-  def trace(format: String, arg: scala.Any) = ???
-  def trace(msg: String) = println(s"TRACE: $msg")
-
-  def getName: String = ???
-  def isTraceEnabled: Boolean = true
-  def isTraceEnabled(marker: Marker): Boolean = true
-  def isDebugEnabled: Boolean = true
-  def isDebugEnabled(marker: Marker): Boolean = true
-  def isInfoEnabled: Boolean = true
-  def isInfoEnabled(marker: Marker): Boolean = true
-  def isWarnEnabled: Boolean = true
-  def isWarnEnabled(marker: Marker): Boolean = true
-  def isErrorEnabled: Boolean = true
-  def isErrorEnabled(marker: Marker): Boolean = true
 }

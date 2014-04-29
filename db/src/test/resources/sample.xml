@@ -25,6 +25,7 @@
                 <securityConfiguration>testSecurityConfiguration</securityConfiguration>
             </simpleComputation>
 
+            <!-- Nonsensical computation just used for testing the building of computations -->
             <abortIfComputation package="test.computations" name="AbortIfContainsMapWithDesiredEntry" changedInVersion="1.0"
                             description="See if the value is a map with one key 'b and value 5" shouldPropagateExceptions="false">
                 <predicateExpression>
@@ -44,6 +45,7 @@
                 <securityConfiguration>testSecurityConfiguration</securityConfiguration>
             </abortIfComputation>
 
+            <!-- Nonsensical computation just used for testing the building of computations -->
             <namedComputation package="test.computations" name="SequentialMaxComputation" changedInVersion="1.0"
                               description="Compute the maximum and then do a mapping computation">
                 <sequentialComputation>

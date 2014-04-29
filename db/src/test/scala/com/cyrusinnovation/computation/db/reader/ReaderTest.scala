@@ -1,26 +1,21 @@
 package com.cyrusinnovation.computation.db.reader
 
-import org.scalatest.{Matchers, FlatSpec}
+import scala.Some
 import scala.xml.{Elem, XML}
-import org.joda.time.DateTime
-import org.joda.time.format.ISODateTimeFormat
-import com.cyrusinnovation.computation.db._
-import scala.Some
 import java.io.InputStream
+import org.scalatest.{Matchers, FlatSpec}
+
 import com.cyrusinnovation.computation.specification._
-import scala.Some
-import scala.Some
-import scala.Some
 import com.cyrusinnovation.computation.specification.Inputs
 import com.cyrusinnovation.computation.specification.Imports
 import com.cyrusinnovation.computation.specification.MappingComputationSpecification
 import com.cyrusinnovation.computation.specification.Mapping
 import com.cyrusinnovation.computation.specification.NamedComputationSpecification
 import com.cyrusinnovation.computation.specification.AbortIfComputationSpecification
-import scala.Some
 import com.cyrusinnovation.computation.specification.SequentialComputationSpecification
 import com.cyrusinnovation.computation.specification.FoldingComputationSpecification
 import com.cyrusinnovation.computation.specification.SimpleComputationSpecification
+import com.cyrusinnovation.computation.util.TestUtils._
 
 class ReaderTest extends FlatSpec with Matchers {
 
@@ -116,16 +111,4 @@ class ReaderTest extends FlatSpec with Matchers {
     foldedInnerFactory.securityConfiguration should be("testSecurityConfiguration")
   }
 
-  
-  //2014-04-07T09:30:10Z
-  def time(timeString: String): DateTime = {
-    val formatter = ISODateTimeFormat.dateTimeParser()
-    val dateTime: DateTime = formatter.parseDateTime(timeString)
-    dateTime
-  }
-
-  def normalizeSpace(stringWithWhitespace: String) = {
-    val trimmed = stringWithWhitespace.trim
-    trimmed.replaceAll("\\s+", " ")
-  }
 }
