@@ -1,6 +1,5 @@
 package com.cyrusinnovation.computation.db.reader
 
-import com.cyrusinnovation.computation.db._
 import org.joda.time.DateTime
 import com.cyrusinnovation.computation.specification._
 import com.cyrusinnovation.computation.specification.Inputs

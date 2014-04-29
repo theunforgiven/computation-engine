@@ -11,6 +11,18 @@ import com.cyrusinnovation.computation.specification.AbortIfNoResultsComputation
 import com.cyrusinnovation.computation.specification.AbortIfComputationSpecification
 import com.cyrusinnovation.computation.specification.Version
 import com.cyrusinnovation.computation.specification.SimpleComputationSpecification
+import com.cyrusinnovation.computation.db.reader.Reader
+
+object ComputationBuilder {
+  def build(versionNumber: String, reader: Reader, securityConfigurations: Map[String, SecurityConfiguration], loggers: Map[String, Log]) : Map[String, Computation] = {
+    val library = reader.unmarshal
+    library.verifyNoCyclicalReferences()
+
+    val version = library.versions(versionNumber)
+    val builder = new ComputationBuilder(version, securityConfigurations, loggers)
+    builder.build
+  }
+}
 
 class ComputationBuilder(version: Version, securityConfigurations: Map[String, SecurityConfiguration], loggers: Map[String, Log]) {
   private val computations = MutableMap[String, Computation]()

@@ -1,11 +1,10 @@
 package com.cyrusinnovation.computation.db.reader
 
-import scala.xml.{Elem, Node, NodeSeq}
-import com.cyrusinnovation.computation.db._
-import javax.xml.bind.DatatypeConverter
+import scala.xml.{XML, Elem, Node, NodeSeq}
 import org.joda.time.DateTime
 import org.joda.time.format.ISODateTimeFormat
-import com.cyrusinnovation.computation.specification.{Version, Library}
+import java.io.{File, FileInputStream, InputStream}
+import java.net.URI
 
 class XmlPersistentNode(val xmlNode: Node) extends PersistentNode {
   def label = xmlNode.label
@@ -13,6 +12,28 @@ class XmlPersistentNode(val xmlNode: Node) extends PersistentNode {
 
 class XmlPersistentTextBearingNode(override val xmlNode: Node) extends XmlPersistentNode(xmlNode) with PersistentTextBearingNode {
   val text = xmlNode.text
+}
+
+object XmlReader {
+  def fromFileOnClasspath(resourcePath: String) : Reader = {
+    val inputStream: InputStream = getClass.getResourceAsStream(resourcePath)
+    fromInputStream(inputStream)
+  }
+
+  def fromFile(path: String) : Reader = {
+    val inputStream: InputStream = new FileInputStream(new File(path))
+    fromInputStream(inputStream)
+  }
+
+  def fromFileUri(uri: URI) : Reader = {
+    val inputStream: InputStream = new FileInputStream(new File(uri))
+    fromInputStream(inputStream)
+  }
+
+  def fromInputStream(inputStream: InputStream) : Reader = {
+    val nodes: Elem = XML.load(inputStream)
+    new XmlReader(nodes)
+  }
 }
 
 class XmlReader(root: Elem) extends Reader {

@@ -2,8 +2,6 @@ package com.cyrusinnovation.computation.db.builder
 
 import org.scalatest.{Matchers, FlatSpec}
 import org.scalamock.scalatest.MockFactory
-import java.io.InputStream
-import scala.xml.{XML, Elem}
 import com.cyrusinnovation.computation.db.reader.XmlReader
 import com.cyrusinnovation.computation._
 import com.cyrusinnovation.computation.util.{StdOutLogger, ComputationEngineLog, Log}
@@ -12,14 +10,30 @@ import com.cyrusinnovation.computation.specification.Version
 import com.cyrusinnovation.computation.util.TestUtils._
 
 class ComputationBuilderTest extends FlatSpec with Matchers with MockFactory {
+  val log: ComputationEngineLog = ComputationEngineLog(StdOutLogger)
+  val loggers : Map[String, Log] = Map("computationLogger" -> log)
+  val securityConfigurations: Map[String, SecurityConfiguration] = Map("testSecurityConfiguration" -> TestSecurityConfiguration)
+
   //NOTE: Run configurations for tests involving security policy must have the module's root directory as the working directory,
   //in order to pick up the security policy file for the TestSecurityConfiguration.
-  "The computation builder" should "generate the computations for the library version" in {
+  "The computation builder" should "build the correct computations given a version number, a reader, security configurations, and loggers" in {
+    val reader = XmlReader.fromFileOnClasspath("/sample.xml")
+    val computations = ComputationBuilder.build("1.0", reader, securityConfigurations, loggers)
 
+    computations.size should be(4)
+
+    val firstComputation = computations("test.computations.MaximumTestValueComputation").asInstanceOf[SimpleComputation]
+    val resultsForFirstComputation = firstComputation.compute(Map('testValues -> Map("first" -> 1, "second" -> 5, "third" -> 3)))
+    resultsForFirstComputation(firstComputation.resultKey) should be(Map("second" -> 5))
+
+    val fourthComputation = computations("test.computations.FoldingSumComputation").asInstanceOf[FoldingComputation[Int, List[Int]]]
+    val resultsForFourthComputation = fourthComputation.compute(Map('initialAccumulator -> 5, 'testValues -> List(1, 2, 3, 4, 5)))
+    resultsForFourthComputation(fourthComputation.resultKey) should be(20)
+
+  }
+
+  "The computation builder" should "generate the computations for the library version" in {
     val version = createLibraryVersion("1.0")
-    val log: ComputationEngineLog = ComputationEngineLog(StdOutLogger)
-    val loggers : Map[String, Log] = Map("computationLogger" -> log)
-    val securityConfigurations: Map[String, SecurityConfiguration] = Map("testSecurityConfiguration" -> TestSecurityConfiguration)
 
     val computationBuilder = new ComputationBuilder(version, securityConfigurations, loggers)
     val computations : Map[String, Computation] = computationBuilder.build
@@ -28,8 +42,6 @@ class ComputationBuilderTest extends FlatSpec with Matchers with MockFactory {
 
     val firstComputation = computations("test.computations.MaximumTestValueComputation").asInstanceOf[SimpleComputation]    
     assertResult('maxTestValue)(firstComputation.resultKey) // Can't use "should" matcher on a symbol
-    val resultsForFirstComputation = firstComputation.compute(Map('testValues -> Map("first" -> 1, "second" -> 5, "third" -> 3)))
-    resultsForFirstComputation(firstComputation.resultKey) should be(Map("second" -> 5))
 
     val secondComputation = computations("test.computations.AbortIfContainsMapWithDesiredEntry").asInstanceOf[AbortIf]
     secondComputation.packageName should be("test.computations")
@@ -50,14 +62,10 @@ class ComputationBuilderTest extends FlatSpec with Matchers with MockFactory {
     
     val fourthComputation = computations("test.computations.FoldingSumComputation").asInstanceOf[FoldingComputation[Int, List[Int]]]
     assertResult('sumAccumulator)(fourthComputation.resultKey)
-    val resultsForFourthComputation = fourthComputation.compute(Map('initialAccumulator -> 5, 'testValues -> List(1, 2, 3, 4, 5)))
-    resultsForFourthComputation(fourthComputation.resultKey) should be(20)
   }
 
   def createLibraryVersion(versionNumber: String) : Version = {
-    val inputStream: InputStream = getClass.getResourceAsStream("/sample.xml")
-    val nodes: Elem = XML.load(inputStream)
-    val reader = new XmlReader(nodes)
+    val reader = XmlReader.fromFileOnClasspath("/sample.xml")
     val library = reader.unmarshal
     library.verifyNoCyclicalReferences()
 
