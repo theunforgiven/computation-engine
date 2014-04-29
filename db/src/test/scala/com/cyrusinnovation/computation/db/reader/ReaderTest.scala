@@ -96,7 +96,7 @@ class ReaderTest extends FlatSpec with Matchers {
     foldingComputationFactory.inputTuple should be(Mapping("testValues", "addend1"))
     foldingComputationFactory.accumulatorTuple should be(Mapping("sumAccumulator", "addend2"))
 
-    val foldedInnerFactory = foldingComputationFactory.innerComputation.asInstanceOf[SimpleComputationFactory]
+    val foldedInnerFactory = foldingComputationFactory.innerFactory.asInstanceOf[SimpleComputationFactory]
     foldedInnerFactory.packageValue should be("test.computations")
     foldedInnerFactory.name should be("SumComputation")
     foldedInnerFactory.description should be("Take the sum of two addends")

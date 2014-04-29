@@ -30,7 +30,7 @@ trait Reader {
   val rootNode : PersistentNode
   def unmarshal: Library = unmarshal(rootNode).asInstanceOf[Library]
 
-  protected def unmarshal(node: PersistentNode) : AstNode = node.label match {
+  def unmarshal(node: PersistentNode) : AstNode = node.label match {
     case "library" => Library(attrValue(node, "name"), versionMap(node))
     case "version" => version(node)
     case "computations" => throw new RuntimeException("computations node should not be unmarshaled directly")
@@ -61,7 +61,7 @@ trait Reader {
     case "securityConfiguration" => throw new RuntimeException("securityConfiguration node should not be unmarshaled to AstNode")
   }
 
-  protected def versionMap(node: PersistentNode) : Map[String, Version] = {
+  def versionMap(node: PersistentNode) : Map[String, Version] = {
     val versions = children(node, "version")
     versions.foldLeft(Map[String,Version]()) {
       (mapSoFar, versionNode) => {
@@ -71,7 +71,7 @@ trait Reader {
     }
   }
 
-  protected def version(versionNode: PersistentNode) : Version = {
+  def version(versionNode: PersistentNode) : Version = {
     val computationsNode = children(versionNode, "computations").head
     val topLevelComputations = allChildren(computationsNode)
     Version(attrValue(versionNode, "versionNumber"),

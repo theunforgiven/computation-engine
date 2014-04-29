@@ -1,6 +1,8 @@
 package com.cyrusinnovation.computation.db
 
 import org.joda.time.DateTime
+import com.cyrusinnovation.computation._
+import com.cyrusinnovation.computation.util.Log
 
 trait AstNode {
   def verifyNoCyclicalReferences(topLevelFactoryMap: Map[String, TopLevelComputationFactory], refNodesVisited: Set[Ref]) : Set[Ref] = this match {
@@ -80,10 +82,34 @@ sealed trait VersionState
 case object Editable extends VersionState { override def toString = "Editable" }
 case object Committed extends VersionState { override def toString = "Committed" }
 
-trait TopLevelComputationFactory extends AstNode {
+trait ComputationFactory extends AstNode {
+  private var cachedComputation : Option[Computation] = None
+  protected def computation(topLevelFactories: Map[String, TopLevelComputationFactory]) : Computation
+
+  def build(topLevelFactories: Map[String, TopLevelComputationFactory]) : Computation = cachedComputation match {
+    case Some(computation) => computation
+    case None => {
+      val theComputation = computation(topLevelFactories)
+      cachedComputation = Some(theComputation)
+      theComputation
+    }
+  }
+}
+
+trait TopLevelComputationFactory extends ComputationFactory {
   val packageValue: String
   val name: String
   def fullyQualifiedName = packageValue + "." + name
+  var securityConfigurations : Map[String, SecurityConfiguration] = Map()
+  var loggers : Map[String, Log] = Map()
+
+  def securityConfiguration(key: String) : SecurityConfiguration = {
+    securityConfigurations(key)
+  }
+  
+  def logger(key: String) : Log = {
+    loggers(key)
+  }
 }
 
 case class SimpleComputationFactory(
@@ -100,6 +126,17 @@ case class SimpleComputationFactory(
     securityConfiguration: String) extends TopLevelComputationFactory with InnerComputationFactory {
 
   def children = List()
+  protected def computation(topLevelFactories: Map[String, TopLevelComputationFactory]) = new SimpleComputation(
+    packageValue,
+    name,
+    description,
+    imports.toList,
+    computationExpression,
+    input.toMap,
+    Symbol(resultKey),
+    securityConfiguration(securityConfiguration),
+    logger(logger),
+    shouldPropagateExceptions)
 }
 
 case class AbortIfComputationFactory(
@@ -116,21 +153,39 @@ case class AbortIfComputationFactory(
     securityConfiguration: String) extends TopLevelComputationFactory with InnerComputationFactory {
 
   def children = List(imports, input, innerFactory)
+  
+  protected def computation(topLevelFactories: Map[String, TopLevelComputationFactory]) = AbortIf(
+    packageValue,
+    name,
+    description,
+    imports.toList,
+    predicateExpression,
+    input.toMap,
+    innerFactory.build(topLevelFactories),
+    securityConfiguration(securityConfiguration),
+    logger(logger),
+    shouldPropagateExceptions)
 }
 
-trait InnerComputationFactory extends AstNode
+trait InnerComputationFactory extends ComputationFactory
 
 case class Imports(importSequence: String*) extends AstNode {
   def children = List()
+  def toList = importSequence.toList
 }
 
 case class Inputs(firstInputMapping: Mapping, moreInputMappings: Mapping*) extends AstNode {
   def inputMappings = firstInputMapping :: moreInputMappings.toList
   def children = inputMappings
+  def toMap = inputMappings.foldLeft(Map[String, Symbol]()) {
+    (mapSoFar, mapping) => mapSoFar + mapping.stringSymbolTuple
+  }
 }
 
 case class Mapping(key: String, value: String) extends AstNode {
   def children = List()
+  def stringSymbolTuple = (key, Symbol(value))
+  def symbolTuple = (Symbol(key), Symbol(value))
 }
 
 case class NamedComputationFactory(
@@ -141,16 +196,22 @@ case class NamedComputationFactory(
     factoryForNamableComputation: NamableComputationFactory) extends TopLevelComputationFactory with InnerComputationFactory {
 
   def children = List(factoryForNamableComputation)
+  
+  protected def computation(topLevelFactories: Map[String, TopLevelComputationFactory]) = factoryForNamableComputation.build(topLevelFactories)
 }
 
-trait NamableComputationFactory extends AstNode
+trait NamableComputationFactory extends ComputationFactory
 
 trait SimpleAbortComputationFactory extends NamableComputationFactory with InnerComputationFactory {
   val inner: InnerComputationFactory
   def children = List(inner)
 }
-case class AbortIfNoResultsComputationFactory(inner: InnerComputationFactory) extends SimpleAbortComputationFactory
-case class AbortIfHasResultsComputationFactory(inner: InnerComputationFactory) extends SimpleAbortComputationFactory
+case class AbortIfNoResultsComputationFactory(inner: InnerComputationFactory) extends SimpleAbortComputationFactory {
+  protected def computation(topLevelFactories: Map[String, TopLevelComputationFactory]) = AbortIfNoResults(inner.build(topLevelFactories))
+}
+case class AbortIfHasResultsComputationFactory(inner: InnerComputationFactory) extends SimpleAbortComputationFactory {
+  protected def computation(topLevelFactories: Map[String, TopLevelComputationFactory]) = AbortIfHasResults(inner.build(topLevelFactories))
+}
 
 trait SimpleAggregateComputationFactory extends NamableComputationFactory with InnerComputationFactory {
   val innerFactory: InnerComputationFactory
@@ -160,21 +221,40 @@ trait SimpleAggregateComputationFactory extends NamableComputationFactory with I
 }
 
 case class IterativeComputationFactory(
-  innerFactory: InnerComputationFactory,
-  inputTuple: Mapping,
-  resultKey: String) extends SimpleAggregateComputationFactory
+    innerFactory: InnerComputationFactory,
+    inputTuple: Mapping,
+    resultKey: String) extends SimpleAggregateComputationFactory {
+
+  protected def computation(topLevelFactories: Map[String, TopLevelComputationFactory]) = new IterativeComputation(
+    innerFactory.build(topLevelFactories),
+    inputTuple.symbolTuple,
+    Symbol(resultKey))
+}
 
 case class MappingComputationFactory(
-  innerFactory: InnerComputationFactory,
-  inputTuple: Mapping,
-  resultKey: String) extends SimpleAggregateComputationFactory
+    innerFactory: InnerComputationFactory,
+    inputTuple: Mapping,
+    resultKey: String) extends SimpleAggregateComputationFactory{
+    
+  protected def computation(topLevelFactories: Map[String, TopLevelComputationFactory]) = new MappingComputation(
+    innerFactory.build(topLevelFactories),
+    inputTuple.symbolTuple,
+    Symbol(resultKey))
+}
 
 case class FoldingComputationFactory(
-    innerComputation: InnerComputationFactory,
+    innerFactory: InnerComputationFactory,
     initialAccumulatorKey: String,
     inputTuple: Mapping,
     accumulatorTuple: Mapping) extends NamableComputationFactory with InnerComputationFactory {
-  def children = List(inputTuple, accumulatorTuple, innerComputation)
+  
+  def children = List(inputTuple, accumulatorTuple, innerFactory)
+    
+  protected def computation(topLevelFactories: Map[String, TopLevelComputationFactory]) = new FoldingComputation(
+    Symbol(initialAccumulatorKey),
+    inputTuple.symbolTuple,
+    accumulatorTuple.symbolTuple,
+    innerFactory.build(topLevelFactories))
 }
 
 case class SequentialComputationFactory(
@@ -183,6 +263,9 @@ case class SequentialComputationFactory(
   
   def innerFactories = firstInnerComputation :: moreInnerComputations.toList
   def children = innerFactories
+
+  protected def computation(topLevelFactories: Map[String, TopLevelComputationFactory]) = new SequentialComputation(
+    innerFactories.map(factory => factory.build(topLevelFactories)))
 }
 
 // Ref is not a case class because we don't want multiple instances referring to the same thing to be equal.
@@ -192,6 +275,10 @@ class Ref(val referencedFactoryName: String) extends InnerComputationFactory {
   override def equals(other : Any) : Boolean = other match {
     case that : Ref => that eq this
     case _ => false
+  }
+
+  protected def computation(topLevelFactories: Map[String, TopLevelComputationFactory]) = {
+    topLevelFactories(referencedFactoryName).build(topLevelFactories)
   }
 }
 
