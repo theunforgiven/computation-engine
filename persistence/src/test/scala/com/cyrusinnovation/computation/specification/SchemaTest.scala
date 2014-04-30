@@ -3,8 +3,8 @@ package com.cyrusinnovation.computation.specification
 import org.scalatest.{Matchers, FlatSpec}
 import java.io.InputStream
 import scala.xml.{XML, Elem}
-import com.cyrusinnovation.computation.db.reader.XmlReader
 import org.scalamock.scalatest.MockFactory
+import com.cyrusinnovation.computation.persistence.reader.XmlReader
 
 class SchemaTest extends FlatSpec with Matchers with MockFactory {
 

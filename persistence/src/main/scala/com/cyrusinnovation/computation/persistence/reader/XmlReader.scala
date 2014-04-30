@@ -1,4 +1,4 @@
-package com.cyrusinnovation.computation.db.reader
+package com.cyrusinnovation.computation.persistence.reader
 
 import scala.xml.{XML, Elem, Node, NodeSeq}
 import org.joda.time.DateTime

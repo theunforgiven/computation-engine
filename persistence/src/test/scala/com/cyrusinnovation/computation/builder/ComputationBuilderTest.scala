@@ -1,13 +1,12 @@
-package com.cyrusinnovation.computation.db.builder
+package com.cyrusinnovation.computation.builder
 
 import org.scalatest.{Matchers, FlatSpec}
 import org.scalamock.scalatest.MockFactory
-import com.cyrusinnovation.computation.db.reader.XmlReader
 import com.cyrusinnovation.computation._
 import com.cyrusinnovation.computation.util.{StdOutLogger, ComputationEngineLog, Log}
-import com.cyrusinnovation.computation.builder.ComputationBuilder
 import com.cyrusinnovation.computation.specification.Version
 import com.cyrusinnovation.computation.util.TestUtils._
+import com.cyrusinnovation.computation.persistence.reader.XmlReader
 
 class ComputationBuilderTest extends FlatSpec with Matchers with MockFactory {
   val log: ComputationEngineLog = ComputationEngineLog(StdOutLogger)

@@ -1,4 +1,4 @@
 rootProject.name = 'computation-engine'
 
 include 'core'
-include 'db'
+include 'persistence'

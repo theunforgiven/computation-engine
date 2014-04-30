@@ -1,4 +1,4 @@
-package com.cyrusinnovation.computation.db.reader
+package com.cyrusinnovation.computation.persistence.reader
 
 import org.joda.time.DateTime
 import com.cyrusinnovation.computation.specification._

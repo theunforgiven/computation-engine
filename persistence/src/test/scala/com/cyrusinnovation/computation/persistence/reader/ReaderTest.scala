@@ -1,4 +1,4 @@
-package com.cyrusinnovation.computation.db.reader
+package com.cyrusinnovation.computation.persistence.reader
 
 import scala.Some
 import scala.xml.{Elem, XML}
@@ -19,7 +19,7 @@ import com.cyrusinnovation.computation.util.TestUtils._
 
 class ReaderTest extends FlatSpec with Matchers {
 
-  "A library" should "be able to be read from XML" in {
+  "An XML Reader" should "be able to be read a library from XML" in {
     val inputStream: InputStream = getClass.getResourceAsStream("/sample.xml")
     val nodes: Elem = XML.load(inputStream)
     val reader = new XmlReader(nodes)

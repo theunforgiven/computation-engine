@@ -1,4 +1,4 @@
-package com.cyrusinnovation.computation.db
+package com.cyrusinnovation.computation.persistence
 
 import org.scalatest.{Matchers, FlatSpec}
 import org.fgraph.base.DefaultGraph

@@ -11,7 +11,7 @@ import com.cyrusinnovation.computation.specification.AbortIfNoResultsComputation
 import com.cyrusinnovation.computation.specification.AbortIfComputationSpecification
 import com.cyrusinnovation.computation.specification.Version
 import com.cyrusinnovation.computation.specification.SimpleComputationSpecification
-import com.cyrusinnovation.computation.db.reader.Reader
+import com.cyrusinnovation.computation.persistence.reader.Reader
 
 object ComputationBuilder {
   def build(versionNumber: String, reader: Reader, securityConfigurations: Map[String, SecurityConfiguration], loggers: Map[String, Log]) : Map[String, Computation] = {
