@@ -19,11 +19,16 @@ import com.cyrusinnovation.computation.util.TestUtils._
 
 class ReaderTest extends FlatSpec with Matchers {
 
-  "An XML Reader" should "be able to be read a library from XML" in {
+  "An XML Reader" should "be able to read a library from XML" in {
     val inputStream: InputStream = getClass.getResourceAsStream("/sample.xml")
     val nodes: Elem = XML.load(inputStream)
     val reader = new XmlReader(nodes)
     verifyThatLibraryIsConstructedProperly(reader)
+  }
+
+  "A Table Reader" should "be able to read a library from parsed CSV data" in {
+    val tableReader = CsvDataReader.fromFileOnClasspath("/sampleNodes.csv", "/sampleEdges.csv", "test", "1.0", CsvReaderConfig(1))
+    verifyThatLibraryIsConstructedProperly(tableReader)
   }
   
   def verifyThatLibraryIsConstructedProperly(reader: Reader) = {

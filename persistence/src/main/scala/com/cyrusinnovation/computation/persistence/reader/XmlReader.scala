@@ -57,11 +57,6 @@ class XmlReader(root: Elem) extends Reader {
     toPersistentNodeList(nodeSeq)
   }
 
-  def allChildren(persistentNode: PersistentNode) : List[PersistentNode] = {
-    val nodeSeq = toXmlNode(persistentNode) \ "_"
-    toPersistentNodeList(nodeSeq)
-  }
-
   def asTextBearingNode(persistentNode: PersistentNode) : PersistentTextBearingNode = {
     val xmlNode = toXmlNode(persistentNode)
     new XmlPersistentTextBearingNode(xmlNode)

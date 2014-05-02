@@ -72,7 +72,7 @@ trait Reader {
 
   def version(versionNode: PersistentNode) : Version = {
     val computationsNode = children(versionNode, "computations").head
-    val topLevelComputations = allChildren(computationsNode)
+    val topLevelComputations = children(computationsNode)
     Version(attrValue(versionNode, "versionNumber"),
             versionState(attrValue(versionNode, "state")),
             optionalAttrValue(versionNode, "commitDate").map(timeString => dateTime(timeString)),
@@ -167,7 +167,7 @@ trait Reader {
 
   protected def sequentialComputation(node: PersistentNode) : SequentialComputationSpecification = {
     val innerComputationsNode = childOfType(node, "innerComputations")
-    val innerComputations = allChildren(innerComputationsNode).map(x => extractInnerComputationFrom(x))
+    val innerComputations = children(innerComputationsNode).map(x => extractInnerComputationFrom(x))
 
     SequentialComputationSpecification (
       innerComputations.head,
@@ -201,8 +201,8 @@ trait Reader {
   }
 
   protected def extractInnerComputationFrom(innerComputationNode: PersistentNode) : InnerComputationSpecification = {
-    assert(allChildren(innerComputationNode).size == 1)
-    val innerComputation = allChildren(innerComputationNode).head
+    assert(children(innerComputationNode).size == 1)
+    val innerComputation = children(innerComputationNode).head
     unmarshal(innerComputation).asInstanceOf[InnerComputationSpecification]
   }
 
@@ -210,7 +210,6 @@ trait Reader {
   protected def optionalAttrValue(node: PersistentNode, key: String): Option[String]
   protected def children(node: PersistentNode) : List[PersistentNode]
   protected def children(node: PersistentNode, label: String) : List[PersistentNode]
-  protected def allChildren(node: PersistentNode) : List[PersistentNode]
   protected def asTextBearingNode(node: PersistentNode) : PersistentTextBearingNode
   protected def dateTime(timeString: String): DateTime
 
