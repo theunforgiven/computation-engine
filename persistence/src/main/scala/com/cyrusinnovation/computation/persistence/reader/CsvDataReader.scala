@@ -58,7 +58,7 @@ case class CsvReaderConfig(numberOfInitialLinesToSkip: Int = 0,
 
 // Expected format: NodeID, Library, Version, Attribute Name, Attribute Value
 // CsvReaderConfig could be generalized to allow reading format from column headers, and to skip first line if column headers exist.
-object CsvNodeFileParser {
+object CsvNodeFileParser extends NodeTableDataParser {
   val NODE_ID = 0
   val LIBRARY = 1
   val VERSION = 2
@@ -67,26 +67,17 @@ object CsvNodeFileParser {
 
   def parse(reader: java.io.Reader, library: String, version: String, config: CsvReaderConfig = CsvReaderConfig()): Map[Long, Map[String, String]] = {
     val csvReader = config.createCsvReaderFrom(reader)
+    val dataForThisVersion: List[(Long, String, String)] = csvReader.readAll().toList
+      .filter(row => row(LIBRARY) == library && row(VERSION) == version)
+      .map(row => (row(NODE_ID).toLong, row(ATTRIBUTE_NAME), row(ATTRIBUTE_VALUE)))
 
-    val dataForThisVersion = csvReader.readAll().toList.filter(row => row(LIBRARY) == library && row(VERSION) == version)
-    val initialAccumulator: Map[Long, Map[String, String]] = Map()
-    
-    dataForThisVersion.foldLeft(initialAccumulator) {
-      (mapSoFar, valuesForThisRow) => {
-        val nodeId = valuesForThisRow(NODE_ID).toLong
-        val attributeMapForThisNode = mapSoFar.get(nodeId) match {
-          case None => Map(valuesForThisRow(ATTRIBUTE_NAME) -> valuesForThisRow(ATTRIBUTE_VALUE))
-          case Some(attributesSoFar) => attributesSoFar + (valuesForThisRow(ATTRIBUTE_NAME) -> valuesForThisRow(ATTRIBUTE_VALUE))
-        }
-        mapSoFar + (nodeId -> attributeMapForThisNode)
-      }
-    }
+    parse(dataForThisVersion)
   }
 }
 
 // Expected format: Library, Version, Origin, Target, Sequence. (Sequence number operates within rows with the same origin)
 // CsvReaderConfig could be generalized to allow reading format from column headers, and to skip first line if column headers exist.
-object CsvEdgeFileParser {
+object CsvEdgeFileParser extends EdgeTableDataParser {
   val LIBRARY = 0
   val VERSION = 1
   val ORIGIN = 2
@@ -96,23 +87,14 @@ object CsvEdgeFileParser {
   def parse(reader: java.io.Reader, library: String, version: String, config: CsvReaderConfig): Map[Long, List[Long]] = {
     val csvReader = config.createCsvReaderFrom(reader)
 
-    val dataForThisVersion = csvReader.readAll().toList.filter(row => row(LIBRARY) == library && row(VERSION) == version).sortWith {
-      (row1, row2) => if(row1(ORIGIN) == row2(ORIGIN)) row1(SEQUENCE) < row2(SEQUENCE) else row1(ORIGIN) < row2(ORIGIN)
-    }
-
-    val idsToReversedTargetList = dataForThisVersion.foldLeft(Map[Long, List[Long]]()) {
-      (mapSoFar, valuesForThisRow) => {
-        val originId = valuesForThisRow(ORIGIN).toLong
-        val targets = mapSoFar.get(originId) match {
-          case None => List(valuesForThisRow(TARGET).toLong)
-          case Some(targetsSoFar) => valuesForThisRow(TARGET).toLong :: targetsSoFar
-        }
-        mapSoFar + (originId -> targets)
+    val sortedDataForThisVersion = csvReader.readAll().toList
+      .filter(row => row(LIBRARY) == library && row(VERSION) == version)
+      .sortWith {
+        (row1, row2) => if(row1(ORIGIN) == row2(ORIGIN)) row1(SEQUENCE) < row2(SEQUENCE) else row1(ORIGIN) < row2(ORIGIN)
       }
-    }
-    idsToReversedTargetList.map(keyValuePair => {
-      keyValuePair._1 -> keyValuePair._2.reverse
-    })
+      .map(row => (row(ORIGIN).toLong, row(TARGET).toLong))
+
+    parse(sortedDataForThisVersion)
   }
 }
 

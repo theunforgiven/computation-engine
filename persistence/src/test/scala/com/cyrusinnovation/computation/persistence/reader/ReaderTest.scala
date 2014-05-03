@@ -30,7 +30,13 @@ class ReaderTest extends FlatSpec with Matchers {
     val tableReader = CsvDataReader.fromFileOnClasspath("/sampleNodes.csv", "/sampleEdges.csv", "test", "1.0", CsvReaderConfig(1))
     verifyThatLibraryIsConstructedProperly(tableReader)
   }
-  
+
+  //Depends on current working directory being persistence module directory
+  "A Table Reader" should "be able to read a library from a database" in {
+    val tableReader = SqlTableReader.fromJdbcUrl("test", "1.0", "jdbc:h2:./src/test/resources/h2-sample")
+    verifyThatLibraryIsConstructedProperly(tableReader)
+  }
+
   def verifyThatLibraryIsConstructedProperly(reader: Reader) = {
     val root = reader.unmarshal
     root.name should be("test")
