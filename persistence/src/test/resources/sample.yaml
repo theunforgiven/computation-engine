@@ -1,0 +1,104 @@
+# In YAML syntax for computations, the library and the version are both at the top level.
+# and computations are not nested under them. One YAML file should correspond to a single,
+# complete library version.
+- library:
+    name: test
+
+- version:
+    versionNumber: 1.0
+    state: Editable
+    lastEditDate: 2014-04-07T09:30:10Z
+
+- simpleComputation:
+    package: test.computations
+    name: MaximumTestValueComputation
+    changedInVersion: 1.0
+    description: Take the maximum of the values of the testValues map
+    logger: computationLogger
+    securityConfiguration: testSecurityConfiguration
+    shouldPropagateExceptions: false
+
+    imports:
+      - scala.collection.mutable.{Map => MutableMap}
+      - scala.collection.mutable.{Set => MutableSet}
+
+    inputs:
+      - { "testValues: Map[String, Int]": "testValues" }
+
+    computationExpression: |
+      val toTestImports = MutableSet()
+      val maxTuple = testValues.maxBy(aTuple => aTuple._2)
+      Some(MutableMap(maxTuple))
+
+    resultKey: maxTestValue
+
+- abortIfComputation:
+    package: test.computations
+    name: AbortIfContainsMapWithDesiredEntry
+    changedInVersion: 1.0
+    description: See if the value is a map with one key 'b and value 5
+    logger: computationLogger
+    securityConfiguration: testSecurityConfiguration
+    shouldPropagateExceptions: false
+
+    imports:
+      - scala.collection.mutable.{Map => MutableMap}
+
+    inputs:
+      - {"x: MutableMap[Symbol, Int]": "maxTestValue"}
+
+    innerComputation:
+      ref: test.computations.MaximumTestValueComputation
+
+    predicateExpression: x == MutableMap('b -> 5)
+
+- namedComputation:
+    package: test.computations
+    name: SequentialMaxComputation
+    changedInVersion: 1.0
+    description: Compute the maximum and then do a mapping computation
+
+    sequentialComputation:
+      innerComputations:
+        - ref: test.computations.MaximumTestValueComputation
+        - mappingComputation:
+            innerComputation:
+              ref: test.computations.AbortIfContainsMapWithDesiredEntry
+            inputTuple: { "testValues: Map[String, Int]": "testValues" }
+            resultKey: maxTestValue
+        
+- namedComputation:
+    package: test.computations
+    name: FoldingSumComputation
+    changedInVersion: 1.0
+    description: Sum all the values in a sequence
+
+    foldingComputation:
+      initialAccumulatorKey: initialAccumulator
+      inputTuple: { "testValues", "addend1" }
+      accumulatorTuple: { "sumAccumulator", "addend2" }
+      innerComputation:
+        simpleComputation:
+          package: test.computations
+          name: SumComputation
+          changedInVersion: 1.0
+          description: Take the sum of two addends
+          logger: computationLogger
+          securityConfiguration: testSecurityConfiguration
+          shouldPropagateExceptions: false
+
+          imports: []
+
+          inputs:
+            - { "addend1:Int", "addend1" }
+            - { "addend2:Int", "addend2" }
+
+          computationExpression: Some(addend1 + addend2)
+
+          resultKey: sum
+
+
+
+
+
+

@@ -19,6 +19,11 @@ import com.cyrusinnovation.computation.util.TestUtils._
 
 class ReaderTest extends FlatSpec with Matchers {
 
+  "A YAML Reader" should "be able to read a library from YAML" in {
+    val yamlReader = YamlReader.fromFileOnClasspath("/sample.yaml")
+    verifyThatLibraryIsConstructedProperly(yamlReader)
+  }
+
   "An XML Reader" should "be able to read a library from XML" in {
     val inputStream: InputStream = getClass.getResourceAsStream("/sample.xml")
     val nodes: Elem = XML.load(inputStream)
@@ -26,14 +31,14 @@ class ReaderTest extends FlatSpec with Matchers {
     verifyThatLibraryIsConstructedProperly(reader)
   }
 
-  "A Table Reader" should "be able to read a library from parsed CSV data" in {
-    val tableReader = CsvDataReader.fromFileOnClasspath("/sampleNodes.csv", "/sampleEdges.csv", "test", "1.0", CsvReaderConfig(1))
-    verifyThatLibraryIsConstructedProperly(tableReader)
-  }
-
   //Depends on current working directory being persistence module directory
   "A Table Reader" should "be able to read a library from a database" in {
     val tableReader = SqlTableReader.fromJdbcUrl("test", "1.0", "jdbc:h2:./src/test/resources/h2-sample", Some("public"))
+    verifyThatLibraryIsConstructedProperly(tableReader)
+  }
+
+  "A Table Reader" should "be able to read a library from parsed CSV data" in {
+    val tableReader = CsvDataReader.fromFileOnClasspath("/sampleNodes.csv", "/sampleEdges.csv", "test", "1.0", CsvReaderConfig(1))
     verifyThatLibraryIsConstructedProperly(tableReader)
   }
 
