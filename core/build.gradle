@@ -14,7 +14,7 @@ dependencies {
 }
 
 task test(overwrite: true, dependsOn: testClasses) << {
-    ant.taskdef(name: 'scalatest', 
+    ant.taskdef(name: 'scalatest',
                 classname: 'org.scalatest.tools.ScalaTestAntTask', 
                 classpath: sourceSets.test.runtimeClasspath.asPath
                )
