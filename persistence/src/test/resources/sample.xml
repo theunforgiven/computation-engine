@@ -14,12 +14,12 @@
                     <import>scala.collection.mutable.{Map => MutableMap}</import>
                     <import>scala.collection.mutable.{Set => MutableSet}</import>
                 </imports>
-                <input>
+                <inputs>
                     <mapping>
                         <key>testValues: Map[String, Int]</key>
                         <value>testValues</value>
                     </mapping>
-                </input>
+                </inputs>
                 <resultKey>maxTestValue</resultKey>
                 <logger>computationLogger</logger>
                 <securityConfiguration>testSecurityConfiguration</securityConfiguration>
@@ -35,12 +35,12 @@
                 <imports>
                     <import>scala.collection.mutable.{Map => MutableMap}</import>
                 </imports>
-                <input>
+                <inputs>
                     <mapping>
                         <key>x: MutableMap[Symbol, Int]</key>
                         <value>maxTestValue</value>
                     </mapping>
-                </input>
+                </inputs>
                 <logger>computationLogger</logger>
                 <securityConfiguration>testSecurityConfiguration</securityConfiguration>
             </abortIfComputation>
@@ -91,7 +91,7 @@
                                 <![CDATA[ Some(addend1 + addend2) ]]>
                             </computationExpression>
                             <imports></imports>
-                            <input>
+                            <inputs>
                                 <mapping>
                                     <key>addend1:Int</key>
                                     <value>addend1</value>
@@ -100,7 +100,7 @@
                                     <key>addend2:Int</key>
                                     <value>addend2</value>
                                 </mapping>
-                            </input>
+                            </inputs>
                             <resultKey>sum</resultKey>
                             <logger>computationLogger</logger>
                             <securityConfiguration>testSecurityConfiguration</securityConfiguration>

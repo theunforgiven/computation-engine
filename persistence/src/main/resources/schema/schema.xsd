@@ -50,7 +50,7 @@
             <xs:all minOccurs="1" maxOccurs="1">
                 <xs:element ref="computationExpression"/>
                 <xs:element ref="imports"/>
-                <xs:element ref="input"/>
+                <xs:element ref="inputs"/>
                 <xs:element ref="resultKey"/>
                 <xs:element ref="logger"/>
                 <xs:element ref="securityConfiguration"/>
@@ -74,7 +74,7 @@
                 <xs:element ref="predicateExpression"/>
                 <xs:element ref="innerComputation"/>
                 <xs:element ref="imports"/>
-                <xs:element ref="input"/>
+                <xs:element ref="inputs"/>
                 <xs:element ref="logger"/>
                 <xs:element ref="securityConfiguration"/>
             </xs:all>
@@ -115,7 +115,7 @@
 
     <xs:element name="import" type="xs:string"/>
 
-    <xs:element name="input">
+    <xs:element name="inputs">
         <xs:complexType>
             <xs:sequence minOccurs="1" maxOccurs="unbounded">
                 <xs:element ref="mapping"/>

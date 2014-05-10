@@ -46,7 +46,7 @@ trait Reader {
     case "innerComputation" => throw new RuntimeException("innerComputation node should not be unmarshaled directly")
     case "ref" => reference(node)
     case "imports" => imports(node)
-    case "input" => input(node)
+    case "inputs" => inputs(node)
     case "inputTuple" => singleTuple(node)
     case "accumulatorTuple" => singleTuple(node)
     case "mapping" => mapping(node)
@@ -95,7 +95,7 @@ trait Reader {
       attrValue(node, "shouldPropagateExceptions").toBoolean,
       unmarshalToString(childOfType(node, "computationExpression")),
       unmarshal(childOfType(node, "imports")).asInstanceOf[Imports],
-      unmarshal(childOfType(node, "input")).asInstanceOf[Inputs],
+      unmarshal(childOfType(node, "inputs")).asInstanceOf[Inputs],
       unmarshalToString(childOfType(node, "resultKey")),
       unmarshalToString(childOfType(node, "logger")),
       unmarshalToString(childOfType(node, "securityConfiguration"))
@@ -112,7 +112,7 @@ trait Reader {
       unmarshalToString(childOfType(node, "predicateExpression")),
       extractInnerComputationFrom(childOfType(node, "innerComputation")),
       unmarshal(childOfType(node, "imports")).asInstanceOf[Imports],
-      unmarshal(childOfType(node, "input")).asInstanceOf[Inputs],
+      unmarshal(childOfType(node, "inputs")).asInstanceOf[Inputs],
       unmarshalToString(childOfType(node, "logger")),
       unmarshalToString(childOfType(node, "securityConfiguration"))
     )
@@ -184,7 +184,7 @@ trait Reader {
     Imports(importStrings:_*)
   }
 
-  protected def input(node: PersistentNode) : Inputs = {
+  protected def inputs(node: PersistentNode) : Inputs = {
     val nodes: List[Mapping] = children(node, "mapping").map(x => unmarshal(x).asInstanceOf[Mapping])
     Inputs(nodes.head, nodes.tail:_*)
   }
