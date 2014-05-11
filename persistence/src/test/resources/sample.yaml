@@ -23,7 +23,7 @@
       - scala.collection.mutable.{Set => MutableSet}
 
     inputs:
-      - { "testValues: Map[String, Int]": "testValues" }
+      - "testValues: Map[String, Int]": "testValues"
 
     computationExpression: |
       val toTestImports = MutableSet()
@@ -45,7 +45,7 @@
       - scala.collection.mutable.{Map => MutableMap}
 
     inputs:
-      - {"x: MutableMap[Symbol, Int]": "maxTestValue"}
+      - "x: MutableMap[Symbol, Int]": "maxTestValue"
 
     innerComputation:
       ref: test.computations.MaximumTestValueComputation
@@ -64,7 +64,8 @@
         - mappingComputation:
             innerComputation:
               ref: test.computations.AbortIfContainsMapWithDesiredEntry
-            inputTuple: { "testValues: Map[String, Int]": "testValues" }
+            inputTuple:
+              "testValues: Map[String, Int]": "testValues"
             resultKey: maxTestValue
         
 - namedComputation:
@@ -75,8 +76,10 @@
 
     foldingComputation:
       initialAccumulatorKey: initialAccumulator
-      inputTuple: { "testValues", "addend1" }
-      accumulatorTuple: { "sumAccumulator", "addend2" }
+      inputTuple:
+        "testValues": "addend1"
+      accumulatorTuple:
+        "sumAccumulator": "addend2"
       innerComputation:
         simpleComputation:
           package: test.computations
@@ -90,8 +93,8 @@
           imports: []
 
           inputs:
-            - { "addend1:Int", "addend1" }
-            - { "addend2:Int", "addend2" }
+            - "addend1:Int": "addend1"
+            - "addend2:Int": "addend2"
 
           computationExpression: Some(addend1 + addend2)
 

@@ -93,12 +93,12 @@ trait Reader {
       attrValue(node, "description"),
       attrValue(node, "changedInVersion"),
       attrValue(node, "shouldPropagateExceptions").toBoolean,
-      unmarshalToString(childOfType(node, "computationExpression")),
+      unmarshalChildToString(node, "computationExpression"),
       unmarshal(childOfType(node, "imports")).asInstanceOf[Imports],
       unmarshal(childOfType(node, "inputs")).asInstanceOf[Inputs],
-      unmarshalToString(childOfType(node, "resultKey")),
-      unmarshalToString(childOfType(node, "logger")),
-      unmarshalToString(childOfType(node, "securityConfiguration"))
+      unmarshalChildToString(node, "resultKey"),
+      unmarshalChildToString(node, "logger"),
+      unmarshalChildToString(node, "securityConfiguration")
     )
   }
 
@@ -109,12 +109,12 @@ trait Reader {
       attrValue(node, "description"),
       attrValue(node, "changedInVersion"),
       attrValue(node, "shouldPropagateExceptions").toBoolean,
-      unmarshalToString(childOfType(node, "predicateExpression")),
+      unmarshalChildToString(node, "predicateExpression"),
       extractInnerComputationFrom(childOfType(node, "innerComputation")),
       unmarshal(childOfType(node, "imports")).asInstanceOf[Imports],
       unmarshal(childOfType(node, "inputs")).asInstanceOf[Inputs],
-      unmarshalToString(childOfType(node, "logger")),
-      unmarshalToString(childOfType(node, "securityConfiguration"))
+      unmarshalChildToString(node, "logger"),
+      unmarshalChildToString(node, "securityConfiguration")
     )
   }
 
@@ -144,7 +144,7 @@ trait Reader {
     MappingComputationSpecification(
       extractInnerComputationFrom(childOfType(node, "innerComputation")),
       unmarshal(childOfType(node, "inputTuple")).asInstanceOf[Mapping],
-      unmarshalToString(childOfType(node, "resultKey"))
+      unmarshalChildToString(node, "resultKey")
     )
   }
 
@@ -152,14 +152,14 @@ trait Reader {
     IterativeComputationSpecification(
       extractInnerComputationFrom(childOfType(node, "innerComputation")),
       unmarshal(childOfType(node, "inputTuple")).asInstanceOf[Mapping],
-      unmarshalToString(childOfType(node, "resultKey"))
+      unmarshalChildToString(node, "resultKey")
     )
   }
 
   protected def foldingComputation(node: PersistentNode) : FoldingComputationSpecification = {
     FoldingComputationSpecification(
       extractInnerComputationFrom(childOfType(node, "innerComputation")),
-      unmarshalToString(childOfType(node, "initialAccumulatorKey")),
+      unmarshalChildToString(node, "initialAccumulatorKey"),
       unmarshal(childOfType(node, "inputTuple")).asInstanceOf[Mapping],
       unmarshal(childOfType(node, "accumulatorTuple")).asInstanceOf[Mapping]
     )
@@ -191,8 +191,8 @@ trait Reader {
 
   protected def mapping(node: PersistentNode) : Mapping =  {
     Mapping(
-      unmarshalToString(childOfType(node, "key")),
-      unmarshalToString(childOfType(node, "value"))
+      unmarshalChildToString(node, "key"),
+      unmarshalChildToString(node, "value")
     )
   }
 
@@ -213,8 +213,17 @@ trait Reader {
   protected def asTextBearingNode(node: PersistentNode) : PersistentTextBearingNode
   protected def dateTime(timeString: String): DateTime
 
+  //TODO This is hackery. Make this more consistent.
   protected def unmarshalToString(persistentNode: PersistentNode) : String = {
     asTextBearingNode(persistentNode).text
+  }
+
+  //TODO This is hackery. Make this more consistent.
+  protected def unmarshalChildToString(node: PersistentNode, key: String) : String = {
+    optionalAttrValue(node, key) match {
+      case Some(value) => value
+      case None => asTextBearingNode(childOfType(node, key)).text
+    }
   }
 
   protected def child(persistentNode: PersistentNode) : PersistentNode = {

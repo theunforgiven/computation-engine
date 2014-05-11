@@ -19,10 +19,10 @@ import com.cyrusinnovation.computation.util.TestUtils._
 
 class ReaderTest extends FlatSpec with Matchers {
 
-  it should "be able to read a library from YAML" is (pending) // {
-//    val yamlReader = YamlReader.fromFileOnClasspath("/sample.yaml")
-//    verifyThatLibraryIsConstructedProperly(yamlReader)
-//  }
+  "A YAML Reader" should "be able to read a library from YAML" in {
+    val yamlReader = YamlReader.fromFileOnClasspath("/sample.yaml")
+    verifyThatLibraryIsConstructedProperly(yamlReader)
+  }
 
   "An XML Reader" should "be able to read a library from XML" in {
     val inputStream: InputStream = getClass.getResourceAsStream("/sample.xml")
