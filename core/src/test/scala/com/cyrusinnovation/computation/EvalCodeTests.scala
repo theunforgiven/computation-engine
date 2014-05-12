@@ -30,7 +30,7 @@ class EvalCodeTests extends FlatSpec with Matchers with MockFactory with BeforeA
       case None => ScalaScriptEngine.tmpOutputFolder.toURI.toString
     }
 
-    val classFileURI = List(targetDirectory, "test", "computations", "ExceptionThrowingComputation.class").mkString(java.io.File.separator)
+    val classFileURI = joinPathParts(targetDirectory, "test", "computations", "ExceptionThrowingComputation.class")
 
     val firstComputation = TestRules(stub[Log]).exceptionThrowingSimpleComputation(shouldPropagate = false)
     val file = new File(new URI(classFileURI))
@@ -50,7 +50,7 @@ class EvalCodeTests extends FlatSpec with Matchers with MockFactory with BeforeA
       case None => ScalaScriptEngine.tmpOutputFolder.toURI.toString
     }
 
-    val classFileURI = List(targetDirectory, "test", "computations", "ExceptionThrowingComputation.class").mkString(java.io.File.separator)
+    val classFileURI = joinPathParts(targetDirectory, "test", "computations", "ExceptionThrowingComputation.class")
 
     val firstComputation = TestRules(stub[Log]).exceptionThrowingSimpleComputation(shouldPropagate = false)
     val file = new File(new URI(classFileURI))
@@ -71,7 +71,7 @@ class EvalCodeTests extends FlatSpec with Matchers with MockFactory with BeforeA
       case None => ScalaScriptEngine.tmpOutputFolder.toURI.toString
     }
 
-    val classFileURI = List(targetDirectory, "test", "computations", "ExceptionThrowingComputation.class").mkString(java.io.File.separator)
+    val classFileURI = joinPathParts(targetDirectory, "test", "computations", "ExceptionThrowingComputation.class")
 
     val firstComputation = TestRules(stub[Log]).exceptionThrowingSimpleComputation(shouldPropagate = false)
     val file = new File(new URI(classFileURI))
@@ -86,7 +86,7 @@ class EvalCodeTests extends FlatSpec with Matchers with MockFactory with BeforeA
 
   "EvalCode" should "compile classes to a directory that the user can specify as a URI using the script.classes system property" in {
     val tmpdir = System.getProperty("java.io.tmpdir")
-    val targetDirName = List(tmpdir, "special").mkString(java.io.File.separator)
+    val targetDirName = joinPathParts(tmpdir, "special")
     val targetDir = new java.io.File(targetDirName)
 
     System.setProperty("script.classes", targetDir.toURI.toString)
@@ -120,4 +120,6 @@ class EvalCodeTests extends FlatSpec with Matchers with MockFactory with BeforeA
     println(s"Deleting ${fileOrDirectory.getPath}")
     fileOrDirectory.delete()
   }
+
+  private def joinPathParts(parts: String*) = List(parts:_*).mkString("/")
 }
