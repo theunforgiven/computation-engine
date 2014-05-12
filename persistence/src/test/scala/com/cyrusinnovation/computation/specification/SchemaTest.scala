@@ -1,10 +1,8 @@
 package com.cyrusinnovation.computation.specification
 
 import org.scalatest.{Matchers, FlatSpec}
-import java.io.InputStream
-import scala.xml.{XML, Elem}
 import org.scalamock.scalatest.MockFactory
-import com.cyrusinnovation.computation.persistence.reader.XmlReader
+import com.cyrusinnovation.computation.persistence.reader.YamlReader
 
 class SchemaTest extends FlatSpec with Matchers with MockFactory {
 
@@ -23,9 +21,7 @@ class SchemaTest extends FlatSpec with Matchers with MockFactory {
   }
 
   "A known good library specification" should "be verified to have no cyclical references" in {
-    val inputStream: InputStream = getClass.getResourceAsStream("/sample.xml")
-    val nodes: Elem = XML.load(inputStream)
-    val reader = new XmlReader(nodes)
+    val reader = YamlReader.fromFileOnClasspath("/sample.yaml")
     val library = reader.unmarshal
     library.verifyNoCyclicalReferences()
   }
