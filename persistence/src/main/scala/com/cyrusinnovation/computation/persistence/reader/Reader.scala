@@ -191,8 +191,8 @@ trait Reader {
 
   protected def mapping(node: PersistentNode) : Mapping =  {
     Mapping(
-      unmarshalChildToString(node, "key"),
-      unmarshalChildToString(node, "value")
+      attrValue(node, "key"),
+      attrValue(node, "value")
     )
   }
 
