@@ -97,7 +97,7 @@ trait Reader {
       unmarshal(childOfType(node, "imports")).asInstanceOf[Imports],
       unmarshal(childOfType(node, "inputs")).asInstanceOf[Inputs],
       unmarshalChildToString(node, "resultKey"),
-      unmarshalChildToString(node, "logger"),
+      attrValue(node, "logger"),
       attrValue(node, "securityConfiguration")
     )
   }
@@ -113,7 +113,7 @@ trait Reader {
       extractInnerComputationFrom(childOfType(node, "innerComputation")),
       unmarshal(childOfType(node, "imports")).asInstanceOf[Imports],
       unmarshal(childOfType(node, "inputs")).asInstanceOf[Inputs],
-      unmarshalChildToString(node, "logger"),
+      attrValue(node, "logger"),
       attrValue(node, "securityConfiguration")
     )
   }
