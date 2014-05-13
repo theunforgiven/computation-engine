@@ -159,7 +159,7 @@ trait Reader {
   protected def foldingComputation(node: PersistentNode) : FoldingComputationSpecification = {
     FoldingComputationSpecification(
       extractInnerComputationFrom(childOfType(node, "innerComputation")),
-      unmarshalChildToString(node, "initialAccumulatorKey"),
+      attrValue(node, "initialAccumulatorKey"),
       unmarshal(childOfType(node, "inputTuple")).asInstanceOf[Mapping],
       unmarshal(childOfType(node, "accumulatorTuple")).asInstanceOf[Mapping]
     )
@@ -216,14 +216,6 @@ trait Reader {
   //TODO This is hackery. Make this more consistent.
   protected def unmarshalToString(persistentNode: PersistentNode) : String = {
     asTextBearingNode(persistentNode).text
-  }
-
-  //TODO This is hackery. Make this more consistent.
-  protected def unmarshalChildToString(node: PersistentNode, key: String) : String = {
-    optionalAttrValue(node, key) match {
-      case Some(value) => value
-      case None => asTextBearingNode(childOfType(node, key)).text
-    }
   }
 
   protected def child(persistentNode: PersistentNode) : PersistentNode = {
