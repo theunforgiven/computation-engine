@@ -35,8 +35,7 @@ DELETE FROM COMPUTATION_NODES;
 ); INSERT INTO COMPUTATION_NODES( ID,Library, Version,Attribute_Name, Attribute_Value ) VALUES (16,'test','1.0','shouldPropagateExceptions','false'
 ); INSERT INTO COMPUTATION_NODES( ID,Library, Version,Attribute_Name, Attribute_Value ) VALUES (16,'test','1.0','securityConfiguration','testSecurityConfiguration'
 ); INSERT INTO COMPUTATION_NODES( ID,Library, Version,Attribute_Name, Attribute_Value ) VALUES (16,'test','1.0','logger','computationLogger'
-); INSERT INTO COMPUTATION_NODES( ID,Library, Version,Attribute_Name, Attribute_Value ) VALUES (17,'test','1.0','label','predicateExpression'
-); INSERT INTO COMPUTATION_NODES( ID,Library, Version,Attribute_Name, Attribute_Value ) VALUES (17,'test','1.0','text','x == MutableMap(''b -> 5)'
+); INSERT INTO COMPUTATION_NODES( ID,Library, Version,Attribute_Name, Attribute_Value ) VALUES (16,'test','1.0','predicateExpression','x == MutableMap(''b -> 5)'
 ); INSERT INTO COMPUTATION_NODES( ID,Library, Version,Attribute_Name, Attribute_Value ) VALUES (18,'test','1.0','label','innerComputation'
 ); INSERT INTO COMPUTATION_NODES( ID,Library, Version,Attribute_Name, Attribute_Value ) VALUES (19,'test','1.0','label','ref'
 ); INSERT INTO COMPUTATION_NODES( ID,Library, Version,Attribute_Name, Attribute_Value ) VALUES (19,'test','1.0','text','test.computations.MaximumTestValueComputation'
@@ -128,7 +127,6 @@ DELETE FROM COMPUTATION_EDGES;
 ); INSERT INTO COMPUTATION_EDGES(Library,Version,Origin_Id,Target_Id,Sequence) VALUES('test','1.0',3,4,1
 ); INSERT INTO COMPUTATION_EDGES(Library,Version,Origin_Id,Target_Id,Sequence) VALUES('test','1.0',6,7,1
 ); INSERT INTO COMPUTATION_EDGES(Library,Version,Origin_Id,Target_Id,Sequence) VALUES('test','1.0',9,10,1
-); INSERT INTO COMPUTATION_EDGES(Library,Version,Origin_Id,Target_Id,Sequence) VALUES('test','1.0',16,17,1
 ); INSERT INTO COMPUTATION_EDGES(Library,Version,Origin_Id,Target_Id,Sequence) VALUES('test','1.0',18,19,1
 ); INSERT INTO COMPUTATION_EDGES(Library,Version,Origin_Id,Target_Id,Sequence) VALUES('test','1.0',20,21,1
 ); INSERT INTO COMPUTATION_EDGES(Library,Version,Origin_Id,Target_Id,Sequence) VALUES('test','1.0',22,23,1

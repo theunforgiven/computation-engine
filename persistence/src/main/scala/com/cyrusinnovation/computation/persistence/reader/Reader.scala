@@ -109,7 +109,7 @@ trait Reader {
       attrValue(node, "description"),
       attrValue(node, "changedInVersion"),
       attrValue(node, "shouldPropagateExceptions").toBoolean,
-      unmarshalChildToString(node, "predicateExpression"),
+      attrValue(node, "predicateExpression"),
       extractInnerComputationFrom(childOfType(node, "innerComputation")),
       unmarshal(childOfType(node, "imports")).asInstanceOf[Imports],
       unmarshal(childOfType(node, "inputs")).asInstanceOf[Inputs],
