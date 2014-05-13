@@ -15,8 +15,7 @@
 4,"test","1.0","securityConfiguration","testSecurityConfiguration"
 4,"test","1.0","logger","computationLogger"
 4,"test","1.0","resultKey","maxTestValue"
-5,"test","1.0","label","computationExpression"
-5,"test","1.0","text","val toTestImports = MutableSet()
+4,"test","1.0","computationExpression","val toTestImports = MutableSet()
  val maxTuple = testValues.maxBy(aTuple => aTuple._2)
  Some(MutableMap(maxTuple))"
 6,"test","1.0","label","imports"
@@ -94,8 +93,7 @@
 54,"test","1.0","securityConfiguration","testSecurityConfiguration"
 54,"test","1.0","logger","computationLogger"
 54,"test","1.0","resultKey","sum"
-55,"test","1.0","label","computationExpression"
-55,"test","1.0","text","Some(addend1 + addend2)"
+54,"test","1.0","computationExpression","Some(addend1 + addend2)"
 56,"test","1.0","label","imports"
 57,"test","1.0","label","inputs"
 58,"test","1.0","label","mapping"

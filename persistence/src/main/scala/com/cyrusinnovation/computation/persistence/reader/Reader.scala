@@ -93,7 +93,7 @@ trait Reader {
       attrValue(node, "description"),
       attrValue(node, "changedInVersion"),
       attrValue(node, "shouldPropagateExceptions").toBoolean,
-      unmarshalChildToString(node, "computationExpression"),
+      attrValue(node, "computationExpression"),
       unmarshal(childOfType(node, "imports")).asInstanceOf[Imports],
       unmarshal(childOfType(node, "inputs")).asInstanceOf[Inputs],
       attrValue(node, "resultKey"),
