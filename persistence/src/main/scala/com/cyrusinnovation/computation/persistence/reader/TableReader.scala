@@ -40,7 +40,7 @@ class TableReader(nodeTable: Map[Long, Map[String, String]], edgeTable: Map[Long
   }
   
   def findLibraryNodeId: Long = {
-    nodeTable.filter(nodeIdToAttributeMap => nodeIdToAttributeMap._2("label") == "library").keys.head //There should be only one
+    nodeTable.filter(nodeIdToAttributeMap => nodeIdToAttributeMap._2.getOrElse("label", "") == "library").keys.head //There should be only one
   }
   
   private def constructNodeFromNodeId(nodeId: Long) : DbPersistentNode = {
