@@ -14,6 +14,7 @@ DELETE FROM COMPUTATION_NODES;
 ); INSERT INTO COMPUTATION_NODES( ID,Library, Version,Attribute_Name, Attribute_Value ) VALUES (4,'test','1.0','shouldPropagateExceptions','false'
 ); INSERT INTO COMPUTATION_NODES( ID,Library, Version,Attribute_Name, Attribute_Value ) VALUES (4,'test','1.0','securityConfiguration','testSecurityConfiguration'
 ); INSERT INTO COMPUTATION_NODES( ID,Library, Version,Attribute_Name, Attribute_Value ) VALUES (4,'test','1.0','logger','computationLogger'
+); INSERT INTO COMPUTATION_NODES( ID,Library, Version,Attribute_Name, Attribute_Value ) VALUES (4,'test','1.0','resultKey','maxTestValue'
 ); INSERT INTO COMPUTATION_NODES( ID,Library, Version,Attribute_Name, Attribute_Value ) VALUES (5,'test','1.0','label','computationExpression'
 ); INSERT INTO COMPUTATION_NODES( ID,Library, Version,Attribute_Name, Attribute_Value ) VALUES (5,'test','1.0','text','val toTestImports = MutableSet()'
 || char(10) || 'val maxTuple = testValues.maxBy(aTuple => aTuple._2)'
@@ -29,8 +30,6 @@ DELETE FROM COMPUTATION_NODES;
 ); INSERT INTO COMPUTATION_NODES( ID,Library, Version,Attribute_Name, Attribute_Value ) VALUES (11,'test','1.0','text','testValues: Map[String, Int]'
 ); INSERT INTO COMPUTATION_NODES( ID,Library, Version,Attribute_Name, Attribute_Value ) VALUES (12,'test','1.0','label','value'
 ); INSERT INTO COMPUTATION_NODES( ID,Library, Version,Attribute_Name, Attribute_Value ) VALUES (12,'test','1.0','text','testValues'
-); INSERT INTO COMPUTATION_NODES( ID,Library, Version,Attribute_Name, Attribute_Value ) VALUES (13,'test','1.0','label','resultKey'
-); INSERT INTO COMPUTATION_NODES( ID,Library, Version,Attribute_Name, Attribute_Value ) VALUES (13,'test','1.0','text','maxTestValue'
 ); INSERT INTO COMPUTATION_NODES( ID,Library, Version,Attribute_Name, Attribute_Value ) VALUES (16,'test','1.0','label','abortIfComputation'
 ); INSERT INTO COMPUTATION_NODES( ID,Library, Version,Attribute_Name, Attribute_Value ) VALUES (16,'test','1.0','package','test.computations'
 ); INSERT INTO COMPUTATION_NODES( ID,Library, Version,Attribute_Name, Attribute_Value ) VALUES (16,'test','1.0','name','AbortIfContainsMapWithDesiredEntry'
@@ -65,6 +64,7 @@ DELETE FROM COMPUTATION_NODES;
 ); INSERT INTO COMPUTATION_NODES( ID,Library, Version,Attribute_Name, Attribute_Value ) VALUES (32,'test','1.0','text','test.computations.MaximumTestValueComputation'
 ); INSERT INTO COMPUTATION_NODES( ID,Library, Version,Attribute_Name, Attribute_Value ) VALUES (33,'test','1.0','label','innerComputation'
 ); INSERT INTO COMPUTATION_NODES( ID,Library, Version,Attribute_Name, Attribute_Value ) VALUES (34,'test','1.0','label','mappingComputation'
+); INSERT INTO COMPUTATION_NODES( ID,Library, Version,Attribute_Name, Attribute_Value ) VALUES (34,'test','1.0','resultKey','maxTestValue'
 ); INSERT INTO COMPUTATION_NODES( ID,Library, Version,Attribute_Name, Attribute_Value ) VALUES (35,'test','1.0','label','innerComputation'
 ); INSERT INTO COMPUTATION_NODES( ID,Library, Version,Attribute_Name, Attribute_Value ) VALUES (36,'test','1.0','label','ref'
 ); INSERT INTO COMPUTATION_NODES( ID,Library, Version,Attribute_Name, Attribute_Value ) VALUES (36,'test','1.0','text','test.computations.AbortIfContainsMapWithDesiredEntry'
@@ -74,8 +74,6 @@ DELETE FROM COMPUTATION_NODES;
 ); INSERT INTO COMPUTATION_NODES( ID,Library, Version,Attribute_Name, Attribute_Value ) VALUES (39,'test','1.0','text','testValues: Map[String, Int]'
 ); INSERT INTO COMPUTATION_NODES( ID,Library, Version,Attribute_Name, Attribute_Value ) VALUES (40,'test','1.0','label','value'
 ); INSERT INTO COMPUTATION_NODES( ID,Library, Version,Attribute_Name, Attribute_Value ) VALUES (40,'test','1.0','text','testValues'
-); INSERT INTO COMPUTATION_NODES( ID,Library, Version,Attribute_Name, Attribute_Value ) VALUES (41,'test','1.0','label','resultKey'
-); INSERT INTO COMPUTATION_NODES( ID,Library, Version,Attribute_Name, Attribute_Value ) VALUES (41,'test','1.0','text','maxTestValue'
 ); INSERT INTO COMPUTATION_NODES( ID,Library, Version,Attribute_Name, Attribute_Value ) VALUES (42,'test','1.0','label','namedComputation'
 ); INSERT INTO COMPUTATION_NODES( ID,Library, Version,Attribute_Name, Attribute_Value ) VALUES (42,'test','1.0','package','test.computations'
 ); INSERT INTO COMPUTATION_NODES( ID,Library, Version,Attribute_Name, Attribute_Value ) VALUES (42,'test','1.0','name','FoldingSumComputation'
@@ -105,6 +103,7 @@ DELETE FROM COMPUTATION_NODES;
 ); INSERT INTO COMPUTATION_NODES( ID,Library, Version,Attribute_Name, Attribute_Value ) VALUES (54,'test','1.0','shouldPropagateExceptions','false'
 ); INSERT INTO COMPUTATION_NODES( ID,Library, Version,Attribute_Name, Attribute_Value ) VALUES (54,'test','1.0','securityConfiguration','testSecurityConfiguration'
 ); INSERT INTO COMPUTATION_NODES( ID,Library, Version,Attribute_Name, Attribute_Value ) VALUES (54,'test','1.0','logger','computationLogger'
+); INSERT INTO COMPUTATION_NODES( ID,Library, Version,Attribute_Name, Attribute_Value ) VALUES (54,'test','1.0','resultKey','sum'
 ); INSERT INTO COMPUTATION_NODES( ID,Library, Version,Attribute_Name, Attribute_Value ) VALUES (55,'test','1.0','label','computationExpression'
 ); INSERT INTO COMPUTATION_NODES( ID,Library, Version,Attribute_Name, Attribute_Value ) VALUES (55,'test','1.0','text','Some(addend1 + addend2)'
 ); INSERT INTO COMPUTATION_NODES( ID,Library, Version,Attribute_Name, Attribute_Value ) VALUES (56,'test','1.0','label','imports'
@@ -119,21 +118,16 @@ DELETE FROM COMPUTATION_NODES;
 ); INSERT INTO COMPUTATION_NODES( ID,Library, Version,Attribute_Name, Attribute_Value ) VALUES (62,'test','1.0','text','addend2:Int'
 ); INSERT INTO COMPUTATION_NODES( ID,Library, Version,Attribute_Name, Attribute_Value ) VALUES (63,'test','1.0','label','value'
 ); INSERT INTO COMPUTATION_NODES( ID,Library, Version,Attribute_Name, Attribute_Value ) VALUES (63,'test','1.0','text','addend2'
-); INSERT INTO COMPUTATION_NODES( ID,Library, Version,Attribute_Name, Attribute_Value ) VALUES (64,'test','1.0','label','resultKey'
-); INSERT INTO COMPUTATION_NODES( ID,Library, Version,Attribute_Name, Attribute_Value ) VALUES (64,'test','1.0','text','sum'
 );
 
 DELETE FROM COMPUTATION_EDGES;
 
-   INSERT INTO COMPUTATION_EDGES(Library,Version,Origin_Id,Target_Id,Sequence) VALUES('test','1.0',4,13,4
-); INSERT INTO COMPUTATION_EDGES(Library,Version,Origin_Id,Target_Id,Sequence) VALUES('test','1.0',16,22,4
+   INSERT INTO COMPUTATION_EDGES(Library,Version,Origin_Id,Target_Id,Sequence) VALUES('test','1.0',16,22,4
 ); INSERT INTO COMPUTATION_EDGES(Library,Version,Origin_Id,Target_Id,Sequence) VALUES('test','1.0',3,42,4
 ); INSERT INTO COMPUTATION_EDGES(Library,Version,Origin_Id,Target_Id,Sequence) VALUES('test','1.0',43,53,4
-); INSERT INTO COMPUTATION_EDGES(Library,Version,Origin_Id,Target_Id,Sequence) VALUES('test','1.0',54,64,4
 ); INSERT INTO COMPUTATION_EDGES(Library,Version,Origin_Id,Target_Id,Sequence) VALUES('test','1.0',4,9,3
 ); INSERT INTO COMPUTATION_EDGES(Library,Version,Origin_Id,Target_Id,Sequence) VALUES('test','1.0',16,20,3
 ); INSERT INTO COMPUTATION_EDGES(Library,Version,Origin_Id,Target_Id,Sequence) VALUES('test','1.0',3,28,3
-); INSERT INTO COMPUTATION_EDGES(Library,Version,Origin_Id,Target_Id,Sequence) VALUES('test','1.0',34,41,3
 ); INSERT INTO COMPUTATION_EDGES(Library,Version,Origin_Id,Target_Id,Sequence) VALUES('test','1.0',43,49,3
 ); INSERT INTO COMPUTATION_EDGES(Library,Version,Origin_Id,Target_Id,Sequence) VALUES('test','1.0',54,57,3
 ); INSERT INTO COMPUTATION_EDGES(Library,Version,Origin_Id,Target_Id,Sequence) VALUES('test','1.0',4,6,2

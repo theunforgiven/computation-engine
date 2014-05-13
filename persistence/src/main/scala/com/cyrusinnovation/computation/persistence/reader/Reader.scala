@@ -96,7 +96,7 @@ trait Reader {
       unmarshalChildToString(node, "computationExpression"),
       unmarshal(childOfType(node, "imports")).asInstanceOf[Imports],
       unmarshal(childOfType(node, "inputs")).asInstanceOf[Inputs],
-      unmarshalChildToString(node, "resultKey"),
+      attrValue(node, "resultKey"),
       attrValue(node, "logger"),
       attrValue(node, "securityConfiguration")
     )
@@ -144,7 +144,7 @@ trait Reader {
     MappingComputationSpecification(
       extractInnerComputationFrom(childOfType(node, "innerComputation")),
       unmarshal(childOfType(node, "inputTuple")).asInstanceOf[Mapping],
-      unmarshalChildToString(node, "resultKey")
+      attrValue(node, "resultKey")
     )
   }
 
@@ -152,7 +152,7 @@ trait Reader {
     IterativeComputationSpecification(
       extractInnerComputationFrom(childOfType(node, "innerComputation")),
       unmarshal(childOfType(node, "inputTuple")).asInstanceOf[Mapping],
-      unmarshalChildToString(node, "resultKey")
+      attrValue(node, "resultKey")
     )
   }
 
