@@ -32,7 +32,6 @@ trait Reader {
   def unmarshal(node: PersistentNode) : SyntaxTreeNode = node.label match {
     case "library" => Library(attrValue(node, "name"), versionMap(node))
     case "version" => version(node)
-    case "computations" => throw new RuntimeException("computations node should not be unmarshaled directly")
     case "simpleComputation" => simpleComputationFactory(node)
     case "abortIfComputation" => abortIfComputationFactory(node)
     case "namedComputation" => namedComputation(node)
@@ -71,8 +70,7 @@ trait Reader {
   }
 
   def version(versionNode: PersistentNode) : Version = {
-    val computationsNode = children(versionNode, "computations").head
-    val topLevelComputations = children(computationsNode)
+    val topLevelComputations = children(versionNode)
     Version(attrValue(versionNode, "versionNumber"),
             versionState(attrValue(versionNode, "state")),
             optionalAttrValue(versionNode, "commitDate").map(timeString => dateTime(timeString)),
