@@ -1,3 +1,0 @@
-05-13 12:27:53 jdbc[3]: exception
-org.h2.jdbc.JdbcSQLException: Table "COMPUTATION_NODES" not found; SQL statement:
-SELECT ID, ATTRIBUTE_NAME, ATTRIBUTE_VALUE FROM public.COMPUTATION_NODES WHERE LIBRARY = ? AND VERSION = ? [42102-177]
