@@ -6,7 +6,7 @@ import com.cyrusinnovation.computation._
 import com.cyrusinnovation.computation.util.{StdOutLogger, ComputationEngineLog, Log}
 import com.cyrusinnovation.computation.specification.Version
 import com.cyrusinnovation.computation.util.TestUtils._
-import com.cyrusinnovation.computation.persistence.reader.XmlReader
+import com.cyrusinnovation.computation.persistence.reader.YamlReader
 
 class ComputationBuilderTest extends FlatSpec with Matchers with MockFactory {
   val log: ComputationEngineLog = ComputationEngineLog(StdOutLogger)
@@ -16,7 +16,7 @@ class ComputationBuilderTest extends FlatSpec with Matchers with MockFactory {
   //NOTE: Run configurations for tests involving security policy must have the module's root directory as the working directory,
   //in order to pick up the security policy file for the TestSecurityConfiguration.
   "The computation builder" should "build the correct computations given a version number, a reader, security configurations, and loggers" in {
-    val reader = XmlReader.fromFileOnClasspath("/sample.xml")
+    val reader = YamlReader.fromFileOnClasspath("/sample.yaml")
     val computations = ComputationBuilder.build("1.0", reader, securityConfigurations, loggers)
 
     computations.size should be(4)
@@ -64,7 +64,7 @@ class ComputationBuilderTest extends FlatSpec with Matchers with MockFactory {
   }
 
   def createLibraryVersion(versionNumber: String) : Version = {
-    val reader = XmlReader.fromFileOnClasspath("/sample.xml")
+    val reader = YamlReader.fromFileOnClasspath("/sample.yaml")
     val library = reader.unmarshal
     library.verifyNoCyclicalReferences()
 

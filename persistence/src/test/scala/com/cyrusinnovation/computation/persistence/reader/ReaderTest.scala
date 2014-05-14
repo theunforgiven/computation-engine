@@ -24,13 +24,6 @@ class ReaderTest extends FlatSpec with Matchers {
     verifyThatLibraryIsConstructedProperly(yamlReader)
   }
 
-  "An XML Reader" should "be able to read a library from XML" in {
-    val inputStream: InputStream = getClass.getResourceAsStream("/sample.xml")
-    val nodes: Elem = XML.load(inputStream)
-    val reader = new XmlReader(nodes)
-    verifyThatLibraryIsConstructedProperly(reader)
-  }
-
   //Depends on current working directory being persistence module directory
   "A Table Reader" should "be able to read a library from a database" in {
     val tableReader = SqlTableReader.fromJdbcUrl("test", "1.0", "jdbc:h2:./src/test/resources/h2-sample", Some("public"))

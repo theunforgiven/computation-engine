@@ -77,9 +77,7 @@ class YamlReader(yamlData: Iterable[AnyRef]) extends Reader {
     val libraryEntry = removeEntryLabeled("library", yamlSequence)
     val versionEntry = removeEntryLabeled("version", yamlSequence)
 
-    val computationsNode = YamlPersistentInternalNode("computations", Map(), toComputationNodeMap(yamlSequence))
-    
-    val versionNode = nodeWithAddedChild("version", versionEntry, Map("computations" -> List(computationsNode)))
+    val versionNode = nodeWithAddedChild("version", versionEntry, toComputationNodeMap(yamlSequence))
     val libraryNode = nodeWithAddedChild("library", libraryEntry, Map("version" -> List(versionNode)))
 
     libraryNode
