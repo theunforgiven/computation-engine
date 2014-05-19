@@ -15,7 +15,7 @@ class TableReader(nodeTable: Map[Long, Map[String, String]], edgeTable: Map[Long
     node.asInstanceOf[DbPersistentInternalNode].attributes(key)
   }
   protected def attrValues(node: PersistentNode): Map[String, String] = {
-    throw new NotImplementedError()
+    node.asInstanceOf[DbPersistentInternalNode].attributes.filterKeys(_ != "label")
   }
 
   protected def optionalAttrValue(node: PersistentNode, key: String): Option[String] = {
