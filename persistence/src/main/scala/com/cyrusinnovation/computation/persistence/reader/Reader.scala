@@ -44,11 +44,10 @@ trait Reader {
     case "innerComputations" => throw new RuntimeException("innerComputations node should not be unmarshaled directly")
     case "innerComputation" => throw new RuntimeException("innerComputation node should not be unmarshaled directly")
     case "ref" => reference(node)
-    case "imports" => imports(node)
-    case "inputs" => inputs(node)
+    case "imports" => throw new RuntimeException("imports nodes should not be unmarshaled to AstNode")
+    case "inputs"  => throw new RuntimeException("inputs nodes should not be unmarshaled to AstNode")
     case "inputTuple" => singleTuple(node)
     case "accumulatorTuple" => singleTuple(node)
-    case "mapping" => mapping(node)
     case "key" => throw new RuntimeException("key node should not be unmarshaled to AstNode")
     case "value" => throw new RuntimeException("value node should not be unmarshaled to AstNode")
     case "initialAccumulatorKey" => throw new RuntimeException("initialAccumulatorKey node should not be unmarshaled to AstNode")
@@ -57,6 +56,11 @@ trait Reader {
     case "predicateExpression" => throw new RuntimeException("predicateExpression node should not be unmarshaled to AstNode")
     case "logger" => throw new RuntimeException("logger node should not be unmarshaled to AstNode")
     case "securityConfiguration" => throw new RuntimeException("securityConfiguration node should not be unmarshaled to AstNode")
+  }
+
+  def unmarshalChildren(node: PersistentNode, label: String): SyntaxTreeNode = label match {
+    case "imports" => imports(children(node, label))
+    case "inputs"  => inputs(children(node, label))
   }
 
   def versionMap(node: PersistentNode) : Map[String, Version] = {
@@ -92,8 +96,8 @@ trait Reader {
       attrValue(node, "changedInVersion"),
       attrValue(node, "shouldPropagateExceptions").toBoolean,
       attrValue(node, "computationExpression"),
-      unmarshal(childOfType(node, "imports")).asInstanceOf[Imports],
-      unmarshal(childOfType(node, "inputs")).asInstanceOf[Inputs],
+      unmarshalChildren(node, "imports").asInstanceOf[Imports],
+      unmarshalChildren(node, "inputs").asInstanceOf[Inputs],
       attrValue(node, "resultKey"),
       attrValue(node, "logger"),
       attrValue(node, "securityConfiguration")
@@ -109,8 +113,8 @@ trait Reader {
       attrValue(node, "shouldPropagateExceptions").toBoolean,
       attrValue(node, "predicateExpression"),
       extractInnerComputationFrom(childOfType(node, "innerComputation")),
-      unmarshal(childOfType(node, "imports")).asInstanceOf[Imports],
-      unmarshal(childOfType(node, "inputs")).asInstanceOf[Inputs],
+      unmarshalChildren(node, "imports").asInstanceOf[Imports],
+      unmarshalChildren(node, "inputs").asInstanceOf[Inputs],
       attrValue(node, "logger"),
       attrValue(node, "securityConfiguration")
     )
@@ -164,8 +168,7 @@ trait Reader {
   }
 
   protected def sequentialComputation(node: PersistentNode) : SequentialComputationSpecification = {
-    val innerComputationsNode = childOfType(node, "innerComputations")
-    val innerComputations = children(innerComputationsNode).map(x => extractInnerComputationFrom(x))
+    val innerComputations = children(node, "innerComputations").map(x => extractInnerComputationFrom(x))
 
     SequentialComputationSpecification (
       innerComputations.head,
@@ -177,25 +180,21 @@ trait Reader {
     new Ref(unmarshalToString(node))
   }
 
-  protected def imports(node: PersistentNode) : Imports = {
-    val importStrings = children(node, "import").map(x => unmarshalToString(x))
-    Imports(importStrings:_*)
+  protected def imports(nodes: List[PersistentNode]): Imports = {
+    Imports(nodes.map(unmarshalToString).toList: _*)
   }
 
-  protected def inputs(node: PersistentNode) : Inputs = {
-    val nodes: List[Mapping] = children(node, "mapping").map(x => unmarshal(x).asInstanceOf[Mapping])
-    Inputs(nodes.head, nodes.tail:_*)
+  protected def inputs(nodes: List[PersistentNode]): Inputs = {
+    val mappings = nodes.map(mapping).flatten
+    Inputs(mappings.head, mappings.tail: _*)
   }
 
-  protected def mapping(node: PersistentNode) : Mapping =  {
-    Mapping(
-      attrValue(node, "key"),
-      attrValue(node, "value")
-    )
+  protected def mapping(node: PersistentNode) = {
+    attrValues(node).map(mapping => Mapping(mapping._1, mapping._2))
   }
 
-  protected def singleTuple(node: PersistentNode) : Mapping = {
-    unmarshal(childOfType(node, "mapping")).asInstanceOf[Mapping]
+  protected def singleTuple(node: PersistentNode): Mapping = {
+    mapping(node).head
   }
 
   protected def extractInnerComputationFrom(innerComputationNode: PersistentNode) : InnerComputationSpecification = {
@@ -205,6 +204,7 @@ trait Reader {
   }
 
   protected def attrValue(node: PersistentNode, key: String) : String
+  protected def attrValues(node: PersistentNode): Map[String, String]
   protected def optionalAttrValue(node: PersistentNode, key: String): Option[String]
   protected def children(node: PersistentNode) : List[PersistentNode]
   protected def children(node: PersistentNode, label: String) : List[PersistentNode]
