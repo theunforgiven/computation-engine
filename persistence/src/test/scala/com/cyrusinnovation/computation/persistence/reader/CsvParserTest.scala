@@ -21,11 +21,11 @@ class CsvParserTest extends FlatSpec with Matchers {
     table(4)("description") should be("Take the maximum of the values of the testValues map")
     table(4)("shouldPropagateExceptions") should be("false")
     table(4)("computationExpression") should include("val toTestImports")
-    table(7)("label") should be("import")
+    table(7)("label") should be("imports")
     table(7)("text") should be("scala.collection.mutable.{Map => MutableMap}")
     table(32)("label") should be("ref")
-    table(38)("value") should be("testValues")
-    table(50)("key") should be("sumAccumulator")
+    table(38)("testValues: Map[String, Int]") should be("testValues")
+    table(50)("sumAccumulator") should be("addend2")
     table(54)("securityConfiguration") should be("testSecurityConfiguration")
   }
 
@@ -35,7 +35,7 @@ class CsvParserTest extends FlatSpec with Matchers {
     val table = CsvEdgeFileParser.parse(new InputStreamReader(inputStream), "test", "1.0", CsvReaderConfig(1))
     table(1)  should be(List(2))
     table(2)  should be(List(4, 16, 28, 42))
-    table(4)  should be(List(6, 9))
-    table(54) should be(List(56, 57))
+    table(4)  should be(List(7, 8, 10))
+    table(54) should be(List(58, 61))
   }
 }

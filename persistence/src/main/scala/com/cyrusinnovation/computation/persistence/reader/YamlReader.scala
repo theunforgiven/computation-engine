@@ -45,6 +45,12 @@ class YamlReader(yamlData: Iterable[AnyRef]) extends Reader {
       case internalNode : YamlPersistentInternalNode => internalNode.scalarValuedNodes(key).text
     }
   }
+  protected def attrValues(node: PersistentNode): Map[String, String] = {
+    node match {
+      case YamlPersistentTextBearingNode(label, text) => Map(label -> text)
+      case internalNode : YamlPersistentInternalNode => internalNode.scalarValuedNodes.map(x => (x._1, x._2.text)).toMap
+    }
+  }
 
   protected def optionalAttrValue(node: PersistentNode, key: String): Option[String] = {
     node match {
@@ -148,10 +154,10 @@ class YamlReader(yamlData: Iterable[AnyRef]) extends Reader {
 
   def toPersistentNode(yamlMapNode: YamlMapNode) : YamlPersistentNode = {
     val subNodes = descendants(yamlMapNode.nodeMap)
-
+    val nodesExcludedFromAttributes = List("ref", "imports", "inputs")
     val attributesAndChildNodes = subNodes.partition(stringToNodeList => {
       val nodeList = stringToNodeList._2
-      nodeList.size == 1 && nodeList.head.isInstanceOf[YamlPersistentTextBearingNode]
+      nodeList.size == 1 && nodeList.head.isInstanceOf[YamlPersistentTextBearingNode] && !nodesExcludedFromAttributes.contains(nodeList.head.label)
     })
 
     val attributeMap = attributesAndChildNodes._1.map(labelToListOfOneAttributeValue => {
@@ -167,55 +173,15 @@ class YamlReader(yamlData: Iterable[AnyRef]) extends Reader {
       val label = labelWithValue._1
       val nodes = labelWithValue._2
       nodes match {
-        case aTextNode : YamlPersistentTextBearingNode            => label -> List(aTextNode)
-        case aList : YamlListNode if label == "imports"           => label -> toImports(aList)
-        case aList : YamlListNode if label == "inputs"            => label -> toInputs(aList)
-        case aList : YamlListNode if label == "innerComputations" => label -> toInnerComputations(aList)
-        case aMap : YamlMapNode if label == "inputTuple"          => label -> List(toMappingNode(aMap))
-        case aMap : YamlMapNode if label == "accumulatorTuple"    => label -> List(toMappingNode(aMap))
-        case aMap : YamlMapNode if label == "innerComputation"    => label -> List(toInnerComputation(aMap.nodeMap))
-        case aMap: YamlMapNode                                    => label -> List(toPersistentNode(aMap))
+        case aTextNode : YamlPersistentTextBearingNode     => label -> List(aTextNode)
+        case aList : YamlListNode                          => label -> aList.nodes.map(listItem => listItem match {
+          case aMap: YamlMapNode => toPersistentNode(aMap)
+          case aTextNode : YamlPersistentTextBearingNode => aTextNode
+          // No lists of lists
+                                                              })
+        case aMap: YamlMapNode                             => label -> List(toPersistentNode(aMap))
       }
     }).toMap
-  }
-  
-  def toImports(yamlListNode: YamlListNode) : List[YamlPersistentInternalNode] = {
-    val importNodes: List[YamlPersistentTextBearingNode] = yamlListNode.nodes.map {
-      yamlNode => YamlPersistentTextBearingNode("import", yamlNode.asInstanceOf[YamlPersistentTextBearingNode].text)
-    }
-    List(YamlPersistentInternalNode("imports", Map(), Map("import" -> importNodes)))
-  }
-  
-  def toInputs(yamlListNode: YamlListNode) : List[YamlPersistentInternalNode] = {
-    val mappingNodes: List[YamlPersistentNode] = yamlListNode.nodes.map {
-      yamlNode => toMappingNode(yamlNode.asInstanceOf[YamlMapNode])
-    }    
-    List(YamlPersistentInternalNode("inputs", Map(), Map("mapping" -> mappingNodes)))
-  }
-
-  def toMappingNode(yamlMapNode: YamlMapNode) : YamlPersistentInternalNode = {
-    val nodeMapContainingMapping: Map[String, YamlNode] = yamlMapNode.nodeMap //Map is "inputs" or "inputTuple" etc. to a single TextBearingNode with the mapping
-    val mappingNode = nodeMapContainingMapping.values.head.asInstanceOf[YamlPersistentTextBearingNode]
-
-    val mappingMap = Map("key" -> YamlPersistentTextBearingNode("key", mappingNode.label),
-                         "value" -> YamlPersistentTextBearingNode("value", mappingNode.text))
-    YamlPersistentInternalNode("mapping", mappingMap, Map())
-  }
-
-  def toInnerComputations(yamlListNode: YamlListNode) : List[YamlPersistentInternalNode] = {
-    val innerComputationNodes = yamlListNode.nodes.map(yamlNode => yamlNode match {
-      case refNode : YamlPersistentTextBearingNode => toInnerComputation(Map(refNode.label -> refNode))
-      case mapNode : YamlMapNode => toInnerComputation(mapNode.nodeMap)
-    })
-    List(YamlPersistentInternalNode("innerComputations", Map(), Map("innerComputation" -> innerComputationNodes)))
-  }
-
-  def toInnerComputation(innerMapping: Map[String,YamlNode]) : YamlPersistentInternalNode = {
-    val innerComputationNode = innerMapping.values.head match {
-      case refNode : YamlPersistentTextBearingNode => refNode
-      case mapNode : YamlMapNode => toPersistentNode(mapNode)
-    }
-    YamlPersistentInternalNode("innerComputation", Map(), Map(innerComputationNode.label -> List(innerComputationNode)))
   }
 }
 
