@@ -73,11 +73,12 @@ private class EvalCodeImpl[ResultType](packageName: String,
                                        )
                                        extends EvalCode[Map[Symbol, Any] => ResultType] {
 
-  private val sourceDirectory = createSourceDirectory()
-  private val classesDir = setTargetDirectory()
+  private val sourceDirectory = provideSourceDirectory(packageName)
+  private val classesDir = provideTargetDirectory()
   private val config = createConfig(sourceDirectory, classesDir, securityConfig)
   private val sseSM = setupJavaSecurityManager()
 
+  //TODO Allow only writing source files without compiling
   //TODO Also allow only compiling once using Script Engine refresh policy
   private val sse = useCachedClasses match {
     case Some("t") | Some("y") => createNonCompilingScalaScriptEngine(config)
@@ -93,24 +94,41 @@ private class EvalCodeImpl[ResultType](packageName: String,
 
 	def newInstance: Map[Symbol, Any] => ResultType = sseSM.secured { generatedClass.newInstance() }
 
-  private def createSourceDirectory() : File = {
-    val sourceDirectory = new File(System.getProperty("java.io.tmpdir"), UUID.randomUUID.toString)
-    if (!sourceDirectory.mkdir) throw new IllegalStateException("can't create temp folder %s".format(sourceDirectory))
-    sourceDirectory
+  private def provideSourceDirectory(packageName: String) : File = {
+    //The value of the script.sources property needs to be a URI, not just a simple path.
+    Option(System.getProperty("script.sources")) match {
+      case None => {
+        val directory = new File(System.getProperty("java.io.tmpdir"), UUID.randomUUID.toString)
+        if (!directory.mkdir) throw new IllegalStateException("can't create temp folder %s".format(sourceDirectory))
+        // If the script.sources system property is not set, do not set it. when this property is set, source 
+        // is still generated even if classes are not. If it is not set, when cached classes are used, source 
+        // is not generated. This feature will be used by authoring tools.
+        directory
+      }
+      case Some(uri) => {
+        val packagePath = packageName.replace(".", "/")
+        val sourceDirUri = if (uri.endsWith("/")) uri + packagePath else uri + "/" + packagePath
+        val directory = new File(new URI(sourceDirUri))
+        if(! directory.exists) { directory.mkdirs() }
+        directory
+      }
+    }
   }
 
-  private def setTargetDirectory() : File = {
+  private def provideTargetDirectory() : File = {
     //The value of the script.classes property needs to be a URI, not just a simple path.
-    val targetDirectory = Option(System.getProperty("script.classes")) match {
-      case None => ScalaScriptEngine.tmpOutputFolder
+    Option(System.getProperty("script.classes")) match {
+      case None => {
+        val directory = ScalaScriptEngine.tmpOutputFolder
+        System.setProperty("script.classes", directory.toURI.toString)
+        directory
+      }
       case Some(uri) => {
         val directory = new File(new URI(uri))
         if(! directory.exists) { directory.mkdirs() }
         directory
       }
     }
-    System.setProperty("script.classes", targetDirectory.toURI.toString)
-    targetDirectory
   }
 
   private def createConfig(srcFolder: File, classesDir: File, securityConfiguration: SecurityConfiguration) : Config = {

@@ -94,13 +94,42 @@ class EvalCodeTests extends FlatSpec with Matchers with MockFactory with BeforeA
     try {
       (! targetDir.exists || targetDir.list.isEmpty) should be(true)
 
-      val computation = TestRules(stub[Log]).noResultsComputation
+      val computationToCompile = TestRules(stub[Log]).noResultsComputation
       targetDir.list.isEmpty should be(false)
       targetDir.list.head should be("test")
     }
     finally {
       targetDir.listFiles.foreach(file => deleteFileTree(file))
       targetDir.delete() should be(true)
+    }
+  }
+  
+  "EvalCode" should "generate source code into a directory that the user can specify as a URI using the script.sources system property" in {
+    val tmpdir = System.getProperty("java.io.tmpdir")
+    val sourcesRootDirName = List(tmpdir, "sources-test").mkString(java.io.File.separator)
+    val sourcesRootDir = new java.io.File(sourcesRootDirName)
+    
+    System.setProperty("script.sources", sourcesRootDir.toURI.toString)
+    
+    try {
+      (! sourcesRootDir.exists || Option(sourcesRootDir.list).getOrElse(Array[String]()).isEmpty) should be(true)
+
+      val computationToCompile = TestRules(stub[Log]).noResultsComputation
+      sourcesRootDir.list.isEmpty should be(false)
+      sourcesRootDir.list.head should be("test")
+
+      val sourcesDirPath = List(sourcesRootDir.getAbsolutePath, "test", "computations").mkString(java.io.File.separator)
+      val sourcesDir = new java.io.File(sourcesDirPath)
+      sourcesDir.list should contain("NoResultsComputation.scala")
+    }
+    finally {
+      Option(sourcesRootDir.listFiles) match {
+        case None => ()
+        case Some(arrayOfFiles) => {
+          arrayOfFiles.foreach(file => deleteFileTree(file))
+          sourcesRootDir.delete() should be(true)
+        }
+      }
     }
   }
 
