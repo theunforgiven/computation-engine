@@ -1,4 +1,4 @@
 #comment
 language: java
 install: "gradle -PsonatypeUsername=foo -PsonatypePassword=bar assemble"
-script: "gradle -PsonatypeUsername=foo -PsonatypePassword=bar check"
+script: "gradle -PsonatypeUsername=foo -PsonatypePassword=bar test"
