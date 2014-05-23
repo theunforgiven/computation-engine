@@ -1,3 +1,4 @@
 #comment
 language: java
-script: "gradle assemble -DsonatypeUsername=foo -DsonatypePassword=bar"
+install: "gradle assemble -DsonatypeUsername=foo -DsonatypePassword=bar"
+script: "gradle check -DsonatypeUsername=foo -DsonatypePassword=bar"
