@@ -1,4 +1,3 @@
 #comment
 language: java
-env:
-  - sonatypeUsername=foo sonatypePassword=bar
+script: "gradle assemble -DsonatypeUsername=foo -DsonatypePassword=bar"
