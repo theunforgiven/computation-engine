@@ -1,5 +1,4 @@
 #comment
 language: java
 env:
-  - sonatypeUsername=foo
-  - sonatypePassword=bar
+  - sonatypeUsername=foo sonatypePassword=bar
