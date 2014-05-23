@@ -16,11 +16,13 @@ class EvalCodeTests extends FlatSpec with Matchers with MockFactory with BeforeA
   override def beforeEach = {
     System.getProperties.remove("script.use.cached.classes")
     System.getProperties.remove("script.classes")
+    System.getProperties.remove("script.sources")
   }
 
   override def afterEach = {
     System.getProperties.remove("script.use.cached.classes")
     System.getProperties.remove("script.classes")
+    System.getProperties.remove("script.sources")
   }
 
   "EvalCode" should "recompile classes when the script.use.cached.classes system property is not set" in {
@@ -108,9 +110,38 @@ class EvalCodeTests extends FlatSpec with Matchers with MockFactory with BeforeA
     val tmpdir = System.getProperty("java.io.tmpdir")
     val sourcesRootDirName = List(tmpdir, "sources-test").mkString(java.io.File.separator)
     val sourcesRootDir = new java.io.File(sourcesRootDirName)
-    
+    if(sourcesRootDir.exists) deleteFileTree(sourcesRootDir)
+
     System.setProperty("script.sources", sourcesRootDir.toURI.toString)
-    
+
+    try {
+      val computationToCompile = TestRules(stub[Log]).noResultsComputation
+      sourcesRootDir.list.isEmpty should be(false)
+      sourcesRootDir.list.head should be("test")
+
+      val sourcesDirPath = List(sourcesRootDir.getAbsolutePath, "test", "computations").mkString(java.io.File.separator)
+      val sourcesDir = new java.io.File(sourcesDirPath)
+      sourcesDir.list should contain("NoResultsComputation.scala")
+    }
+    finally {
+      Option(sourcesRootDir.listFiles) match {
+        case None => ()
+        case Some(arrayOfFiles) => {
+          arrayOfFiles.foreach(file => deleteFileTree(file))
+          sourcesRootDir.delete() should be(true)
+        }
+      }
+    }
+  }
+
+  "EvalCode" should "still generate source code into a user-specified directory even if the user specifies to use cached classes" in {
+    val tmpdir = System.getProperty("java.io.tmpdir")
+    val sourcesRootDirName = List(tmpdir, "sources-test").mkString(java.io.File.separator)
+    val sourcesRootDir = new java.io.File(sourcesRootDirName)
+
+    System.setProperty("script.sources", sourcesRootDir.toURI.toString)
+    System.setProperty("script.use.cached.classes", "true")
+
     try {
       (! sourcesRootDir.exists || Option(sourcesRootDir.list).getOrElse(Array[String]()).isEmpty) should be(true)
 
@@ -132,6 +163,28 @@ class EvalCodeTests extends FlatSpec with Matchers with MockFactory with BeforeA
       }
     }
   }
+
+  //TODO Figure out how to make this test work.
+//  "EvalCode" should "not generate source code if the user specifies to use cached classes and doesn't specify a source directory" in {
+//    val tempDir = new File(System.getProperty("java.io.tmpdir"))
+//    tempDir.listFiles.foreach(file => deleteFileTree(file))
+//    tempDir.list.isEmpty should be(true)
+//
+//    System.setProperty("script.use.cached.classes", "true")
+//
+//    //Don't use TestRules here or it tries to load all the classes referred to by the vals.
+//    val computationThatShouldNotBeCompiled = new SimpleComputation( "test.computations",
+//                                                        "NoResultsComputation",
+//                                                        "Return no results",
+//                                                        List(),
+//                                                        "None",
+//                                                        Map("testValues: Map[String, Int]" -> 'testValues),
+//                                                        'unused,
+//                                                        TestSecurityConfiguration,
+//                                                        stub[Log],
+//                                                        shouldPropagateExceptions = true)
+//    tempDir.list.isEmpty should be(true)
+//  }
 
   private def waitFor(timeoutMillis: Int)(condition: =>Boolean) = {
     val startTime = System.currentTimeMillis
