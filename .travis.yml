@@ -2,3 +2,5 @@
 language: java
 install: "gradle -PsonatypeUsername=foo -PsonatypePassword=bar assemble"
 script: "gradle -PsonatypeUsername=foo -PsonatypePassword=bar test"
+notifications:
+  slack: cyrusinnovation:Zv0o5TPXwIHK2mVYc4jbbrrv
