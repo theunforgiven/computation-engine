@@ -32,6 +32,7 @@ trait Reader {
   def unmarshal(node: PersistentNode) : SyntaxTreeNode = node.label match {
     case "library" => Library(attrValue(node, "name"), versionMap(node))
     case "version" => version(node)
+    case "computations" => throw new RuntimeException("computations node should not be unmarshaled directly")
     case "simpleComputation" => simpleComputationFactory(node)
     case "abortIfComputation" => abortIfComputationFactory(node)
     case "namedComputation" => namedComputation(node)
@@ -44,10 +45,11 @@ trait Reader {
     case "innerComputations" => throw new RuntimeException("innerComputations node should not be unmarshaled directly")
     case "innerComputation" => throw new RuntimeException("innerComputation node should not be unmarshaled directly")
     case "ref" => reference(node)
-    case "imports" => throw new RuntimeException("imports nodes should not be unmarshaled to AstNode")
-    case "inputs"  => throw new RuntimeException("inputs nodes should not be unmarshaled to AstNode")
+    case "imports" => imports(node)
+    case "inputs" => inputs(node)
     case "inputTuple" => singleTuple(node)
     case "accumulatorTuple" => singleTuple(node)
+    case "mapping" => mapping(node)
     case "key" => throw new RuntimeException("key node should not be unmarshaled to AstNode")
     case "value" => throw new RuntimeException("value node should not be unmarshaled to AstNode")
     case "initialAccumulatorKey" => throw new RuntimeException("initialAccumulatorKey node should not be unmarshaled to AstNode")
@@ -56,11 +58,6 @@ trait Reader {
     case "predicateExpression" => throw new RuntimeException("predicateExpression node should not be unmarshaled to AstNode")
     case "logger" => throw new RuntimeException("logger node should not be unmarshaled to AstNode")
     case "securityConfiguration" => throw new RuntimeException("securityConfiguration node should not be unmarshaled to AstNode")
-  }
-
-  def unmarshalChildren(node: PersistentNode, label: String): SyntaxTreeNode = label match {
-    case "imports" => imports(children(node, label))
-    case "inputs"  => inputs(children(node, label))
   }
 
   def versionMap(node: PersistentNode) : Map[String, Version] = {
@@ -74,7 +71,8 @@ trait Reader {
   }
 
   def version(versionNode: PersistentNode) : Version = {
-    val topLevelComputations = children(versionNode)
+    val computationsNode = children(versionNode, "computations").head
+    val topLevelComputations = children(computationsNode)
     Version(attrValue(versionNode, "versionNumber"),
             versionState(attrValue(versionNode, "state")),
             optionalAttrValue(versionNode, "commitDate").map(timeString => dateTime(timeString)),
@@ -95,12 +93,12 @@ trait Reader {
       attrValue(node, "description"),
       attrValue(node, "changedInVersion"),
       attrValue(node, "shouldPropagateExceptions").toBoolean,
-      attrValue(node, "computationExpression"),
-      unmarshalChildren(node, "imports").asInstanceOf[Imports],
-      unmarshalChildren(node, "inputs").asInstanceOf[Inputs],
-      attrValue(node, "resultKey"),
-      attrValue(node, "logger"),
-      attrValue(node, "securityConfiguration")
+      unmarshalChildToString(node, "computationExpression"),
+      unmarshal(childOfType(node, "imports")).asInstanceOf[Imports],
+      unmarshal(childOfType(node, "inputs")).asInstanceOf[Inputs],
+      unmarshalChildToString(node, "resultKey"),
+      unmarshalChildToString(node, "logger"),
+      unmarshalChildToString(node, "securityConfiguration")
     )
   }
 
@@ -111,12 +109,12 @@ trait Reader {
       attrValue(node, "description"),
       attrValue(node, "changedInVersion"),
       attrValue(node, "shouldPropagateExceptions").toBoolean,
-      attrValue(node, "predicateExpression"),
+      unmarshalChildToString(node, "predicateExpression"),
       extractInnerComputationFrom(childOfType(node, "innerComputation")),
-      unmarshalChildren(node, "imports").asInstanceOf[Imports],
-      unmarshalChildren(node, "inputs").asInstanceOf[Inputs],
-      attrValue(node, "logger"),
-      attrValue(node, "securityConfiguration")
+      unmarshal(childOfType(node, "imports")).asInstanceOf[Imports],
+      unmarshal(childOfType(node, "inputs")).asInstanceOf[Inputs],
+      unmarshalChildToString(node, "logger"),
+      unmarshalChildToString(node, "securityConfiguration")
     )
   }
 
@@ -146,7 +144,7 @@ trait Reader {
     MappingComputationSpecification(
       extractInnerComputationFrom(childOfType(node, "innerComputation")),
       unmarshal(childOfType(node, "inputTuple")).asInstanceOf[Mapping],
-      attrValue(node, "resultKey")
+      unmarshalChildToString(node, "resultKey")
     )
   }
 
@@ -154,21 +152,22 @@ trait Reader {
     IterativeComputationSpecification(
       extractInnerComputationFrom(childOfType(node, "innerComputation")),
       unmarshal(childOfType(node, "inputTuple")).asInstanceOf[Mapping],
-      attrValue(node, "resultKey")
+      unmarshalChildToString(node, "resultKey")
     )
   }
 
   protected def foldingComputation(node: PersistentNode) : FoldingComputationSpecification = {
     FoldingComputationSpecification(
       extractInnerComputationFrom(childOfType(node, "innerComputation")),
-      attrValue(node, "initialAccumulatorKey"),
+      unmarshalChildToString(node, "initialAccumulatorKey"),
       unmarshal(childOfType(node, "inputTuple")).asInstanceOf[Mapping],
       unmarshal(childOfType(node, "accumulatorTuple")).asInstanceOf[Mapping]
     )
   }
 
   protected def sequentialComputation(node: PersistentNode) : SequentialComputationSpecification = {
-    val innerComputations = children(node, "innerComputations").map(x => extractInnerComputationFrom(x))
+    val innerComputationsNode = childOfType(node, "innerComputations")
+    val innerComputations = children(innerComputationsNode).map(x => extractInnerComputationFrom(x))
 
     SequentialComputationSpecification (
       innerComputations.head,
@@ -180,21 +179,25 @@ trait Reader {
     new Ref(unmarshalToString(node))
   }
 
-  protected def imports(nodes: List[PersistentNode]): Imports = {
-    Imports(nodes.map(unmarshalToString).toList: _*)
+  protected def imports(node: PersistentNode) : Imports = {
+    val importStrings = children(node, "import").map(x => unmarshalToString(x))
+    Imports(importStrings:_*)
   }
 
-  protected def inputs(nodes: List[PersistentNode]): Inputs = {
-    val mappings = nodes.map(mapping).flatten
-    Inputs(mappings.head, mappings.tail: _*)
+  protected def inputs(node: PersistentNode) : Inputs = {
+    val nodes: List[Mapping] = children(node, "mapping").map(x => unmarshal(x).asInstanceOf[Mapping])
+    Inputs(nodes.head, nodes.tail:_*)
   }
 
-  protected def mapping(node: PersistentNode) = {
-    attrValues(node).map(mapping => Mapping(mapping._1, mapping._2))
+  protected def mapping(node: PersistentNode) : Mapping =  {
+    Mapping(
+      unmarshalChildToString(node, "key"),
+      unmarshalChildToString(node, "value")
+    )
   }
 
-  protected def singleTuple(node: PersistentNode): Mapping = {
-    mapping(node).head
+  protected def singleTuple(node: PersistentNode) : Mapping = {
+    unmarshal(childOfType(node, "mapping")).asInstanceOf[Mapping]
   }
 
   protected def extractInnerComputationFrom(innerComputationNode: PersistentNode) : InnerComputationSpecification = {
@@ -204,7 +207,6 @@ trait Reader {
   }
 
   protected def attrValue(node: PersistentNode, key: String) : String
-  protected def attrValues(node: PersistentNode): Map[String, String]
   protected def optionalAttrValue(node: PersistentNode, key: String): Option[String]
   protected def children(node: PersistentNode) : List[PersistentNode]
   protected def children(node: PersistentNode, label: String) : List[PersistentNode]
@@ -214,6 +216,14 @@ trait Reader {
   //TODO This is hackery. Make this more consistent.
   protected def unmarshalToString(persistentNode: PersistentNode) : String = {
     asTextBearingNode(persistentNode).text
+  }
+
+  //TODO This is hackery. Make this more consistent.
+  protected def unmarshalChildToString(node: PersistentNode, key: String) : String = {
+    optionalAttrValue(node, key) match {
+      case Some(value) => value
+      case None => asTextBearingNode(childOfType(node, key)).text
+    }
   }
 
   protected def child(persistentNode: PersistentNode) : PersistentNode = {
