@@ -9,22 +9,6 @@ import scala.collection.JavaConversions._
 import java.util.{Map => JavaMap, List => JavaList}
 import java.text.SimpleDateFormat
 import com.cyrusinnovation.computation.specification._
-import scala.Some
-import com.cyrusinnovation.computation.specification.IterativeComputationSpecification
-import com.cyrusinnovation.computation.specification.Version
-import com.cyrusinnovation.computation.specification.Library
-import com.cyrusinnovation.computation.specification.SequentialComputationSpecification
-import com.cyrusinnovation.computation.specification.SimpleComputationSpecification
-import com.cyrusinnovation.computation.specification.Imports
-import com.cyrusinnovation.computation.specification.Mapping
-import com.cyrusinnovation.computation.specification.MappingComputationSpecification
-import com.cyrusinnovation.computation.specification.AbortIfNoResultsComputationSpecification
-import com.cyrusinnovation.computation.specification.AbortIfHasResultsComputationSpecification
-import com.cyrusinnovation.computation.specification.NamedComputationSpecification
-import com.cyrusinnovation.computation.specification.AbortIfComputationSpecification
-import com.cyrusinnovation.computation.specification.FoldingComputationSpecification
-import com.cyrusinnovation.computation.specification.Inputs
-
 
 object YamlReader {
   def fromFileOnClasspath(resourcePath: String) : YReader = {
@@ -55,16 +39,6 @@ class YamlReader(yamlData: Iterable[AnyRef]) extends YReader {
 
   val rootNode: YamlRoot = loadNodes(yamlData.toList)
 
-  protected def mapEntry(node: YPersistentNode): (String, String) = {
-    node match {
-      case n: YamlMapNode => {
-        assert(n.nodeMap.size == 1)
-        val tn = n.nodeMap.head._2.asInstanceOf[YamlTextNode]
-        (tn.label, tn.value)
-      }
-    }
-  }
-
   protected def attrValue(node: YPersistentNode, key: String): String = {
     node match {
       case n: YamlMapNode => {
@@ -80,10 +54,13 @@ class YamlReader(yamlData: Iterable[AnyRef]) extends YReader {
           case Some(m: YamlTextNode) => {
             Some(m.value)
           }
-          case None => {
+          case _ => {
             Option.empty
           }
         }
+      }
+      case _ => {
+        Option.empty
       }
     }
   }
@@ -99,11 +76,12 @@ class YamlReader(yamlData: Iterable[AnyRef]) extends YReader {
     }
   }
 
-  protected def children(node: YPersistentNode, label: String): List[YPersistentNode] = {
-    node match {
+  protected def childOfType(node: YPersistentNode, label: String): YPersistentNode = {
+    val a = node match {
       case n: YamlMapNode  => List(n.nodeMap.get(label).get)
       case n: YamlListNode => n.nodes.filter(_.label == label)
     }
+    a.head
   }
 
   protected def asTextBearingNode(node: YPersistentNode): YamlTextNode = {
@@ -116,12 +94,6 @@ class YamlReader(yamlData: Iterable[AnyRef]) extends YReader {
 
   protected def loadNodes(yamlData: Iterable[Any]): YamlRoot = {
     val yamlSequence = yamlData.toList.head.asInstanceOf[JavaList[JavaMap[Any, Any]]]
-    //    val library = getAndRemoveMapNode("library", yamlSequence)
-    //    val version = getAndRemoveMapNode("version", yamlSequence)
-
-    //    val compNodes = toYamlNode("root", yamlSequence).asInstanceOf[YamlListNode].nodes.map(_.asInstanceOf[YamlMapNode].nodeMap.head).toMap
-    //    library.copy(nodeMap = library.nodeMap ++ Map("version" -> version.copy(nodeMap = version.nodeMap ++ compNodes)))
-
     val nodes = yamlSequence.map(x => {
       x.map(x => toYamlNode(x._1.toString, x._2))
     }).flatten.toList
@@ -144,14 +116,13 @@ trait YamlNode {
 
 case class YamlListNode(label: String, nodes: List[YamlNode]) extends YamlNode
 case class YamlMapNode(label: String, nodeMap: Map[String, YamlNode]) extends YamlNode
-
 case class YamlTextNode(label: String, value: String) extends YamlNode
 
 trait YReader {
   type YPersistentNode = YamlNode
   val rootNode: YamlRoot
 
-  def unmarshal: Library = start(rootNode).asInstanceOf[Library]
+  def unmarshal: Library = library(rootNode)
 
   def unmarshal(node: YPersistentNode) : SyntaxTreeNode = node.label match {
     case "library" => throw new RuntimeException("library node should not be unmarshaled directly")
@@ -183,12 +154,12 @@ trait YReader {
     case "securityConfiguration" => throw new RuntimeException("securityConfiguration node should not be unmarshaled to AstNode")
   }
 
-  def start(root: YamlRoot) = {
+  protected def library(root: YamlRoot) = {
     val ver = version(root.version, root.computations)
     Library(attrValue(root.library, "name"), Map(ver.versionNumber -> ver))
   }
 
-  def version(versionNode: YPersistentNode, topLevelComputations: List[YPersistentNode]): Version = {
+  protected def version(versionNode: YPersistentNode, topLevelComputations: List[YPersistentNode]): Version = {
     Version(attrValue(versionNode, "versionNumber"),
       versionState(attrValue(versionNode, "state")),
       optionalAttrValue(versionNode, "commitDate").map(timeString => dateTime(timeString)),
@@ -209,12 +180,12 @@ trait YReader {
       attrValue(node, "description"),
       attrValue(node, "changedInVersion"),
       attrValue(node, "shouldPropagateExceptions").toBoolean,
-      unmarshalChildToString(node, "computationExpression"),
+      attrValue(node, "computationExpression"),
       unmarshal(childOfType(node, "imports")).asInstanceOf[Imports],
       unmarshal(childOfType(node, "inputs")).asInstanceOf[Inputs],
-      unmarshalChildToString(node, "resultKey"),
-      unmarshalChildToString(node, "logger"),
-      unmarshalChildToString(node, "securityConfiguration")
+      attrValue(node, "resultKey"),
+      attrValue(node, "logger"),
+      attrValue(node, "securityConfiguration")
     )
   }
 
@@ -225,12 +196,12 @@ trait YReader {
       attrValue(node, "description"),
       attrValue(node, "changedInVersion"),
       attrValue(node, "shouldPropagateExceptions").toBoolean,
-      unmarshalChildToString(node, "predicateExpression"),
+      attrValue(node, "predicateExpression"),
       extractInnerComputationFrom(childOfType(node, "innerComputation")),
       unmarshal(childOfType(node, "imports")).asInstanceOf[Imports],
       unmarshal(childOfType(node, "inputs")).asInstanceOf[Inputs],
-      unmarshalChildToString(node, "logger"),
-      unmarshalChildToString(node, "securityConfiguration")
+      attrValue(node, "logger"),
+      attrValue(node, "securityConfiguration")
     )
   }
 
@@ -260,7 +231,7 @@ trait YReader {
     MappingComputationSpecification(
       extractInnerComputationFrom(childOfType(node, "innerComputation")),
       unmarshal(childOfType(node, "inputTuple")).asInstanceOf[Mapping],
-      unmarshalChildToString(node, "resultKey")
+      attrValue(node, "resultKey")
     )
   }
 
@@ -268,14 +239,14 @@ trait YReader {
     IterativeComputationSpecification(
       extractInnerComputationFrom(childOfType(node, "innerComputation")),
       unmarshal(childOfType(node, "inputTuple")).asInstanceOf[Mapping],
-      unmarshalChildToString(node, "resultKey")
+      attrValue(node, "resultKey")
     )
   }
 
   protected def foldingComputation(node: YPersistentNode) : FoldingComputationSpecification = {
     FoldingComputationSpecification(
       extractInnerComputationFrom(childOfType(node, "innerComputation")),
-      unmarshalChildToString(node, "initialAccumulatorKey"),
+      attrValue(node, "initialAccumulatorKey"),
       unmarshal(childOfType(node, "inputTuple")).asInstanceOf[Mapping],
       unmarshal(childOfType(node, "accumulatorTuple")).asInstanceOf[Mapping]
     )
@@ -283,7 +254,7 @@ trait YReader {
 
   protected def sequentialComputation(node: YPersistentNode) : SequentialComputationSpecification = {
     val innerComputationsNode = childOfType(node, "innerComputations")
-    val innerComputations = children(innerComputationsNode).map(x => extractInnerComputationFrom(x))
+    val innerComputations = children(innerComputationsNode).map(extractInnerComputationFrom)
 
     SequentialComputationSpecification (
       innerComputations.head,
@@ -292,27 +263,26 @@ trait YReader {
   }
 
   protected def reference(node: YPersistentNode) : Ref = {
-    new Ref(unmarshalToString(node))
+    new Ref(asTextBearingNode(node).value)
   }
 
   protected def imports(node: YPersistentNode) : Imports = {
-    val importStrings = children(node, "imports").map(x => unmarshalToString(x))
+    val importStrings = children(node).map(asTextBearingNode(_).value)
     Imports(importStrings:_*)
   }
 
   protected def inputs(node: YPersistentNode) : Inputs = {
-    val nodes: List[Mapping] = node.asInstanceOf[YamlListNode].nodes.map(x => mapping(x)).toList
+    val nodes = children(node).map(mapping).toList
     Inputs(nodes.head, nodes.tail:_*)
   }
 
   protected def mapping(node: YPersistentNode) : Mapping =  {
-    val sss = mapEntry(node)
-    Mapping(sss._1, sss._2)
+    val mapping = children(node).map(asTextBearingNode).head
+    Mapping(mapping.label, mapping.value)
   }
 
   protected def singleTuple(node: YPersistentNode) : Mapping = {
-    val aa = node.asInstanceOf[YamlMapNode].nodeMap.head._2.asInstanceOf[YamlTextNode]
-    Mapping(aa.label, aa.value)
+    mapping(node)
   }
 
   protected def extractInnerComputationFrom(innerComputationNode: YPersistentNode) : InnerComputationSpecification = {
@@ -321,34 +291,16 @@ trait YReader {
     unmarshal(innerComputation).asInstanceOf[InnerComputationSpecification]
   }
 
-  protected def mapEntry(node: YPersistentNode): (String, String)
   protected def attrValue(node: YPersistentNode, key: String) : String
   protected def optionalAttrValue(node: YPersistentNode, key: String): Option[String]
   protected def children(node: YPersistentNode) : List[YPersistentNode]
-  protected def children(node: YPersistentNode, label: String) : List[YPersistentNode]
+  protected def childOfType(node: YPersistentNode, label: String) : YPersistentNode
 
   protected def asTextBearingNode(node: YPersistentNode): YamlTextNode
   protected def dateTime(timeString: String): DateTime
 
-  //TODO This is hackery. Make this more consistent.
-  protected def unmarshalToString(YPersistentNode: YPersistentNode) : String = {
-    asTextBearingNode(YPersistentNode).value
-  }
-
-  //TODO This is hackery. Make this more consistent.
-  protected def unmarshalChildToString(node: YPersistentNode, key: String) : String = {
-    optionalAttrValue(node, key) match {
-      case Some(value) => value
-      case None => asTextBearingNode(childOfType(node, key)).label
-    }
-  }
-
   protected def mapChildren(YPersistentNode: YPersistentNode) : YPersistentNode = {
     children(YPersistentNode).find(_.isInstanceOf[YamlMapNode]).get
-  }
-
-  protected def childOfType(YPersistentNode: YPersistentNode, label: String) : YPersistentNode = {
-    children(YPersistentNode, label).head
   }
 }
 
