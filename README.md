@@ -222,3 +222,7 @@ Here are some things it would be useful to have:
   version if there is a problem.
 
 * A visual tool for creating computations and inserting them into a database.
+
+### Contribute to the project
+
+We appreciate your desire to contribute. We have created a [Wiki](https://github.com/cyrusinnovation/computation-engine/wiki) to help you get your development environment up and running.  Please pay it forward and help us keep the [Wiki](https://github.com/cyrusinnovation/computation-engine/wiki) updated as the project changes.
