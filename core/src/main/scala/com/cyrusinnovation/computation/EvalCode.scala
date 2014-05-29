@@ -78,10 +78,15 @@ private class EvalCodeImpl[ResultType](packageName: String,
   private val config = createConfig(sourceDirectory, classesDir, securityConfig)
   private val sseSM = setupJavaSecurityManager()
 
-  //TODO Allow only writing source files without compiling
-  //TODO Also allow only compiling once using Script Engine refresh policy
+  //TODO Also allow compiling only once using Script Engine refresh policy
   private val sse = useCachedClasses match {
-    case Some("t") | Some("y") => createNonCompilingScalaScriptEngine(config)
+    case Some("t") | Some("y") => {
+      Option(System.getProperty("script.sources")) match {
+        case None => ()
+        case Some(uri) => writeSourceFile(packageName, imports, computationName, body, resultTypeName, sourceDirectory)
+      }
+      createNonCompilingScalaScriptEngine(config)
+    }
     case _ => {
       writeSourceFile(packageName, imports, computationName, body, resultTypeName, sourceDirectory)
       ScalaScriptEngine.withoutRefreshPolicy(config, ScalaScriptEngine.currentClassPath)
