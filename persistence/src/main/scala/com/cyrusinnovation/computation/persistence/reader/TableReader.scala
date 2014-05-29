@@ -5,45 +5,45 @@ import org.joda.time.format.ISODateTimeFormat
 import scala.Some
 import com.cyrusinnovation.computation.specification._
 
-trait DbPersistentNode  {
+trait TableNode  {
   def label : String
 }
 
-trait DbPersistentTextNode extends DbPersistentNode {
+trait TableTextNode extends TableNode {
   def text : String
 }
 
-case class DbPersistentInternalNode(id: Long, label: String, attributes: Map[String, String], children: Map[String, List[DbPersistentNode]]) extends DbPersistentNode
-case class DbPersistentTextBearingNode(id: Long, label: String, text: String) extends DbPersistentTextNode
+case class InternalTableNode(id: Long, label: String, attributes: Map[String, String], children: Map[String, List[TableNode]]) extends TableNode
+case class TextBearingTableNode(id: Long, label: String, text: String) extends TableTextNode
 
 class TableReader(nodeTable: Map[Long, Map[String, String]], edgeTable: Map[Long, List[Long]]) extends Reader {
-  val rootNode: DbPersistentNode = constructNodeFromNodeId(findLibraryNodeId)
+  val rootNode: TableNode = constructNodeFromNodeId(findLibraryNodeId)
   def findLibraryNodeId: Long = {
     nodeTable.filter(nodeIdToAttributeMap => nodeIdToAttributeMap._2("label") == "library").keys.head //There should be only one
   }
 
-  private def constructNodeFromNodeId(nodeId: Long) : DbPersistentNode = {
+  private def constructNodeFromNodeId(nodeId: Long) : TableNode = {
     val attributesForThisNode = nodeTable(nodeId)
     val labelForThisNode = attributesForThisNode("label")
     val childNodeMap = childNodeMapFor(nodeId)
 
     attributesForThisNode.get("text") match {
-      case Some(text) => DbPersistentTextBearingNode(nodeId, labelForThisNode, text)
-      case None => DbPersistentInternalNode(nodeId, labelForThisNode, attributesForThisNode, childNodeMap)
+      case Some(text) => TextBearingTableNode(nodeId, labelForThisNode, text)
+      case None => InternalTableNode(nodeId, labelForThisNode, attributesForThisNode, childNodeMap)
     }
   }
 
-  private def childNodeMapFor(nodeId: Long): Map[String, List[DbPersistentNode]] = {
+  private def childNodeMapFor(nodeId: Long): Map[String, List[TableNode]] = {
     edgeTable.get(nodeId) match {
       case None => Map()
       case Some(childNodes) => constructChildNodeMap(childNodes)
     }
   }
 
-  def constructChildNodeMap(childNodes: List[Long]): Map[String, List[DbPersistentNode]] = {
+  def constructChildNodeMap(childNodes: List[Long]): Map[String, List[TableNode]] = {
     val childNodesWithLabels = childNodes.map(nodeId => (nodeId, nodeTable(nodeId)("label")))
 
-    val initialAccumulator: Map[String, List[DbPersistentNode]] = Map()
+    val initialAccumulator: Map[String, List[TableNode]] = Map()
 
     val labelToReversedNodeList = childNodesWithLabels.foldLeft(initialAccumulator) {
       (mapSoFar, nodeIdWithLabel) => {
@@ -61,7 +61,7 @@ class TableReader(nodeTable: Map[Long, Map[String, String]], edgeTable: Map[Long
 
   def unmarshal: Library = unmarshal(rootNode).asInstanceOf[Library]
 
-  def unmarshal(node: DbPersistentNode) : SyntaxTreeNode = node.label match {
+  def unmarshal(node: TableNode) : SyntaxTreeNode = node.label match {
     case "library" => Library(attrValue(node, "name"), versionMap(node))
     case "version" => version(node)
     case "computations" => throw new RuntimeException("computations node should not be unmarshaled directly")
@@ -92,7 +92,7 @@ class TableReader(nodeTable: Map[Long, Map[String, String]], edgeTable: Map[Long
     case "securityConfiguration" => throw new RuntimeException("securityConfiguration node should not be unmarshaled to AstNode")
   }
 
-  def versionMap(node: DbPersistentNode) : Map[String, Version] = {
+  def versionMap(node: TableNode) : Map[String, Version] = {
     val versions = children(node, "version")
     versions.foldLeft(Map[String,Version]()) {
       (mapSoFar, versionNode) => {
@@ -102,7 +102,7 @@ class TableReader(nodeTable: Map[Long, Map[String, String]], edgeTable: Map[Long
     }
   }
 
-  def version(versionNode: DbPersistentNode) : Version = {
+  def version(versionNode: TableNode) : Version = {
     val computationsNode = children(versionNode, "computations").head
     val topLevelComputations = children(computationsNode)
     Version(attrValue(versionNode, "versionNumber"),
@@ -118,7 +118,7 @@ class TableReader(nodeTable: Map[Long, Map[String, String]], edgeTable: Map[Long
     VersionState.fromString(stateString)
   }
 
-  protected def simpleComputationFactory(node: DbPersistentNode) : SimpleComputationSpecification = {
+  protected def simpleComputationFactory(node: TableNode) : SimpleComputationSpecification = {
     SimpleComputationSpecification(
       attrValue(node, "package"),
       attrValue(node, "name"),
@@ -134,7 +134,7 @@ class TableReader(nodeTable: Map[Long, Map[String, String]], edgeTable: Map[Long
     )
   }
 
-  protected def abortIfComputationFactory(node: DbPersistentNode) : AbortIfComputationSpecification = {
+  protected def abortIfComputationFactory(node: TableNode) : AbortIfComputationSpecification = {
     AbortIfComputationSpecification(
       attrValue(node, "package"),
       attrValue(node, "name"),
@@ -150,7 +150,7 @@ class TableReader(nodeTable: Map[Long, Map[String, String]], edgeTable: Map[Long
     )
   }
 
-  protected def namedComputation(node: DbPersistentNode) : NamedComputationSpecification = {
+  protected def namedComputation(node: TableNode) : NamedComputationSpecification = {
     NamedComputationSpecification(
       attrValue(node, "package"),
       attrValue(node, "name"),
@@ -160,19 +160,19 @@ class TableReader(nodeTable: Map[Long, Map[String, String]], edgeTable: Map[Long
     )
   }
 
-  protected def abortIfNoResultsComputation(node: DbPersistentNode) : AbortIfNoResultsComputationSpecification = {
+  protected def abortIfNoResultsComputation(node: TableNode) : AbortIfNoResultsComputationSpecification = {
     AbortIfNoResultsComputationSpecification(
       extractInnerComputationFrom(childOfType(node, "innerComputation"))
     )
   }
 
-  protected def abortIfHasResultsComputation(node: DbPersistentNode) : AbortIfHasResultsComputationSpecification = {
+  protected def abortIfHasResultsComputation(node: TableNode) : AbortIfHasResultsComputationSpecification = {
     AbortIfHasResultsComputationSpecification(
       extractInnerComputationFrom(childOfType(node, "innerComputation"))
     )
   }
 
-  protected def mappingComputation(node: DbPersistentNode) : MappingComputationSpecification = {
+  protected def mappingComputation(node: TableNode) : MappingComputationSpecification = {
     MappingComputationSpecification(
       extractInnerComputationFrom(childOfType(node, "innerComputation")),
       unmarshal(childOfType(node, "inputTuple")).asInstanceOf[Mapping],
@@ -180,7 +180,7 @@ class TableReader(nodeTable: Map[Long, Map[String, String]], edgeTable: Map[Long
     )
   }
 
-  protected def iterativeComputation(node: DbPersistentNode) : IterativeComputationSpecification = {
+  protected def iterativeComputation(node: TableNode) : IterativeComputationSpecification = {
     IterativeComputationSpecification(
       extractInnerComputationFrom(childOfType(node, "innerComputation")),
       unmarshal(childOfType(node, "inputTuple")).asInstanceOf[Mapping],
@@ -188,7 +188,7 @@ class TableReader(nodeTable: Map[Long, Map[String, String]], edgeTable: Map[Long
     )
   }
 
-  protected def foldingComputation(node: DbPersistentNode) : FoldingComputationSpecification = {
+  protected def foldingComputation(node: TableNode) : FoldingComputationSpecification = {
     FoldingComputationSpecification(
       extractInnerComputationFrom(childOfType(node, "innerComputation")),
       unmarshalToString(childOfType(node, "initialAccumulatorKey")),
@@ -197,7 +197,7 @@ class TableReader(nodeTable: Map[Long, Map[String, String]], edgeTable: Map[Long
     )
   }
 
-  protected def sequentialComputation(node: DbPersistentNode) : SequentialComputationSpecification = {
+  protected def sequentialComputation(node: TableNode) : SequentialComputationSpecification = {
     val innerComputationsNode = childOfType(node, "innerComputations")
     val innerComputations = children(innerComputationsNode).map(x => extractInnerComputationFrom(x))
 
@@ -207,58 +207,58 @@ class TableReader(nodeTable: Map[Long, Map[String, String]], edgeTable: Map[Long
     )
   }
 
-  protected def reference(node: DbPersistentNode) : Ref = {
+  protected def reference(node: TableNode) : Ref = {
     new Ref(unmarshalToString(node))
   }
 
-  protected def imports(node: DbPersistentNode) : Imports = {
+  protected def imports(node: TableNode) : Imports = {
     val importStrings = children(node, "import").map(x => unmarshalToString(x))
     Imports(importStrings:_*)
   }
 
-  protected def inputs(node: DbPersistentNode) : Inputs = {
+  protected def inputs(node: TableNode) : Inputs = {
     val nodes: List[Mapping] = children(node, "mapping").map(x => unmarshal(x).asInstanceOf[Mapping])
     Inputs(nodes.head, nodes.tail:_*)
   }
 
-  protected def mapping(node: DbPersistentNode) : Mapping =  {
+  protected def mapping(node: TableNode) : Mapping =  {
     Mapping(
       unmarshalToString(childOfType(node, "key")),
       unmarshalToString(childOfType(node, "value"))
     )
   }
 
-  protected def singleTuple(node: DbPersistentNode) : Mapping = {
+  protected def singleTuple(node: TableNode) : Mapping = {
     unmarshal(childOfType(node, "mapping")).asInstanceOf[Mapping]
   }
 
-  protected def extractInnerComputationFrom(innerComputationNode: DbPersistentNode) : InnerComputationSpecification = {
+  protected def extractInnerComputationFrom(innerComputationNode: TableNode) : InnerComputationSpecification = {
     assert(children(innerComputationNode).size == 1)
     val innerComputation = children(innerComputationNode).head
     unmarshal(innerComputation).asInstanceOf[InnerComputationSpecification]
   }
 
-  protected def attrValue(node: DbPersistentNode, key: String): String = {
-    node.asInstanceOf[DbPersistentInternalNode].attributes(key)
+  protected def attrValue(node: TableNode, key: String): String = {
+    node.asInstanceOf[InternalTableNode].attributes(key)
   }
 
-  protected def optionalAttrValue(node: DbPersistentNode, key: String): Option[String] = {
-    node.asInstanceOf[DbPersistentInternalNode].attributes.get(key)
+  protected def optionalAttrValue(node: TableNode, key: String): Option[String] = {
+    node.asInstanceOf[InternalTableNode].attributes.get(key)
   }
 
-  protected def children(node: DbPersistentNode): List[DbPersistentNode] = {
-    node.asInstanceOf[DbPersistentInternalNode].children.values.flatten.toList
+  protected def children(node: TableNode): List[TableNode] = {
+    node.asInstanceOf[InternalTableNode].children.values.flatten.toList
   }
 
-  protected def children(node: DbPersistentNode, label: String): List[DbPersistentNode] = {
-    node.asInstanceOf[DbPersistentInternalNode].children.get(label) match {
+  protected def children(node: TableNode, label: String): List[TableNode] = {
+    node.asInstanceOf[InternalTableNode].children.get(label) match {
       case Some(list) => list
       case None => List()
     }
   }
 
-  protected def asTextBearingNode(node: DbPersistentNode): DbPersistentTextNode = {
-    node.asInstanceOf[DbPersistentTextBearingNode]
+  protected def asTextBearingNode(node: TableNode): TableTextNode = {
+    node.asInstanceOf[TextBearingTableNode]
   }
 
   protected def dateTime(timeString: String): DateTime = {
@@ -266,15 +266,15 @@ class TableReader(nodeTable: Map[Long, Map[String, String]], edgeTable: Map[Long
     formatter.parseDateTime(timeString)
   }
 
-  protected def unmarshalToString(DbPersistentNode: DbPersistentNode) : String = {
+  protected def unmarshalToString(DbPersistentNode: TableNode) : String = {
     asTextBearingNode(DbPersistentNode).text
   }
 
-  protected def child(DbPersistentNode: DbPersistentNode) : DbPersistentNode = {
+  protected def child(DbPersistentNode: TableNode) : TableNode = {
     children(DbPersistentNode).head
   }
 
-  protected def childOfType(DbPersistentNode: DbPersistentNode, label: String) : DbPersistentNode = {
+  protected def childOfType(DbPersistentNode: TableNode, label: String) : TableNode = {
     children(DbPersistentNode, label).head
   }
 }
