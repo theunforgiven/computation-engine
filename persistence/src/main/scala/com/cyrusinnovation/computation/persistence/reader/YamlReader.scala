@@ -39,7 +39,7 @@ class YamlReader(yamlData: Iterable[AnyRef]) extends YReader {
 
   val rootNode: YamlRoot = loadNodes(yamlData.toList)
 
-  protected def attrValue(node: YPersistentNode, key: String): String = {
+  protected def mapNodeKeyValue(node: YPersistentNode, key: String): String = {
     node match {
       case n: YamlMapNode => {
         n.nodeMap.get(key).head.asInstanceOf[YamlTextNode].value
@@ -47,7 +47,7 @@ class YamlReader(yamlData: Iterable[AnyRef]) extends YReader {
     }
   }
 
-  protected def optionalAttrValue(node: YPersistentNode, key: String): Option[String] = {
+  protected def optionalMapNodeKeyValue(node: YPersistentNode, key: String): Option[String] = {
     node match {
       case n: YamlMapNode => {
         n.nodeMap.get(key) match {
@@ -77,11 +77,10 @@ class YamlReader(yamlData: Iterable[AnyRef]) extends YReader {
   }
 
   protected def childOfType(node: YPersistentNode, label: String): YPersistentNode = {
-    val a = node match {
-      case n: YamlMapNode  => List(n.nodeMap.get(label).get)
-      case n: YamlListNode => n.nodes.filter(_.label == label)
+    node match {
+      case n: YamlMapNode  => n.nodeMap.get(label).get
+      case n: YamlListNode => n.nodes.filter(_.label == label).head
     }
-    a.head
   }
 
   protected def asTextBearingNode(node: YPersistentNode): YamlTextNode = {
@@ -156,14 +155,14 @@ trait YReader {
 
   protected def library(root: YamlRoot) = {
     val ver = version(root.version, root.computations)
-    Library(attrValue(root.library, "name"), Map(ver.versionNumber -> ver))
+    Library(mapNodeKeyValue(root.library, "name"), Map(ver.versionNumber -> ver))
   }
 
   protected def version(versionNode: YPersistentNode, topLevelComputations: List[YPersistentNode]): Version = {
-    Version(attrValue(versionNode, "versionNumber"),
-      versionState(attrValue(versionNode, "state")),
-      optionalAttrValue(versionNode, "commitDate").map(timeString => dateTime(timeString)),
-      optionalAttrValue(versionNode, "lastEditDate").map(timeString => dateTime(timeString)),
+    Version(mapNodeKeyValue(versionNode, "versionNumber"),
+      versionState(mapNodeKeyValue(versionNode, "state")),
+      optionalMapNodeKeyValue(versionNode, "commitDate").map(timeString => dateTime(timeString)),
+      optionalMapNodeKeyValue(versionNode, "lastEditDate").map(timeString => dateTime(timeString)),
       unmarshal(topLevelComputations.head).asInstanceOf[TopLevelComputationSpecification],
       topLevelComputations.tail.map(computationNode => unmarshal(computationNode).asInstanceOf[TopLevelComputationSpecification]):_*
     )
@@ -175,42 +174,42 @@ trait YReader {
 
   protected def simpleComputationFactory(node: YPersistentNode) : SimpleComputationSpecification = {
     SimpleComputationSpecification(
-      attrValue(node, "package"),
-      attrValue(node, "name"),
-      attrValue(node, "description"),
-      attrValue(node, "changedInVersion"),
-      attrValue(node, "shouldPropagateExceptions").toBoolean,
-      attrValue(node, "computationExpression"),
+      mapNodeKeyValue(node, "package"),
+      mapNodeKeyValue(node, "name"),
+      mapNodeKeyValue(node, "description"),
+      mapNodeKeyValue(node, "changedInVersion"),
+      mapNodeKeyValue(node, "shouldPropagateExceptions").toBoolean,
+      mapNodeKeyValue(node, "computationExpression"),
       unmarshal(childOfType(node, "imports")).asInstanceOf[Imports],
       unmarshal(childOfType(node, "inputs")).asInstanceOf[Inputs],
-      attrValue(node, "resultKey"),
-      attrValue(node, "logger"),
-      attrValue(node, "securityConfiguration")
+      mapNodeKeyValue(node, "resultKey"),
+      mapNodeKeyValue(node, "logger"),
+      mapNodeKeyValue(node, "securityConfiguration")
     )
   }
 
   protected def abortIfComputationFactory(node: YPersistentNode) : AbortIfComputationSpecification = {
     AbortIfComputationSpecification(
-      attrValue(node, "package"),
-      attrValue(node, "name"),
-      attrValue(node, "description"),
-      attrValue(node, "changedInVersion"),
-      attrValue(node, "shouldPropagateExceptions").toBoolean,
-      attrValue(node, "predicateExpression"),
+      mapNodeKeyValue(node, "package"),
+      mapNodeKeyValue(node, "name"),
+      mapNodeKeyValue(node, "description"),
+      mapNodeKeyValue(node, "changedInVersion"),
+      mapNodeKeyValue(node, "shouldPropagateExceptions").toBoolean,
+      mapNodeKeyValue(node, "predicateExpression"),
       extractInnerComputationFrom(childOfType(node, "innerComputation")),
       unmarshal(childOfType(node, "imports")).asInstanceOf[Imports],
       unmarshal(childOfType(node, "inputs")).asInstanceOf[Inputs],
-      attrValue(node, "logger"),
-      attrValue(node, "securityConfiguration")
+      mapNodeKeyValue(node, "logger"),
+      mapNodeKeyValue(node, "securityConfiguration")
     )
   }
 
   protected def namedComputation(node: YPersistentNode) : NamedComputationSpecification = {
     NamedComputationSpecification(
-      attrValue(node, "package"),
-      attrValue(node, "name"),
-      attrValue(node, "description"),
-      attrValue(node, "changedInVersion"),
+      mapNodeKeyValue(node, "package"),
+      mapNodeKeyValue(node, "name"),
+      mapNodeKeyValue(node, "description"),
+      mapNodeKeyValue(node, "changedInVersion"),
       unmarshal(mapChildren(node)).asInstanceOf[NamableComputationSpecification]
     )
   }
@@ -231,7 +230,7 @@ trait YReader {
     MappingComputationSpecification(
       extractInnerComputationFrom(childOfType(node, "innerComputation")),
       unmarshal(childOfType(node, "inputTuple")).asInstanceOf[Mapping],
-      attrValue(node, "resultKey")
+      mapNodeKeyValue(node, "resultKey")
     )
   }
 
@@ -239,14 +238,14 @@ trait YReader {
     IterativeComputationSpecification(
       extractInnerComputationFrom(childOfType(node, "innerComputation")),
       unmarshal(childOfType(node, "inputTuple")).asInstanceOf[Mapping],
-      attrValue(node, "resultKey")
+      mapNodeKeyValue(node, "resultKey")
     )
   }
 
   protected def foldingComputation(node: YPersistentNode) : FoldingComputationSpecification = {
     FoldingComputationSpecification(
       extractInnerComputationFrom(childOfType(node, "innerComputation")),
-      attrValue(node, "initialAccumulatorKey"),
+      mapNodeKeyValue(node, "initialAccumulatorKey"),
       unmarshal(childOfType(node, "inputTuple")).asInstanceOf[Mapping],
       unmarshal(childOfType(node, "accumulatorTuple")).asInstanceOf[Mapping]
     )
@@ -291,8 +290,8 @@ trait YReader {
     unmarshal(innerComputation).asInstanceOf[InnerComputationSpecification]
   }
 
-  protected def attrValue(node: YPersistentNode, key: String) : String
-  protected def optionalAttrValue(node: YPersistentNode, key: String): Option[String]
+  protected def mapNodeKeyValue(node: YPersistentNode, key: String) : String
+  protected def optionalMapNodeKeyValue(node: YPersistentNode, key: String): Option[String]
   protected def children(node: YPersistentNode) : List[YPersistentNode]
   protected def childOfType(node: YPersistentNode, label: String) : YPersistentNode
 
