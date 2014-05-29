@@ -25,7 +25,11 @@ trait PersistentTextBearingNode extends PersistentNode {
   val text : String
 }
 
-trait Reader {
+trait AbstractReader {
+  def unmarshal: Library
+}
+
+trait Reader extends AbstractReader {
   val rootNode : PersistentNode
   def unmarshal: Library = unmarshal(rootNode).asInstanceOf[Library]
 

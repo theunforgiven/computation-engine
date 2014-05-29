@@ -21,21 +21,22 @@ class ReaderTest extends FlatSpec with Matchers {
 
   "A YAML Reader" should "be able to read a library from YAML" in {
     val yamlReader = YamlReader.fromFileOnClasspath("/sample.yaml")
-    verifyThatLibraryIsConstructedProperly(yamlReader.unmarshal)
+    verifyThatLibraryIsConstructedProperly(yamlReader)
   }
 
   //Depends on current working directory being persistence module directory
   "A Table Reader" should "be able to read a library from a database" in {
     val tableReader = SqlTableReader.fromJdbcUrl("test", "1.0", "jdbc:h2:./src/test/resources/h2-sample", Some("public"))
-    verifyThatLibraryIsConstructedProperly(tableReader.unmarshal)
+    verifyThatLibraryIsConstructedProperly(tableReader)
   }
 
   "A Table Reader" should "be able to read a library from parsed CSV data" in {
     val tableReader = CsvDataReader.fromFileOnClasspath("/sampleNodes.csv", "/sampleEdges.csv", "test", "1.0", CsvReaderConfig(1))
-    verifyThatLibraryIsConstructedProperly(tableReader.unmarshal)
+    verifyThatLibraryIsConstructedProperly(tableReader)
   }
 
-  def verifyThatLibraryIsConstructedProperly(root: Library) = {
+  def verifyThatLibraryIsConstructedProperly(reader: AbstractReader) = {
+    val root = reader.unmarshal
     root.name should be("test")
     root.versions.size should be(1)
     
