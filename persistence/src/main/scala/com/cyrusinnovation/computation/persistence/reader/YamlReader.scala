@@ -8,25 +8,37 @@ import org.joda.time.DateTime
 import scala.collection.JavaConversions._
 import java.util.{Map => JavaMap, List => JavaList}
 import java.text.SimpleDateFormat
+import com.cyrusinnovation.computation.specification._
+
+trait YamlNode {
+  def label: String
+}
+
+case class YamlListNode(label: String, nodes: List[YamlNode]) extends YamlNode
+case class YamlMapNode(label: String, nodeMap: Map[String, YamlNode]) extends YamlNode
+case class YamlTextNode(label: String, value: String) extends YamlNode
+
+case class YamlRoot(label: String, library: YamlNode, version: YamlVersionNode) extends YamlNode
+case class YamlVersionNode(label: String, version: YamlNode, computations: List[YamlNode]) extends YamlNode
 
 
 object YamlReader {
-  def fromFileOnClasspath(resourcePath: String) : Reader = {
+  def fromFileOnClasspath(resourcePath: String) : YamlReader = {
     val inputStream: InputStream = getClass.getResourceAsStream(resourcePath)
     fromInputStream(inputStream)
   }
 
-  def fromFile(path: String) : Reader = {
+  def fromFile(path: String) : YamlReader = {
     val inputStream: InputStream = new FileInputStream(new File(path))
     fromInputStream(inputStream)
   }
 
-  def fromFileUri(uri: URI) : Reader = {
+  def fromFileUri(uri: URI) : YamlReader = {
     val inputStream: InputStream = new FileInputStream(new File(uri))
     fromInputStream(inputStream)
   }
 
-  def fromInputStream(inputStream: InputStream) : Reader = {
+  def fromInputStream(inputStream: InputStream) : YamlReader = {
     val snakeYaml = new Yaml()
     val data: Iterable[AnyRef] = snakeYaml.loadAll(inputStream);
 
@@ -34,163 +46,237 @@ object YamlReader {
   }
 }
 
-
 class YamlReader(yamlData: Iterable[AnyRef]) extends Reader {
 
-  val rootNode: PersistentNode = loadNodes(yamlData.toList)
+  lazy val rootNode: YamlRoot = loadNodes(yamlData.toList)
 
-  protected def attrValue(node: PersistentNode, key: String): String = {
-    node match {
-      case YamlPersistentTextBearingNode(label, text) => if(label == key) text else throw new RuntimeException(s"No such attribute ${key} for text-bearing node ${label}, ${text}")
-      case internalNode : YamlPersistentInternalNode => internalNode.scalarValuedNodes(key).text
+  protected def loadNodes(yamlData: Iterable[Any]): YamlRoot = {
+    val yamlSequence = yamlData.toList.head.asInstanceOf[JavaList[JavaMap[Any, Any]]]
+    val nodes = yamlSequence.map(x => {
+      x.map(x => toYamlNode(x._1.toString, x._2))
+    }).flatten.toList
+
+    val versionNode = nodes.find(_.label == "version").get
+    val computationNodes = nodes.filterNot(x => x.label == "version" || x.label == "library")
+    val version = YamlVersionNode("version", versionNode, computationNodes)
+
+    val libraryNode = nodes.find(_.label == "library").get
+    YamlRoot("library", libraryNode, version)
+  }
+
+  protected def toYamlNode(label: String, yaml: Any): YamlNode = {
+    yaml match {
+      case nodeList: JavaList[_] => YamlListNode(label, nodeList.map(toYamlNode(label, _)).toList)
+      case node: JavaMap[_, _]   => YamlMapNode(label, node.map(x => (x._1.toString, toYamlNode(x._1.toString, x._2))).toMap)
+      case node: Any             => YamlTextNode(label, node.toString)
     }
   }
-  protected def attrValues(node: PersistentNode): Map[String, String] = {
+
+  def unmarshal: Library = unmarshal(rootNode).asInstanceOf[Library]
+
+  def unmarshal(node: YamlNode) : SyntaxTreeNode = node.label match {
+    case "library" => library(node)
+    case "version" => version(node)
+    case "simpleComputation" => simpleComputationFactory(node)
+    case "abortIfComputation" => abortIfComputationFactory(node)
+    case "namedComputation" => namedComputation(node)
+    case "abortIfNoResultsComputation" => abortIfNoResultsComputation(node)
+    case "abortIfHasResultsComputation" => abortIfNoResultsComputation(node)
+    case "mappingComputation" => mappingComputation(node)
+    case "iterativeComputation" => iterativeComputation(node)
+    case "foldingComputation" => foldingComputation(node)
+    case "sequentialComputation" => sequentialComputation(node)
+    case "innerComputation" => innerComputation(node)
+    case "innerComputations" => throw new RuntimeException("innerComputations node should not be unmarshaled directly to AstNode")
+    case "ref" => reference(node)
+    case "imports" => imports(node)
+    case "inputs" => inputs(node)
+    case "inputTuple" => singleTuple(node)
+    case "accumulatorTuple" => singleTuple(node)
+  }
+
+  protected def library(root: YamlNode) = root match {
+    case rootNode : YamlRoot => {
+      val ver = unmarshal(rootNode.version).asInstanceOf[Version]
+      Library(attrValue(rootNode.library, "name"), Map(ver.versionNumber -> ver))
+    }
+    case _ => throw new RuntimeException("library node must be a YamlRoot node")
+  }
+
+  protected def version(versionNode: YamlNode): Version = versionNode match {
+    case YamlVersionNode(label, version, topLevelComputations) => {
+      Version(attrValue(version, "versionNumber"),
+        versionState(attrValue(version, "state")),
+        optionalAttrValue(version, "commitDate").map(timeString => dateTime(timeString)),
+        optionalAttrValue(version, "lastEditDate").map(timeString => dateTime(timeString)),
+        unmarshal(topLevelComputations.head).asInstanceOf[TopLevelComputationSpecification],
+        topLevelComputations.tail.map(computationNode => unmarshal(computationNode).asInstanceOf[TopLevelComputationSpecification]):_*
+      )
+    }
+    case _ => throw new RuntimeException("version node must be a YamlVersionNode")
+  }
+
+  protected def versionState(stateString: String) : VersionState = {
+    VersionState.fromString(stateString)
+  }
+
+  protected def simpleComputationFactory(node: YamlNode) : SimpleComputationSpecification = {
+    SimpleComputationSpecification(
+      attrValue(node, "package"),
+      attrValue(node, "name"),
+      attrValue(node, "description"),
+      attrValue(node, "changedInVersion"),
+      attrValue(node, "shouldPropagateExceptions").toBoolean,
+      attrValue(node, "computationExpression"),
+      unmarshal(childOfType(node, "imports")).asInstanceOf[Imports],
+      unmarshal(childOfType(node, "inputs")).asInstanceOf[Inputs],
+      attrValue(node, "resultKey"),
+      attrValue(node, "logger"),
+      attrValue(node, "securityConfiguration")
+    )
+  }
+
+  protected def abortIfComputationFactory(node: YamlNode) : AbortIfComputationSpecification = {
+    AbortIfComputationSpecification(
+      attrValue(node, "package"),
+      attrValue(node, "name"),
+      attrValue(node, "description"),
+      attrValue(node, "changedInVersion"),
+      attrValue(node, "shouldPropagateExceptions").toBoolean,
+      attrValue(node, "predicateExpression"),
+      unmarshal(childOfType(node, "innerComputation")).asInstanceOf[InnerComputationSpecification],
+      unmarshal(childOfType(node, "imports")).asInstanceOf[Imports],
+      unmarshal(childOfType(node, "inputs")).asInstanceOf[Inputs],
+      attrValue(node, "logger"),
+      attrValue(node, "securityConfiguration")
+    )
+  }
+
+  protected def innerComputation(innerComputationNode: YamlNode) : InnerComputationSpecification = {
+    assert(children(innerComputationNode).size == 1)
+    val innerComputation = children(innerComputationNode).head
+    unmarshal(innerComputation).asInstanceOf[InnerComputationSpecification]
+  }
+
+  protected def namedComputation(node: YamlNode) : NamedComputationSpecification = {
+    val childMapNode = children(node).find(_.isInstanceOf[YamlMapNode]).get
+    NamedComputationSpecification(
+      attrValue(node, "package"),
+      attrValue(node, "name"),
+      attrValue(node, "description"),
+      attrValue(node, "changedInVersion"),
+      unmarshal(childMapNode).asInstanceOf[NamableComputationSpecification]
+    )
+  }
+
+  protected def abortIfNoResultsComputation(node: YamlNode) : AbortIfNoResultsComputationSpecification = {
+    AbortIfNoResultsComputationSpecification(
+      unmarshal(childOfType(node, "innerComputation")).asInstanceOf[InnerComputationSpecification]
+    )
+  }
+
+  protected def abortIfHasResultsComputation(node: YamlNode) : AbortIfHasResultsComputationSpecification = {
+    AbortIfHasResultsComputationSpecification(
+      unmarshal(childOfType(node, "innerComputation")).asInstanceOf[InnerComputationSpecification]
+    )
+  }
+
+  protected def mappingComputation(node: YamlNode) : MappingComputationSpecification = {
+    MappingComputationSpecification(
+      unmarshal(childOfType(node, "innerComputation")).asInstanceOf[InnerComputationSpecification],
+      unmarshal(childOfType(node, "inputTuple")).asInstanceOf[Mapping],
+      attrValue(node, "resultKey")
+    )
+  }
+
+  protected def iterativeComputation(node: YamlNode) : IterativeComputationSpecification = {
+    IterativeComputationSpecification(
+      unmarshal(childOfType(node, "innerComputation")).asInstanceOf[InnerComputationSpecification],
+      unmarshal(childOfType(node, "inputTuple")).asInstanceOf[Mapping],
+      attrValue(node, "resultKey")
+    )
+  }
+
+  protected def foldingComputation(node: YamlNode) : FoldingComputationSpecification = {
+    FoldingComputationSpecification(
+      unmarshal(childOfType(node, "innerComputation")).asInstanceOf[InnerComputationSpecification],
+      attrValue(node, "initialAccumulatorKey"),
+      unmarshal(childOfType(node, "inputTuple")).asInstanceOf[Mapping],
+      unmarshal(childOfType(node, "accumulatorTuple")).asInstanceOf[Mapping]
+    )
+  }
+
+  protected def sequentialComputation(node: YamlNode) : SequentialComputationSpecification = {
+    val innerComputationsNode = childOfType(node, "innerComputations")
+    val innerComputations = children(innerComputationsNode).map(innerComputation)
+
+    SequentialComputationSpecification (
+      innerComputations.head,
+      innerComputations.tail:_*
+    )
+  }
+
+  protected def reference(node: YamlNode) : Ref = {
+    new Ref(asTextBearingNode(node).value)
+  }
+
+  protected def imports(node: YamlNode) : Imports = {
+    val importStrings = children(node).map(asTextBearingNode(_).value)
+    Imports(importStrings:_*)
+  }
+
+  protected def inputs(node: YamlNode) : Inputs = {
+    val nodes = children(node).map(singleTuple).toList
+    Inputs(nodes.head, nodes.tail:_*)
+  }
+
+  protected def singleTuple(node: YamlNode) : Mapping = {
+    val mapping = children(node).map(asTextBearingNode).head
+    Mapping(mapping.label, mapping.value)
+  }
+
+
+  protected def attrValue(node: YamlNode, key: String): String = {
     node match {
-      case YamlPersistentTextBearingNode(label, text) => Map(label -> text)
-      case internalNode : YamlPersistentInternalNode => internalNode.scalarValuedNodes.map(x => (x._1, x._2.text)).toMap
+      case n: YamlMapNode => {
+        n.nodeMap.get(key).head.asInstanceOf[YamlTextNode].value
+      }
     }
   }
 
-  protected def optionalAttrValue(node: PersistentNode, key: String): Option[String] = {
+  protected def optionalAttrValue(node: YamlNode, key: String): Option[String] = {
     node match {
-      case YamlPersistentTextBearingNode(label, text) => if(label == key) Some(text) else None
-      case internalNode : YamlPersistentInternalNode => internalNode.scalarValuedNodes.get(key).map(node => node.text)
+      case n: YamlMapNode => {
+        n.nodeMap.get(key) match {
+          case Some(m: YamlTextNode) => Some(m.value)
+          case _ => None
+        }
+      }
+      case _ => None
     }
   }
 
-  protected def children(node: PersistentNode): List[PersistentNode] = node match {
-    case leaf : YamlPersistentTextBearingNode => List()
-    case internalNode : YamlPersistentInternalNode => internalNode.children.values.flatten.toList
+  protected def children(node: YamlNode): List[YamlNode] = {
+    node match {
+      case n: YamlListNode => n.nodes
+      case n: YamlMapNode  =>  n.nodeMap.values.toList
+    }
   }
 
-  protected def children(node: PersistentNode, label: String): List[PersistentNode] = node match {
-    case leaf : YamlPersistentTextBearingNode => List()
-    case node : YamlPersistentInternalNode => node.children.getOrElse(label, List())
+  protected def childOfType(node: YamlNode, label: String): YamlNode = {
+    val a = node match {
+      case n: YamlMapNode  => List(n.nodeMap.get(label).get)
+      case n: YamlListNode => n.nodes.filter(_.label == label)
+    }
+    a.head
   }
 
-  protected def asTextBearingNode(node: PersistentNode): PersistentTextBearingNode = node match {
-    case leaf : YamlPersistentTextBearingNode => leaf
+  protected def asTextBearingNode(node: YamlNode): YamlTextNode = {
+    node.asInstanceOf[YamlTextNode]
   }
 
   protected def dateTime(timeString: String): DateTime = {
     val date = new SimpleDateFormat("EEE MMM dd HH:mm:ss zzz yyyy").parse(timeString)
     new DateTime(date)
   }
-
-  protected def loadNodes(yamlData: Iterable[Any]) : PersistentNode = {
-    val yamlSequence = yamlData.toList.head.asInstanceOf[JavaList[JavaMap[Any, Any]]]
-    val libraryEntry = removeEntryLabeled("library", yamlSequence)
-    val versionEntry = removeEntryLabeled("version", yamlSequence)
-
-    val versionNode = nodeWithAddedChild("version", versionEntry, toComputationNodeMap(yamlSequence))
-    val libraryNode = nodeWithAddedChild("library", libraryEntry, Map("version" -> List(versionNode)))
-
-    libraryNode
-  }
-
-  def removeEntryLabeled(label: String, yamlSequence: JavaList[JavaMap[Any, Any]]): JavaMap[Any, Any] = {
-    val indexOfElementContainingLabel: Int = yamlSequence.indexWhere(element => element.keys.contains(label))
-    yamlSequence.remove(indexOfElementContainingLabel)
-  }
-
-  def toComputationNodeMap(topLevelJavaMaps: JavaList[JavaMap[Any, Any]]) :  Map[String, List[YamlPersistentNode]] = {
-    val computationNodesList : List[YamlPersistentNode] = topLevelJavaMaps.map(element => toPersistentNode(element)).toList
-    computationNodesList.foldLeft(Map[String, List[YamlPersistentNode]]()) {
-      (mapSoFar, topLevelComputationNode) => {
-        mapSoFar.get(topLevelComputationNode.label) match {
-          case None => mapSoFar + (topLevelComputationNode.label -> List(topLevelComputationNode))
-          case Some(computationList) => mapSoFar + (topLevelComputationNode.label -> (topLevelComputationNode :: computationList))
-        }
-      }
-    }
-  }
-  
-  def nodeWithAddedChild(label: String, topLevelNodeMap: JavaMap[Any, Any], addedChild: Map[String, List[YamlPersistentNode]]) = {
-    val nodeWithoutAddedChild = toPersistentNode(topLevelNodeMap).asInstanceOf[YamlPersistentInternalNode]
-    new YamlPersistentInternalNode(label, nodeWithoutAddedChild.scalarValuedNodes, nodeWithoutAddedChild.children ++ addedChild)
-  }
-
-  // At the top level, we always have maps
-  def toPersistentNode(topLevelNodeMap: JavaMap[Any, Any]) : YamlPersistentNode = {
-    val yamlNode = toYamlNode(topLevelNodeMap.head._1.toString,
-                              topLevelNodeMap.head._2.asInstanceOf[JavaMap[Any, Any]])
-    toPersistentNode(yamlNode.asInstanceOf[YamlMapNode])
-  }
-
-  def toYamlNode(label: String, yamlMap: JavaMap[Any, Any]) : YamlNode = {
-    val subMap = yamlMap.foldLeft(Map[String, YamlNode]()){
-      (mapSoFar, keyValuePair) => {
-        val innerLabel = keyValuePair._1.toString
-        keyValuePair._2 match {
-          case map : JavaMap[Any, Any] => mapSoFar + (innerLabel -> toYamlNode(innerLabel, map))
-          case list : JavaList[Any] => mapSoFar + (innerLabel -> toYamlNode(innerLabel, list))
-          case value if isScalarValue(value) => mapSoFar + (innerLabel -> YamlPersistentTextBearingNode(innerLabel, value.toString))
-        }
-      }
-    }
-    YamlMapNode(label, subMap)
-  }
-
-  def toYamlNode(label: String, yamlList: JavaList[Any]) : YamlNode = {
-    val subNodes = yamlList.map(node => node match {
-      case map : JavaMap[Any, Any] => toYamlNode(label, map)
-      case list : JavaList[Any] => toYamlNode(label, list)
-      case value if isScalarValue(value) => YamlPersistentTextBearingNode(label, value.toString)
-    }).toList
-    YamlListNode(label, subNodes)
-  }
-
-  def isScalarValue(value: Any) : Boolean = {
-    value.isInstanceOf[String] ||
-      value.isInstanceOf[java.lang.Boolean] ||
-      value.isInstanceOf[java.lang.Character] ||
-      value.isInstanceOf[java.lang.Integer] ||
-      value.isInstanceOf[java.lang.Long] ||
-      value.isInstanceOf[java.lang.Double] ||
-      value.isInstanceOf[java.lang.Float] ||
-      value.isInstanceOf[java.util.Date]
-  }
-
-  def toPersistentNode(yamlMapNode: YamlMapNode) : YamlPersistentNode = {
-    val subNodes = descendants(yamlMapNode.nodeMap)
-    val nodesExcludedFromAttributes = List("ref", "imports", "inputs")
-    val attributesAndChildNodes = subNodes.partition(stringToNodeList => {
-      val nodeList = stringToNodeList._2
-      nodeList.size == 1 && nodeList.head.isInstanceOf[YamlPersistentTextBearingNode] && !nodesExcludedFromAttributes.contains(nodeList.head.label)
-    })
-
-    val attributeMap = attributesAndChildNodes._1.map(labelToListOfOneAttributeValue => {
-      val attributeLabel = labelToListOfOneAttributeValue._1
-      val attributeNode = labelToListOfOneAttributeValue._2.head.asInstanceOf[YamlPersistentTextBearingNode]
-      attributeLabel -> attributeNode
-    })
-    YamlPersistentInternalNode(yamlMapNode.label, attributeMap, attributesAndChildNodes._2)
-  }
-
-  def descendants(yamlNodeMap: Map[String, YamlNode]) : Map[String, List[YamlPersistentNode]] = {
-    yamlNodeMap.map(labelWithValue => {
-      val label = labelWithValue._1
-      val nodes = labelWithValue._2
-      nodes match {
-        case aTextNode : YamlPersistentTextBearingNode     => label -> List(aTextNode)
-        case aList : YamlListNode                          => label -> aList.nodes.map(listItem => listItem match {
-          case aMap: YamlMapNode => toPersistentNode(aMap)
-          case aTextNode : YamlPersistentTextBearingNode => aTextNode
-          // No lists of lists
-                                                              })
-        case aMap: YamlMapNode                             => label -> List(toPersistentNode(aMap))
-      }
-    }).toMap
-  }
 }
-
-trait YamlPersistentNode extends PersistentNode
-case class YamlPersistentInternalNode(label: String, scalarValuedNodes: Map[String, YamlPersistentTextBearingNode], children: Map[String, List[YamlPersistentNode]]) extends YamlPersistentNode
-
-case class YamlPersistentTextBearingNode(label: String, text: String) extends PersistentTextBearingNode with YamlPersistentNode with YamlNode
-
-trait YamlNode
-case class YamlListNode(label: String, nodes: List[YamlNode]) extends YamlNode
-case class YamlMapNode(label: String, nodeMap: Map[String, YamlNode]) extends YamlNode
-
