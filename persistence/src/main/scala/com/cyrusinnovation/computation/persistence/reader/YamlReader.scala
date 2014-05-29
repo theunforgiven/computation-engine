@@ -10,7 +10,6 @@ import java.util.{Map => JavaMap, List => JavaList}
 import java.text.SimpleDateFormat
 import com.cyrusinnovation.computation.specification._
 
-
 trait YamlNode {
   def label: String
 }
@@ -47,7 +46,7 @@ object YamlReader {
   }
 }
 
-class YamlReader(yamlData: Iterable[AnyRef]) extends AbstractReader {
+class YamlReader(yamlData: Iterable[AnyRef]) extends Reader {
 
   lazy val rootNode: YamlRoot = loadNodes(yamlData.toList)
 

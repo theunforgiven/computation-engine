@@ -1,20 +1,8 @@
 package com.cyrusinnovation.computation.persistence.reader
 
 import scala.Some
-import scala.xml.{Elem, XML}
-import java.io.InputStream
 import org.scalatest.{Matchers, FlatSpec}
-
 import com.cyrusinnovation.computation.specification._
-import com.cyrusinnovation.computation.specification.Inputs
-import com.cyrusinnovation.computation.specification.Imports
-import com.cyrusinnovation.computation.specification.MappingComputationSpecification
-import com.cyrusinnovation.computation.specification.Mapping
-import com.cyrusinnovation.computation.specification.NamedComputationSpecification
-import com.cyrusinnovation.computation.specification.AbortIfComputationSpecification
-import com.cyrusinnovation.computation.specification.SequentialComputationSpecification
-import com.cyrusinnovation.computation.specification.FoldingComputationSpecification
-import com.cyrusinnovation.computation.specification.SimpleComputationSpecification
 import com.cyrusinnovation.computation.util.TestUtils._
 
 class ReaderTest extends FlatSpec with Matchers {
@@ -35,7 +23,7 @@ class ReaderTest extends FlatSpec with Matchers {
     verifyThatLibraryIsConstructedProperly(tableReader)
   }
 
-  def verifyThatLibraryIsConstructedProperly(reader: AbstractReader) = {
+  def verifyThatLibraryIsConstructedProperly(reader: Reader) = {
     val root = reader.unmarshal
     root.name should be("test")
     root.versions.size should be(1)

@@ -11,10 +11,10 @@ import com.cyrusinnovation.computation.specification.AbortIfNoResultsComputation
 import com.cyrusinnovation.computation.specification.AbortIfComputationSpecification
 import com.cyrusinnovation.computation.specification.Version
 import com.cyrusinnovation.computation.specification.SimpleComputationSpecification
-import com.cyrusinnovation.computation.persistence.reader.{AbstractReader, Reader}
+import com.cyrusinnovation.computation.persistence.reader.Reader
 
 object ComputationBuilder {
-  def build(versionNumber: String, reader: AbstractReader, securityConfigurations: Map[String, SecurityConfiguration], loggers: Map[String, Log]) : Map[String, Computation] = {
+  def build(versionNumber: String, reader: Reader, securityConfigurations: Map[String, SecurityConfiguration], loggers: Map[String, Log]) : Map[String, Computation] = {
     val library = reader.unmarshal
     library.verifyNoCyclicalReferences()
 
