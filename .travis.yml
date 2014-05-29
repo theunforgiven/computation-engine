@@ -1,8 +1,8 @@
 env:
    - TERM=dumb
 language: java
-install: "gradle -PsonatypeUsername=foo -PsonatypePassword=bar assemble"
+install: "gradlew -PsonatypeUsername=foo -PsonatypePassword=bar assemble"
 #use info level logging here so that failing tests produce useful output
-script: "gradle -PsonatypeUsername=foo -PsonatypePassword=bar test --info"
+script: "gradlew -PsonatypeUsername=foo -PsonatypePassword=bar test --info"
 notifications:
   slack: cyrusinnovation:Zv0o5TPXwIHK2mVYc4jbbrrv
