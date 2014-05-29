@@ -1,8 +1,10 @@
 env:
    - TERM=dumb
 language: java
-install: "gradlew -PsonatypeUsername=foo -PsonatypePassword=bar assemble"
+before_install:
+ - chmod +x gradlew
+install: "./gradlew -PsonatypeUsername=foo -PsonatypePassword=bar assemble"
 #use info level logging here so that failing tests produce useful output
-script: "gradlew -PsonatypeUsername=foo -PsonatypePassword=bar test --info"
+script: "./gradlew -PsonatypeUsername=foo -PsonatypePassword=bar test --info"
 notifications:
   slack: cyrusinnovation:Zv0o5TPXwIHK2mVYc4jbbrrv
