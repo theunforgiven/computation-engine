@@ -15,9 +15,13 @@ trait TableTextNode extends TableNode {
 
 case class InternalTableNode(id: Long, label: String, attributes: Map[String, String], children: Map[String, List[TableNode]]) extends TableNode
 case class TextBearingTableNode(id: Long, label: String, text: String) extends TableTextNode
+case class TableNodeContext(defaultAttributes: Map[String, String], defaultNodes: Map[String, TableNode])
 
 class TableReader(nodeTable: Map[Long, Map[String, String]], edgeTable: Map[Long, List[Long]]) extends Reader {
+  private type NodeContext = TableNodeContext
+
   val rootNode: TableNode = constructNodeFromNodeId(findLibraryNodeId)
+
   def findLibraryNodeId: Long = {
     nodeTable.filter(nodeIdToAttributeMap => nodeIdToAttributeMap._2("label") == "library").keys.head //There should be only one
   }
@@ -40,7 +44,7 @@ class TableReader(nodeTable: Map[Long, Map[String, String]], edgeTable: Map[Long
     }
   }
 
-  def constructChildNodeMap(childNodes: List[Long]): Map[String, List[TableNode]] = {
+  private def constructChildNodeMap(childNodes: List[Long]): Map[String, List[TableNode]] = {
     val childNodesWithLabels = childNodes.map(nodeId => (nodeId, nodeTable(nodeId)("label")))
 
     val initialAccumulator: Map[String, List[TableNode]] = Map()
@@ -59,29 +63,29 @@ class TableReader(nodeTable: Map[Long, Map[String, String]], edgeTable: Map[Long
     })
   }
 
-  def unmarshal: Library = unmarshal(rootNode).asInstanceOf[Library]
+  def unmarshal: Library = unmarshal(rootNode, TableNodeContext(Map.empty, Map.empty)).asInstanceOf[Library]
 
-  def unmarshal(node: TableNode) : SyntaxTreeNode = node.label match {
-    case "library" => Library(attrValue(node, "name"), versionMap(node))
-    case "version" => version(node)
+  def unmarshal(node: TableNode, context: NodeContext) : SyntaxTreeNode = node.label match {
+    case "library" => Library(attrValue(node, "name", context), versionMap(node, context))
+    case "version" => version(node, context)
     case "computations" => throw new RuntimeException("computations node should not be unmarshaled directly")
-    case "simpleComputation" => simpleComputationFactory(node)
-    case "abortIfComputation" => abortIfComputationFactory(node)
-    case "namedComputation" => namedComputation(node)
-    case "abortIfNoResultsComputation" => abortIfNoResultsComputation(node)
-    case "abortIfHasResultsComputation" => abortIfNoResultsComputation(node)
-    case "mappingComputation" => mappingComputation(node)
-    case "iterativeComputation" => iterativeComputation(node)
-    case "foldingComputation" => foldingComputation(node)
-    case "sequentialComputation" => sequentialComputation(node)
+    case "simpleComputation" => simpleComputationFactory(node, context)
+    case "abortIfComputation" => abortIfComputationFactory(node, context)
+    case "namedComputation" => namedComputation(node, context)
+    case "abortIfNoResultsComputation" => abortIfNoResultsComputation(node, context)
+    case "abortIfHasResultsComputation" => abortIfNoResultsComputation(node, context)
+    case "mappingComputation" => mappingComputation(node, context)
+    case "iterativeComputation" => iterativeComputation(node, context)
+    case "foldingComputation" => foldingComputation(node, context)
+    case "sequentialComputation" => sequentialComputation(node, context)
     case "innerComputations" => throw new RuntimeException("innerComputations node should not be unmarshaled directly")
     case "innerComputation" => throw new RuntimeException("innerComputation node should not be unmarshaled directly")
     case "ref" => reference(node)
     case "imports" => imports(node)
-    case "inputs" => inputs(node)
-    case "inputTuple" => singleTuple(node)
-    case "accumulatorTuple" => singleTuple(node)
-    case "mapping" => mapping(node)
+    case "inputs" => inputs(node, context)
+    case "inputTuple" => singleTuple(node, context)
+    case "accumulatorTuple" => singleTuple(node, context)
+    case "mapping" => mapping(node, context)
     case "key" => throw new RuntimeException("key node should not be unmarshaled to AstNode")
     case "value" => throw new RuntimeException("value node should not be unmarshaled to AstNode")
     case "initialAccumulatorKey" => throw new RuntimeException("initialAccumulatorKey node should not be unmarshaled to AstNode")
@@ -92,114 +96,128 @@ class TableReader(nodeTable: Map[Long, Map[String, String]], edgeTable: Map[Long
     case "securityConfiguration" => throw new RuntimeException("securityConfiguration node should not be unmarshaled to AstNode")
   }
 
-  def versionMap(node: TableNode) : Map[String, Version] = {
+  protected def versionMap(node: TableNode, context: NodeContext) : Map[String, Version] = {
     val versions = children(node, "version")
     versions.foldLeft(Map[String,Version]()) {
       (mapSoFar, versionNode) => {
-        val version = unmarshal(versionNode).asInstanceOf[Version]
+        val version = unmarshal(versionNode, context).asInstanceOf[Version]
         mapSoFar + (version.versionNumber -> version)
       }
     }
   }
 
-  def version(versionNode: TableNode) : Version = {
+  protected def version(versionNode: TableNode, context: NodeContext) : Version = {
     val computationsNode = children(versionNode, "computations").head
     val topLevelComputations = children(computationsNode)
-    Version(attrValue(versionNode, "versionNumber"),
-      versionState(attrValue(versionNode, "state")),
+    val defaultContext = defaults(versionNode, context)
+    Version(attrValue(versionNode, "versionNumber", context),
+      versionState(attrValue(versionNode, "state", context)),
       optionalAttrValue(versionNode, "commitDate").map(timeString => dateTime(timeString)),
       optionalAttrValue(versionNode, "lastEditDate").map(timeString => dateTime(timeString)),
-      unmarshal(topLevelComputations.head).asInstanceOf[TopLevelComputationSpecification],
-      topLevelComputations.tail.map(computationNode => unmarshal(computationNode).asInstanceOf[TopLevelComputationSpecification]):_*
+      unmarshal(topLevelComputations.head, defaultContext).asInstanceOf[TopLevelComputationSpecification],
+      topLevelComputations.tail.map(computationNode => unmarshal(computationNode, defaultContext).asInstanceOf[TopLevelComputationSpecification]):_*
     )
+  }
+
+  private def defaults(versionNode: TableNode, context: NodeContext): NodeContext = {
+    val defaults = children(versionNode, "defaults").flatMap(children(_, "default").map(_.asInstanceOf[InternalTableNode]))
+    val (defaultAttributes, defaultNodes) = defaults.partition(_.children.isEmpty)
+    val defaultAttributeEntries = defaultAttributes.flatMap(_.attributes).toMap
+    val defaultNodeEntries = defaultNodes.map(toDefaultNodeEntry).toMap
+    TableNodeContext(defaultAttributeEntries, defaultNodeEntries)
+  }
+
+  private def toDefaultNodeEntry(x: TableNode) = {
+    val defaultEntry = child(x)
+    (defaultEntry.label, defaultEntry)
   }
 
   protected def versionState(stateString: String) : VersionState = {
     VersionState.fromString(stateString)
   }
 
-  protected def simpleComputationFactory(node: TableNode) : SimpleComputationSpecification = {
+  protected def simpleComputationFactory(node: TableNode, context: NodeContext) : SimpleComputationSpecification = {
     SimpleComputationSpecification(
-      attrValue(node, "package"),
-      attrValue(node, "name"),
-      attrValue(node, "description"),
-      attrValue(node, "changedInVersion"),
-      attrValue(node, "shouldPropagateExceptions").toBoolean,
-      unmarshalToString(childOfType(node, "computationExpression")),
-      unmarshal(childOfType(node, "imports")).asInstanceOf[Imports],
-      unmarshal(childOfType(node, "inputs")).asInstanceOf[Inputs],
-      unmarshalToString(childOfType(node, "resultKey")),
-      unmarshalToString(childOfType(node, "logger")),
-      unmarshalToString(childOfType(node, "securityConfiguration"))
+      attrValue(node, "package", context),
+      attrValue(node, "name", context),
+      attrValue(node, "description", context),
+      attrValue(node, "changedInVersion", context),
+      attrValue(node, "shouldPropagateExceptions", context).toBoolean,
+      unmarshalToString(childOfType(node, "computationExpression", context)),
+      unmarshal(childOfType(node, "imports", context), context).asInstanceOf[Imports],
+      unmarshal(childOfType(node, "inputs", context), context).asInstanceOf[Inputs],
+      unmarshalToString(childOfType(node, "resultKey", context)),
+      unmarshalToString(childOfType(node, "logger", context)),
+      unmarshalToString(childOfType(node, "securityConfiguration", context))
     )
   }
 
-  protected def abortIfComputationFactory(node: TableNode) : AbortIfComputationSpecification = {
+  protected def abortIfComputationFactory(node: TableNode, context: NodeContext) : AbortIfComputationSpecification = {
     AbortIfComputationSpecification(
-      attrValue(node, "package"),
-      attrValue(node, "name"),
-      attrValue(node, "description"),
-      attrValue(node, "changedInVersion"),
-      attrValue(node, "shouldPropagateExceptions").toBoolean,
-      unmarshalToString(childOfType(node, "predicateExpression")),
-      extractInnerComputationFrom(childOfType(node, "innerComputation")),
-      unmarshal(childOfType(node, "imports")).asInstanceOf[Imports],
-      unmarshal(childOfType(node, "inputs")).asInstanceOf[Inputs],
-      unmarshalToString(childOfType(node, "logger")),
-      unmarshalToString(childOfType(node, "securityConfiguration"))
+      attrValue(node, "package", context),
+      attrValue(node, "name", context),
+      attrValue(node, "description", context),
+      attrValue(node, "changedInVersion", context),
+      attrValue(node, "shouldPropagateExceptions", context).toBoolean,
+      unmarshalToString(childOfType(node, "predicateExpression", context)),
+      extractInnerComputationFrom(childOfType(node, "innerComputation", context), context),
+      unmarshal(childOfType(node, "imports", context), context).asInstanceOf[Imports],
+      unmarshal(childOfType(node, "inputs", context), context).asInstanceOf[Inputs],
+      unmarshalToString(childOfType(node, "logger", context)),
+      unmarshalToString(childOfType(node, "securityConfiguration", context))
     )
   }
 
-  protected def namedComputation(node: TableNode) : NamedComputationSpecification = {
+  protected def namedComputation(node: TableNode, context: NodeContext) : NamedComputationSpecification = {
     NamedComputationSpecification(
-      attrValue(node, "package"),
-      attrValue(node, "name"),
-      attrValue(node, "description"),
-      attrValue(node, "changedInVersion"),
-      unmarshal(child(node)).asInstanceOf[NamableComputationSpecification]
+      attrValue(node, "package", context),
+      attrValue(node, "name", context),
+      attrValue(node, "description", context),
+      attrValue(node, "changedInVersion", context),
+      unmarshal(child(node), context).asInstanceOf[NamableComputationSpecification]
     )
   }
 
-  protected def abortIfNoResultsComputation(node: TableNode) : AbortIfNoResultsComputationSpecification = {
+  protected def abortIfNoResultsComputation(node: TableNode, context: NodeContext) : AbortIfNoResultsComputationSpecification = {
     AbortIfNoResultsComputationSpecification(
-      extractInnerComputationFrom(childOfType(node, "innerComputation"))
+      extractInnerComputationFrom(childOfType(node, "innerComputation", context), context)
     )
   }
 
-  protected def abortIfHasResultsComputation(node: TableNode) : AbortIfHasResultsComputationSpecification = {
+  protected def abortIfHasResultsComputation(node: TableNode, context: NodeContext) : AbortIfHasResultsComputationSpecification = {
     AbortIfHasResultsComputationSpecification(
-      extractInnerComputationFrom(childOfType(node, "innerComputation"))
+      extractInnerComputationFrom(childOfType(node, "innerComputation", context), context)
     )
   }
 
-  protected def mappingComputation(node: TableNode) : MappingComputationSpecification = {
+  protected def mappingComputation(node: TableNode, context: NodeContext) : MappingComputationSpecification = {
     MappingComputationSpecification(
-      extractInnerComputationFrom(childOfType(node, "innerComputation")),
-      unmarshal(childOfType(node, "inputTuple")).asInstanceOf[Mapping],
-      unmarshalToString(childOfType(node, "resultKey"))
+      extractInnerComputationFrom(childOfType(node, "innerComputation", context), context),
+      unmarshal(childOfType(node, "inputTuple", context), context).asInstanceOf[Mapping],
+      unmarshalToString(childOfType(node, "resultKey", context))
     )
   }
 
-  protected def iterativeComputation(node: TableNode) : IterativeComputationSpecification = {
+  protected def iterativeComputation(node: TableNode, context: NodeContext) : IterativeComputationSpecification = {
     IterativeComputationSpecification(
-      extractInnerComputationFrom(childOfType(node, "innerComputation")),
-      unmarshal(childOfType(node, "inputTuple")).asInstanceOf[Mapping],
-      unmarshalToString(childOfType(node, "resultKey"))
+      extractInnerComputationFrom(childOfType(node, "innerComputation", context), context),
+      unmarshal(childOfType(node, "inputTuple", context), context).asInstanceOf[Mapping],
+      unmarshalToString(childOfType(node, "resultKey", context))
     )
   }
 
-  protected def foldingComputation(node: TableNode) : FoldingComputationSpecification = {
+  protected def foldingComputation(node: TableNode, context: NodeContext) : FoldingComputationSpecification = {
     FoldingComputationSpecification(
-      extractInnerComputationFrom(childOfType(node, "innerComputation")),
-      unmarshalToString(childOfType(node, "initialAccumulatorKey")),
-      unmarshal(childOfType(node, "inputTuple")).asInstanceOf[Mapping],
-      unmarshal(childOfType(node, "accumulatorTuple")).asInstanceOf[Mapping]
+      extractInnerComputationFrom(childOfType(node, "innerComputation", context), context),
+      unmarshalToString(childOfType(node, "initialAccumulatorKey", context)),
+      unmarshal(childOfType(node, "inputTuple", context), context).asInstanceOf[Mapping],
+      unmarshal(childOfType(node, "accumulatorTuple", context), context).asInstanceOf[Mapping]
     )
   }
 
-  protected def sequentialComputation(node: TableNode) : SequentialComputationSpecification = {
-    val innerComputationsNode = childOfType(node, "innerComputations")
-    val innerComputations = children(innerComputationsNode).map(x => extractInnerComputationFrom(x))
+  protected def sequentialComputation(node: TableNode, context: NodeContext) : SequentialComputationSpecification = {
+    val innerComputationsNode = childOfType(node, "innerComputations", context)
+    val innerComputations = children(innerComputationsNode).map(x => extractInnerComputationFrom(x, context))
 
     SequentialComputationSpecification (
       innerComputations.head,
@@ -216,30 +234,36 @@ class TableReader(nodeTable: Map[Long, Map[String, String]], edgeTable: Map[Long
     Imports(importStrings:_*)
   }
 
-  protected def inputs(node: TableNode) : Inputs = {
-    val nodes: List[Mapping] = children(node, "mapping").map(x => unmarshal(x).asInstanceOf[Mapping])
+  protected def inputs(node: TableNode, context: NodeContext) : Inputs = {
+    val nodes: List[Mapping] = children(node, "mapping").map(x => unmarshal(x, context).asInstanceOf[Mapping])
     Inputs(nodes.head, nodes.tail:_*)
   }
 
-  protected def mapping(node: TableNode) : Mapping =  {
+  protected def mapping(node: TableNode, context: NodeContext) : Mapping =  {
     Mapping(
-      unmarshalToString(childOfType(node, "key")),
-      unmarshalToString(childOfType(node, "value"))
+      unmarshalToString(childOfType(node, "key", context)),
+      unmarshalToString(childOfType(node, "value", context))
     )
   }
 
-  protected def singleTuple(node: TableNode) : Mapping = {
-    unmarshal(childOfType(node, "mapping")).asInstanceOf[Mapping]
+  protected def singleTuple(node: TableNode, context: NodeContext) : Mapping = {
+    unmarshal(childOfType(node, "mapping", context), context).asInstanceOf[Mapping]
   }
 
-  protected def extractInnerComputationFrom(innerComputationNode: TableNode) : InnerComputationSpecification = {
+  protected def extractInnerComputationFrom(innerComputationNode: TableNode, context: NodeContext) : InnerComputationSpecification = {
     assert(children(innerComputationNode).size == 1)
     val innerComputation = children(innerComputationNode).head
-    unmarshal(innerComputation).asInstanceOf[InnerComputationSpecification]
+    unmarshal(innerComputation, context).asInstanceOf[InnerComputationSpecification]
   }
 
-  protected def attrValue(node: TableNode, key: String): String = {
-    node.asInstanceOf[InternalTableNode].attributes(key)
+  protected def attrValue(node: TableNode, key: String, context: NodeContext): String = {
+    node.asInstanceOf[InternalTableNode].attributes.get(key) match {
+      case Some(value: String) => value
+      case None => context.defaultAttributes.get(key) match {
+        case Some(value: String) => value
+        case None => throw new RuntimeException(s"Required attribute value $key could not be found.")
+      }
+    }
   }
 
   protected def optionalAttrValue(node: TableNode, key: String): Option[String] = {
@@ -274,7 +298,15 @@ class TableReader(nodeTable: Map[Long, Map[String, String]], edgeTable: Map[Long
     children(DbPersistentNode).head
   }
 
-  protected def childOfType(DbPersistentNode: TableNode, label: String) : TableNode = {
-    children(DbPersistentNode, label).head
+  protected def childOfType(DbPersistentNode: TableNode, label: String, context: NodeContext) : TableNode = {
+    children(DbPersistentNode, label).headOption match {
+      case Some(n: TableNode) => n
+      case None => {
+        context.defaultNodes.get(label) match {
+          case Some(n: TableNode) => n
+          case None => throw new RuntimeException(s"Required element $label could not be found.")
+        }
+      }
+    }
   }
 }

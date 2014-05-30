@@ -14,6 +14,7 @@ class ReaderTest extends FlatSpec with Matchers {
 
   //Depends on current working directory being persistence module directory
   "A Table Reader" should "be able to read a library from a database" in {
+    //To re-load load-sample-db.sql on connection append ";INIT=RUNSCRIPT FROM './src/test/resources/load-sample-db.sql'" to the connection string
     val tableReader = SqlTableReader.fromJdbcUrl("test", "1.0", "jdbc:h2:./src/test/resources/h2-sample", Some("public"))
     verifyThatLibraryIsConstructedProperly(tableReader)
   }
