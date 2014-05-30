@@ -47,6 +47,7 @@ object YamlReader {
 }
 
 class YamlReader(yamlData: Iterable[AnyRef]) extends Reader {
+  private type NodeContext = Map[String, String]
 
   lazy val rootNode: YamlRoot = loadNodes(yamlData.toList)
 
@@ -72,45 +73,50 @@ class YamlReader(yamlData: Iterable[AnyRef]) extends Reader {
     }
   }
 
-  def unmarshal: Library = unmarshal(rootNode).asInstanceOf[Library]
+  def unmarshal: Library = unmarshal(rootNode, Map.empty).asInstanceOf[Library]
 
-  def unmarshal(node: YamlNode) : SyntaxTreeNode = node.label match {
-    case "library" => library(node)
-    case "version" => version(node)
-    case "simpleComputation" => simpleComputationFactory(node)
-    case "abortIfComputation" => abortIfComputationFactory(node)
-    case "namedComputation" => namedComputation(node)
-    case "abortIfNoResultsComputation" => abortIfNoResultsComputation(node)
-    case "abortIfHasResultsComputation" => abortIfNoResultsComputation(node)
-    case "mappingComputation" => mappingComputation(node)
-    case "iterativeComputation" => iterativeComputation(node)
-    case "foldingComputation" => foldingComputation(node)
-    case "sequentialComputation" => sequentialComputation(node)
-    case "innerComputation" => innerComputation(node)
-    case "innerComputations" => throw new RuntimeException("innerComputations node should not be unmarshaled directly to AstNode")
-    case "ref" => reference(node)
-    case "imports" => imports(node)
-    case "inputs" => inputs(node)
-    case "inputTuple" => singleTuple(node)
-    case "accumulatorTuple" => singleTuple(node)
+  def unmarshal(node: YamlNode, context: NodeContext): SyntaxTreeNode = node.label match {
+    case "library"                      => library(node, context)
+    case "version"                      => version(node, context)
+    case "simpleComputation"            => simpleComputationFactory(node, context)
+    case "abortIfComputation"           => abortIfComputationFactory(node, context)
+    case "namedComputation"             => namedComputation(node, context)
+    case "abortIfNoResultsComputation"  => abortIfNoResultsComputation(node, context)
+    case "abortIfHasResultsComputation" => abortIfNoResultsComputation(node, context)
+    case "mappingComputation"           => mappingComputation(node, context)
+    case "iterativeComputation"         => iterativeComputation(node, context)
+    case "foldingComputation"           => foldingComputation(node, context)
+    case "sequentialComputation"        => sequentialComputation(node, context)
+    case "innerComputation"             => innerComputation(node, context)
+    case "innerComputations"            => throw new RuntimeException("innerComputations node should not be unmarshaled directly to AstNode")
+    case "ref"                          => reference(node)
+    case "imports"                      => imports(node)
+    case "inputs"                       => inputs(node)
+    case "inputTuple"                   => singleTuple(node)
+    case "accumulatorTuple"             => singleTuple(node)
   }
 
-  protected def library(root: YamlNode) = root match {
+  protected def library(root: YamlNode, context: NodeContext) = root match {
     case rootNode : YamlRoot => {
-      val ver = unmarshal(rootNode.version).asInstanceOf[Version]
-      Library(attrValue(rootNode.library, "name"), Map(ver.versionNumber -> ver))
+      val ver = unmarshal(rootNode.version, context).asInstanceOf[Version]
+      Library(attrValue(rootNode.library, "name", context), Map(ver.versionNumber -> ver))
     }
     case _ => throw new RuntimeException("library node must be a YamlRoot node")
   }
 
-  protected def version(versionNode: YamlNode): Version = versionNode match {
+  private def extractDefaults(version: YamlNode, exclusions: List[String]) = {
+    attrs(version).filterNot(x => exclusions.contains(x.label)).map(x => (x.label, x.value)).toMap
+  }
+
+  protected def version(versionNode: YamlNode, context: NodeContext): Version = versionNode match {
     case YamlVersionNode(label, version, topLevelComputations) => {
-      Version(attrValue(version, "versionNumber"),
-        versionState(attrValue(version, "state")),
+      val defaultsContext = extractDefaults(version, List("versionNumber", "state", "commitDate", "lastEditDate"))
+      Version(attrValue(version, "versionNumber", context),
+        versionState(attrValue(version, "state", context)),
         optionalAttrValue(version, "commitDate").map(timeString => dateTime(timeString)),
         optionalAttrValue(version, "lastEditDate").map(timeString => dateTime(timeString)),
-        unmarshal(topLevelComputations.head).asInstanceOf[TopLevelComputationSpecification],
-        topLevelComputations.tail.map(computationNode => unmarshal(computationNode).asInstanceOf[TopLevelComputationSpecification]):_*
+        unmarshal(topLevelComputations.head, defaultsContext).asInstanceOf[TopLevelComputationSpecification],
+        topLevelComputations.tail.map(computationNode => unmarshal(computationNode, defaultsContext).asInstanceOf[TopLevelComputationSpecification]): _*
       )
     }
     case _ => throw new RuntimeException("version node must be a YamlVersionNode")
@@ -120,95 +126,95 @@ class YamlReader(yamlData: Iterable[AnyRef]) extends Reader {
     VersionState.fromString(stateString)
   }
 
-  protected def simpleComputationFactory(node: YamlNode) : SimpleComputationSpecification = {
+  protected def simpleComputationFactory(node: YamlNode, context: NodeContext): SimpleComputationSpecification = {
     SimpleComputationSpecification(
-      attrValue(node, "package"),
-      attrValue(node, "name"),
-      attrValue(node, "description"),
-      attrValue(node, "changedInVersion"),
-      attrValue(node, "shouldPropagateExceptions").toBoolean,
-      attrValue(node, "computationExpression"),
-      unmarshal(childOfType(node, "imports")).asInstanceOf[Imports],
-      unmarshal(childOfType(node, "inputs")).asInstanceOf[Inputs],
-      attrValue(node, "resultKey"),
-      attrValue(node, "logger"),
-      attrValue(node, "securityConfiguration")
+      attrValue(node, "package", context),
+      attrValue(node, "name", context),
+      attrValue(node, "description", context),
+      attrValue(node, "changedInVersion", context),
+      attrValue(node, "shouldPropagateExceptions", context).toBoolean,
+      attrValue(node, "computationExpression", context),
+      unmarshal(childOfType(node, "imports"), context).asInstanceOf[Imports],
+      unmarshal(childOfType(node, "inputs"), context).asInstanceOf[Inputs],
+      attrValue(node, "resultKey", context),
+      attrValue(node, "logger", context),
+      attrValue(node, "securityConfiguration", context)
     )
   }
 
-  protected def abortIfComputationFactory(node: YamlNode) : AbortIfComputationSpecification = {
+  protected def abortIfComputationFactory(node: YamlNode, context: NodeContext): AbortIfComputationSpecification = {
     AbortIfComputationSpecification(
-      attrValue(node, "package"),
-      attrValue(node, "name"),
-      attrValue(node, "description"),
-      attrValue(node, "changedInVersion"),
-      attrValue(node, "shouldPropagateExceptions").toBoolean,
-      attrValue(node, "predicateExpression"),
-      unmarshal(childOfType(node, "innerComputation")).asInstanceOf[InnerComputationSpecification],
-      unmarshal(childOfType(node, "imports")).asInstanceOf[Imports],
-      unmarshal(childOfType(node, "inputs")).asInstanceOf[Inputs],
-      attrValue(node, "logger"),
-      attrValue(node, "securityConfiguration")
+      attrValue(node, "package", context),
+      attrValue(node, "name", context),
+      attrValue(node, "description", context),
+      attrValue(node, "changedInVersion", context),
+      attrValue(node, "shouldPropagateExceptions", context).toBoolean,
+      attrValue(node, "predicateExpression", context),
+      unmarshal(childOfType(node, "innerComputation"), context).asInstanceOf[InnerComputationSpecification],
+      unmarshal(childOfType(node, "imports"), context).asInstanceOf[Imports],
+      unmarshal(childOfType(node, "inputs"), context).asInstanceOf[Inputs],
+      attrValue(node, "logger", context),
+      attrValue(node, "securityConfiguration", context)
     )
   }
 
-  protected def innerComputation(innerComputationNode: YamlNode) : InnerComputationSpecification = {
+  protected def innerComputation(innerComputationNode: YamlNode, context: NodeContext): InnerComputationSpecification = {
     assert(children(innerComputationNode).size == 1)
     val innerComputation = children(innerComputationNode).head
-    unmarshal(innerComputation).asInstanceOf[InnerComputationSpecification]
+    unmarshal(innerComputation, context).asInstanceOf[InnerComputationSpecification]
   }
 
-  protected def namedComputation(node: YamlNode) : NamedComputationSpecification = {
+  protected def namedComputation(node: YamlNode, context: NodeContext): NamedComputationSpecification = {
     val childMapNode = children(node).find(_.isInstanceOf[YamlMapNode]).get
     NamedComputationSpecification(
-      attrValue(node, "package"),
-      attrValue(node, "name"),
-      attrValue(node, "description"),
-      attrValue(node, "changedInVersion"),
-      unmarshal(childMapNode).asInstanceOf[NamableComputationSpecification]
+      attrValue(node, "package", context),
+      attrValue(node, "name", context),
+      attrValue(node, "description", context),
+      attrValue(node, "changedInVersion", context),
+      unmarshal(childMapNode, context).asInstanceOf[NamableComputationSpecification]
     )
   }
 
-  protected def abortIfNoResultsComputation(node: YamlNode) : AbortIfNoResultsComputationSpecification = {
+  protected def abortIfNoResultsComputation(node: YamlNode, context: NodeContext): AbortIfNoResultsComputationSpecification = {
     AbortIfNoResultsComputationSpecification(
-      unmarshal(childOfType(node, "innerComputation")).asInstanceOf[InnerComputationSpecification]
+      unmarshal(childOfType(node, "innerComputation"), context).asInstanceOf[InnerComputationSpecification]
     )
   }
 
-  protected def abortIfHasResultsComputation(node: YamlNode) : AbortIfHasResultsComputationSpecification = {
+  protected def abortIfHasResultsComputation(node: YamlNode, context: NodeContext): AbortIfHasResultsComputationSpecification = {
     AbortIfHasResultsComputationSpecification(
-      unmarshal(childOfType(node, "innerComputation")).asInstanceOf[InnerComputationSpecification]
+      unmarshal(childOfType(node, "innerComputation"), context).asInstanceOf[InnerComputationSpecification]
     )
   }
 
-  protected def mappingComputation(node: YamlNode) : MappingComputationSpecification = {
+  protected def mappingComputation(node: YamlNode, context: NodeContext): MappingComputationSpecification = {
     MappingComputationSpecification(
-      unmarshal(childOfType(node, "innerComputation")).asInstanceOf[InnerComputationSpecification],
-      unmarshal(childOfType(node, "inputTuple")).asInstanceOf[Mapping],
-      attrValue(node, "resultKey")
+      unmarshal(childOfType(node, "innerComputation"), context).asInstanceOf[InnerComputationSpecification],
+      unmarshal(childOfType(node, "inputTuple"), context).asInstanceOf[Mapping],
+      attrValue(node, "resultKey", context)
     )
   }
 
-  protected def iterativeComputation(node: YamlNode) : IterativeComputationSpecification = {
+  protected def iterativeComputation(node: YamlNode, context: NodeContext): IterativeComputationSpecification = {
     IterativeComputationSpecification(
-      unmarshal(childOfType(node, "innerComputation")).asInstanceOf[InnerComputationSpecification],
-      unmarshal(childOfType(node, "inputTuple")).asInstanceOf[Mapping],
-      attrValue(node, "resultKey")
+      unmarshal(childOfType(node, "innerComputation"), context).asInstanceOf[InnerComputationSpecification],
+      unmarshal(childOfType(node, "inputTuple"), context).asInstanceOf[Mapping],
+      attrValue(node, "resultKey", context)
     )
   }
 
-  protected def foldingComputation(node: YamlNode) : FoldingComputationSpecification = {
+  protected def foldingComputation(node: YamlNode, context: NodeContext): FoldingComputationSpecification = {
     FoldingComputationSpecification(
-      unmarshal(childOfType(node, "innerComputation")).asInstanceOf[InnerComputationSpecification],
-      attrValue(node, "initialAccumulatorKey"),
-      unmarshal(childOfType(node, "inputTuple")).asInstanceOf[Mapping],
-      unmarshal(childOfType(node, "accumulatorTuple")).asInstanceOf[Mapping]
+      unmarshal(childOfType(node, "innerComputation"), context).asInstanceOf[InnerComputationSpecification],
+      attrValue(node, "initialAccumulatorKey", context),
+      unmarshal(childOfType(node, "inputTuple"), context).asInstanceOf[Mapping],
+      unmarshal(childOfType(node, "accumulatorTuple"), context).asInstanceOf[Mapping]
     )
   }
 
-  protected def sequentialComputation(node: YamlNode) : SequentialComputationSpecification = {
+  protected def sequentialComputation(node: YamlNode, context: NodeContext): SequentialComputationSpecification = {
     val innerComputationsNode = childOfType(node, "innerComputations")
-    val innerComputations = children(innerComputationsNode).map(innerComputation)
+    val innerComputations = children(innerComputationsNode).map(innerComputation(_, context))
 
     SequentialComputationSpecification (
       innerComputations.head,
@@ -236,10 +242,19 @@ class YamlReader(yamlData: Iterable[AnyRef]) extends Reader {
   }
 
 
-  protected def attrValue(node: YamlNode, key: String): String = {
+  protected def attrValue(node: YamlNode, key: String, context: NodeContext): String = {
+    val mapNode = (Some(node) collect { case n: YamlMapNode => n.nodeMap.get(key)}).flatten
+    val mapAttrValue = mapNode.map(_.asInstanceOf[YamlTextNode].value)
+    mapAttrValue.orElse(context.get(key)) match {
+      case Some(attributeValue: String) => attributeValue
+      case None                         => throw new RuntimeException(s"Required attribute value $key not found.")
+    }
+  }
+
+  protected def attrs(node: YamlNode): List[YamlTextNode] = {
     node match {
       case n: YamlMapNode => {
-        n.nodeMap.get(key).head.asInstanceOf[YamlTextNode].value
+        (n.nodeMap.values collect { case m: YamlTextNode => m}).toList
       }
     }
   }
