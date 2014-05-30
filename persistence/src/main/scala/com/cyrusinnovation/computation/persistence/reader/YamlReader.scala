@@ -243,7 +243,7 @@ class YamlReader(yamlData: Iterable[AnyRef]) extends Reader {
 
 
   protected def attrValue(node: YamlNode, key: String, context: NodeContext): String = {
-    val mapNode = (Some(node) collect { case n: YamlMapNode => n.nodeMap.get(key)}).flatten
+    val mapNode = node match { case n: YamlMapNode => n.nodeMap.get(key) }
     val mapAttrValue = mapNode.map(_.asInstanceOf[YamlTextNode].value)
     mapAttrValue.orElse(context.get(key)) match {
       case Some(attributeValue: String) => attributeValue
