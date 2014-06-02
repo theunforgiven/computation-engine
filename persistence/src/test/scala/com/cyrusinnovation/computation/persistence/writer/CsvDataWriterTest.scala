@@ -14,7 +14,7 @@ class CsvDataWriterTest extends FlatSpec with Matchers with SampleLibraryVerifie
      CsvDataWriter.forJavaIoWriter(nodeTextWriter, edgeTextWriter).write(library)
      val nodeText = new StringReader(nodeTextWriter.toString)
      val edgeText = new StringReader(edgeTextWriter.toString)
-     val r = CsvDataReader.fromJavaIoReader(nodeText, edgeText, "test", "1.0")
-      verifyThatLibraryIsConstructedProperly(r)
+     val rereadCsvLibrary = CsvDataReader.fromJavaIoReader(nodeText, edgeText, "test", "1.0")
+      verifyThatLibraryIsConstructedProperly(rereadCsvLibrary)
    }
  }
