@@ -97,7 +97,7 @@ trait Writer {
     createNode("foldingComputation", attrs, List(inputTupelCtx, accumulatorTupleCtx, innerCompCtx))
   }
 
-  protected def ref(ref: Ref) = {
+  private def ref(ref: Ref) = {
     createMapNode("", Map("ref" -> ref.referencedSpecification))
   }
 

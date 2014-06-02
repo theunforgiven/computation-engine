@@ -55,10 +55,6 @@ abstract class TableWriter extends Writer {
     }
   }
 
-  protected override def ref(ref: Ref) = {
-    createMapNode("", Map("ref" -> ref.referencedSpecification))
-  }
-
   protected override def createNode(label: String, attrs: Map[String, String], children: List[Context]): Context = {
     EntryNode(0, label, attrs, children)
   }
