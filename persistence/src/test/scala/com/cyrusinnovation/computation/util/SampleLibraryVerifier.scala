@@ -4,15 +4,7 @@ import org.scalatest.Matchers
 import com.cyrusinnovation.computation.persistence.reader.Reader
 import com.cyrusinnovation.computation.specification._
 import com.cyrusinnovation.computation.util.TestUtils._
-import com.cyrusinnovation.computation.specification.SimpleComputationSpecification
-import com.cyrusinnovation.computation.specification.Imports
-import com.cyrusinnovation.computation.specification.MappingComputationSpecification
-import com.cyrusinnovation.computation.specification.Mapping
-import com.cyrusinnovation.computation.specification.NamedComputationSpecification
-import com.cyrusinnovation.computation.specification.AbortIfComputationSpecification
 import scala.Some
-import com.cyrusinnovation.computation.specification.SequentialComputationSpecification
-import com.cyrusinnovation.computation.specification.Inputs
 
 trait SampleLibraryVerifier { self: Matchers =>
   def verifyThatLibraryIsConstructedProperly(reader: Reader) = {
