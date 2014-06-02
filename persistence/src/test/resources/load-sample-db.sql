@@ -11,8 +11,7 @@ DELETE FROM COMPUTATION_NODES;
 ); INSERT INTO COMPUTATION_NODES( ID,Library, Version,Attribute_Name, Attribute_Value ) VALUES (4,'test','1.0','changedInVersion','1.0'
 ); INSERT INTO COMPUTATION_NODES( ID,Library, Version,Attribute_Name, Attribute_Value ) VALUES (4,'test','1.0','description', 'Take the maximum of the values of the testValues map'
 ); INSERT INTO COMPUTATION_NODES( ID,Library, Version,Attribute_Name, Attribute_Value ) VALUES (4,'test','1.0','shouldPropagateExceptions','false'
-); INSERT INTO COMPUTATION_NODES( ID,Library, Version,Attribute_Name, Attribute_Value ) VALUES (5,'test','1.0','label','computationExpression'
-); INSERT INTO COMPUTATION_NODES( ID,Library, Version,Attribute_Name, Attribute_Value ) VALUES (5,'test','1.0','text','val toTestImports = MutableSet()'
+); INSERT INTO COMPUTATION_NODES( ID,Library, Version,Attribute_Name, Attribute_Value ) VALUES (4,'test','1.0','computationExpression','val toTestImports = MutableSet()'
 || char(10) || 'val maxTuple = testValues.maxBy(aTuple => aTuple._2)'
 || char(10) || 'Some(MutableMap(maxTuple))'
 ); INSERT INTO COMPUTATION_NODES( ID,Library, Version,Attribute_Name, Attribute_Value ) VALUES (6,'test','1.0','label','imports'
@@ -104,8 +103,7 @@ DELETE FROM COMPUTATION_NODES;
 ); INSERT INTO COMPUTATION_NODES( ID,Library, Version,Attribute_Name, Attribute_Value ) VALUES (54,'test','1.0','changedInVersion','1.0'
 ); INSERT INTO COMPUTATION_NODES( ID,Library, Version,Attribute_Name, Attribute_Value ) VALUES (54,'test','1.0','description','Take the sum of two addends'
 ); INSERT INTO COMPUTATION_NODES( ID,Library, Version,Attribute_Name, Attribute_Value ) VALUES (54,'test','1.0','shouldPropagateExceptions','false'
-); INSERT INTO COMPUTATION_NODES( ID,Library, Version,Attribute_Name, Attribute_Value ) VALUES (55,'test','1.0','label','computationExpression'
-); INSERT INTO COMPUTATION_NODES( ID,Library, Version,Attribute_Name, Attribute_Value ) VALUES (55,'test','1.0','text','Some(addend1 + addend2)'
+); INSERT INTO COMPUTATION_NODES( ID,Library, Version,Attribute_Name, Attribute_Value ) VALUES (54,'test','1.0','computationExpression','Some(addend1 + addend2)'
 ); INSERT INTO COMPUTATION_NODES( ID,Library, Version,Attribute_Name, Attribute_Value ) VALUES (56,'test','1.0','label','imports'
 ); INSERT INTO COMPUTATION_NODES( ID,Library, Version,Attribute_Name, Attribute_Value ) VALUES (57,'test','1.0','label','inputs'
 ); INSERT INTO COMPUTATION_NODES( ID,Library, Version,Attribute_Name, Attribute_Value ) VALUES (58,'test','1.0','label','mapping'
@@ -169,7 +167,6 @@ DELETE FROM COMPUTATION_EDGES;
 ); INSERT INTO COMPUTATION_EDGES(Library,Version,Origin_Id,Target_Id,Sequence) VALUES('test','1.0',1,2,1
 ); INSERT INTO COMPUTATION_EDGES(Library,Version,Origin_Id,Target_Id,Sequence) VALUES('test','1.0',2,3,1
 ); INSERT INTO COMPUTATION_EDGES(Library,Version,Origin_Id,Target_Id,Sequence) VALUES('test','1.0',3,4,1
-); INSERT INTO COMPUTATION_EDGES(Library,Version,Origin_Id,Target_Id,Sequence) VALUES('test','1.0',4,5,1
 ); INSERT INTO COMPUTATION_EDGES(Library,Version,Origin_Id,Target_Id,Sequence) VALUES('test','1.0',6,7,1
 ); INSERT INTO COMPUTATION_EDGES(Library,Version,Origin_Id,Target_Id,Sequence) VALUES('test','1.0',9,10,1
 ); INSERT INTO COMPUTATION_EDGES(Library,Version,Origin_Id,Target_Id,Sequence) VALUES('test','1.0',10,11,1
@@ -194,7 +191,6 @@ DELETE FROM COMPUTATION_EDGES;
 ); INSERT INTO COMPUTATION_EDGES(Library,Version,Origin_Id,Target_Id,Sequence) VALUES('test','1.0',49,50,1
 ); INSERT INTO COMPUTATION_EDGES(Library,Version,Origin_Id,Target_Id,Sequence) VALUES('test','1.0',50,51,1
 ); INSERT INTO COMPUTATION_EDGES(Library,Version,Origin_Id,Target_Id,Sequence) VALUES('test','1.0',53,54,1
-); INSERT INTO COMPUTATION_EDGES(Library,Version,Origin_Id,Target_Id,Sequence) VALUES('test','1.0',54,55,1
 ); INSERT INTO COMPUTATION_EDGES(Library,Version,Origin_Id,Target_Id,Sequence) VALUES('test','1.0',57,58,1
 ); INSERT INTO COMPUTATION_EDGES(Library,Version,Origin_Id,Target_Id,Sequence) VALUES('test','1.0',58,59,1
 ); INSERT INTO COMPUTATION_EDGES(Library,Version,Origin_Id,Target_Id,Sequence) VALUES('test','1.0',61,62,1

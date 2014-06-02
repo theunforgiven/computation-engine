@@ -11,8 +11,7 @@
 4,"test","1.0","changedInVersion","1.0"
 4,"test","1.0","description","Take the maximum of the values of the testValues map"
 4,"test","1.0","shouldPropagateExceptions","false"
-5,"test","1.0","label","computationExpression"
-5,"test","1.0","text","val toTestImports = MutableSet()
+4,"test","1.0","computationExpression","val toTestImports = MutableSet()
  val maxTuple = testValues.maxBy(aTuple => aTuple._2)
  Some(MutableMap(maxTuple))"
 6,"test","1.0","label","imports"
@@ -104,8 +103,7 @@
 54,"test","1.0","changedInVersion","1.0"
 54,"test","1.0","description","Take the sum of two addends"
 54,"test","1.0","shouldPropagateExceptions","false"
-55,"test","1.0","label","computationExpression"
-55,"test","1.0","text","Some(addend1 + addend2)"
+54,"test","1.0","computationExpression","Some(addend1 + addend2)"
 56,"test","1.0","label","imports"
 57,"test","1.0","label","inputs"
 58,"test","1.0","label","mapping"

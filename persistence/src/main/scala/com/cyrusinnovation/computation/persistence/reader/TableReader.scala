@@ -143,7 +143,7 @@ class TableReader(nodeTable: Map[Long, Map[String, String]], edgeTable: Map[Long
       attrValue(node, "description", context),
       attrValue(node, "changedInVersion", context),
       attrValue(node, "shouldPropagateExceptions", context).toBoolean,
-      unmarshalToString(childOfType(node, "computationExpression", context)),
+      attrValue(node, "computationExpression", context),
       unmarshal(childOfType(node, "imports", context), context).asInstanceOf[Imports],
       unmarshal(childOfType(node, "inputs", context), context).asInstanceOf[Inputs],
       unmarshalToString(childOfType(node, "resultKey", context)),
