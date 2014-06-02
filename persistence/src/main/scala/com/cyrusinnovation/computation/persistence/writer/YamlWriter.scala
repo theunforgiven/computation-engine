@@ -9,8 +9,6 @@ import org.joda.time.DateTime
 import java.text.SimpleDateFormat
 
 object YamlWriter {
-  private val formatter = new SimpleDateFormat("EEE MMM dd HH:mm:ss zzz yyyy")
-
   def forOutputStream(outputStream: OutputStream): Writer = {
     new YamlWriter(outputStream, new Yaml())
   }
@@ -47,7 +45,8 @@ class YamlWriter(stream: OutputStream, snakeYaml: Yaml) extends Writer {
   }
 
   protected override def dateTime(d: DateTime): String = {
-    YamlWriter.formatter.format(d.toDate)
+    val formatter = new SimpleDateFormat("EEE MMM dd HH:mm:ss zzz yyyy")
+    formatter.format(d.toDate)
   }
 
   protected override def persist(nodeContext: Context) {

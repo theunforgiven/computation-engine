@@ -26,14 +26,8 @@ abstract class TableWriter extends Writer {
   type Context = Node
 
   protected override def version(version: Version) = {
-    val lastEditDate = version.lastEditDate.map(dateTime).getOrElse(null)
-    val kids = List(marshal(version.firstTopLevelComputation)) ++ version.moreTopLevelComputations.map(marshal(_))
-    createNode("version", Map("versionNumber" -> version.versionNumber, "state" -> version.state.toString, "lastEditDate" -> lastEditDate), List(createContextNodeList("computations", kids)))
-  }
-
-  protected override def inputs(inputs: Inputs) = {
-    val map = inputs.inputMappings.map(x => marshal(MappingWrapper("", x))).toList
-    createContextNodeList("inputs", map)
+    val withoutComputationsWrapper = super.version(version).asInstanceOf[EntryNode]
+    withoutComputationsWrapper.copy(children = List(createContextNodeList("computations", withoutComputationsWrapper.children)))
   }
 
   protected override def imports(imports: Imports) = {
