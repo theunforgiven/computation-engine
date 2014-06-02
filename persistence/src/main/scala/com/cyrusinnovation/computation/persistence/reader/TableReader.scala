@@ -109,7 +109,7 @@ class TableReader(nodeTable: Map[Long, Map[String, String]], edgeTable: Map[Long
   protected def version(versionNode: TableNode, context: NodeContext) : Version = {
     val computationsNode = children(versionNode, "computations").head
     val topLevelComputations = children(computationsNode)
-    val defaultContext = defaults(childOfType(versionNode, "defaults"), context)
+    val defaultContext = defaults(childOfTypeOpt(versionNode, "defaults"), context)
     Version(attrValue(versionNode, "versionNumber", context),
       versionState(attrValue(versionNode, "state", context)),
       optionalAttrValue(versionNode, "commitDate").map(timeString => dateTime(timeString)),
@@ -119,9 +119,12 @@ class TableReader(nodeTable: Map[Long, Map[String, String]], edgeTable: Map[Long
     )
   }
 
-  private def defaults(defaultsNode: TableNode, context: NodeContext): NodeContext = {
-    val defaultAttributes = defaultsNode.asInstanceOf[InternalTableNode].attributes
-    TableNodeContext(defaultAttributes)
+  private def defaults(defaultsNode: Option[TableNode], context: NodeContext): NodeContext = {
+    defaultsNode match {
+      case Some(nodeWithDefaults: TableNode) =>
+        TableNodeContext(nodeWithDefaults.asInstanceOf[InternalTableNode].attributes)
+      case None                              => context
+    }
   }
 
   protected def versionState(stateString: String) : VersionState = {
@@ -291,9 +294,14 @@ class TableReader(nodeTable: Map[Long, Map[String, String]], edgeTable: Map[Long
   }
 
   protected def childOfType(DbPersistentNode: TableNode, label: String): TableNode = {
-    children(DbPersistentNode, label).headOption match {
+    childOfTypeOpt(DbPersistentNode, label) match {
       case Some(n: TableNode) => n
       case None               => throw new RuntimeException(s"Required element $label could not be found.")
     }
   }
+
+  protected def childOfTypeOpt(DbPersistentNode: TableNode, label: String): Option[TableNode] = {
+    children(DbPersistentNode, label).headOption
+  }
+
 }
