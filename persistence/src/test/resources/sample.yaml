@@ -8,6 +8,7 @@
     versionNumber: 1.0
     state: Editable
     lastEditDate: 2014-04-07T09:30:10Z
+    securityConfiguration: testSecurityConfiguration
 
 - simpleComputation:
     package: test.computations
@@ -15,7 +16,6 @@
     changedInVersion: 1.0
     description: Take the maximum of the values of the testValues map
     logger: computationLogger
-    securityConfiguration: testSecurityConfiguration
     shouldPropagateExceptions: false
 
     imports:

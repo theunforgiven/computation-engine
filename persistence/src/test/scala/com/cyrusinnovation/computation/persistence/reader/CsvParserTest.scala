@@ -16,18 +16,18 @@ class CsvParserTest extends FlatSpec with Matchers {
     table(2)("lastEditDate") should be("2014-04-07T09:30:10Z")
     table(3)("label") should be("computations")
     table(4)("label") should be("simpleComputation")
-    table(4)("package") should be("test.computations")
+    table(67)("package") should be("test.computations")
     table(4)("name") should be("MaximumTestValueComputation")
     table(4)("changedInVersion") should be("1.0")
     table(4)("description") should be("Take the maximum of the values of the testValues map")
     table(4)("shouldPropagateExceptions") should be("false")
-    table(5)("label") should be("computationExpression")
+    table(4)("computationExpression") should be("val toTestImports = MutableSet()\n val maxTuple = testValues.maxBy(aTuple => aTuple._2)\n Some(MutableMap(maxTuple))")
     table(7)("label") should be("import")
     table(7)("text") should be("scala.collection.mutable.{Map => MutableMap}")
     table(32)("label") should be("ref")
     table(40)("text") should be("testValues")
     table(51)("label") should be("key")
-    table(66)("label") should be("securityConfiguration")
+    table(54)("securityConfiguration") should be("testSecurityConfiguration")
   }
 
   "A CSV edge parser" should "generate a map of origin nodeId to target nodeId from a CSV edges file" in {
@@ -35,10 +35,10 @@ class CsvParserTest extends FlatSpec with Matchers {
     val inputStream: InputStream = getClass.getResourceAsStream("/sampleEdges.csv")
     val table = CsvEdgeFileParser.parse(new InputStreamReader(inputStream), "test", "1.0", CsvReaderConfig(1))
     table(1)  should be(List(2))
-    table(2)  should be(List(3))
+    table(2)  should be(List(3, 67))
     table(3)  should be(List(4, 16, 28, 42))
-    table(4)  should be(List(5, 6, 9, 13, 14, 15))
-    table(54) should be(List(55, 56, 57, 64, 65, 66))
+    table(4)  should be(List(6, 9))
+    table(54) should be(List(56, 57))
     table(61) should be(List(62, 63))
   }
 }
