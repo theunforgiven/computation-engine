@@ -209,7 +209,7 @@ class TableReader(nodeTable: Map[Long, Map[String, String]], edgeTable: Map[Long
   protected def foldingComputation(node: TableNode, context: NodeContext) : FoldingComputationSpecification = {
     FoldingComputationSpecification(
       extractInnerComputationFrom(childOfType(node, "innerComputation", context), context),
-      unmarshalToString(childOfType(node, "initialAccumulatorKey", context)),
+      attrValue(node, "initialAccumulatorKey", context),
       unmarshal(childOfType(node, "inputTuple", context), context).asInstanceOf[Mapping],
       unmarshal(childOfType(node, "accumulatorTuple", context), context).asInstanceOf[Mapping]
     )
