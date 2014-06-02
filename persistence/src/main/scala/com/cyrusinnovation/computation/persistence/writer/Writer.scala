@@ -76,7 +76,7 @@ trait Writer {
     createNode("namedComputation", attrs, List(marshal(computation.specForNamableComputation)))
   }
 
-  private def sequentialComputationSpec(computation: SequentialComputationSpecification) = {
+  protected def sequentialComputationSpec(computation: SequentialComputationSpecification) = {
     val inners = computation.innerSpecs.map(marshal(_))
     val ictx = createContextNodeList("innerComputations", inners)
     createNode("sequentialComputation", Map(), List(ictx))
@@ -97,7 +97,7 @@ trait Writer {
     createNode("foldingComputation", attrs, List(inputTupelCtx, accumulatorTupleCtx, innerCompCtx))
   }
 
-  private def ref(ref: Ref) = {
+  protected def ref(ref: Ref) = {
     createMapNode("", Map("ref" -> ref.referencedSpecification))
   }
 
