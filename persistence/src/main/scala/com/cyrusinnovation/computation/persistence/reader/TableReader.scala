@@ -147,7 +147,7 @@ class TableReader(nodeTable: Map[Long, Map[String, String]], edgeTable: Map[Long
       unmarshal(childOfType(node, "imports", context), context).asInstanceOf[Imports],
       unmarshal(childOfType(node, "inputs", context), context).asInstanceOf[Inputs],
       attrValue(node, "resultKey", context),
-      unmarshalToString(childOfType(node, "logger", context)),
+      attrValue(node, "logger", context),
       unmarshalToString(childOfType(node, "securityConfiguration", context))
     )
   }
@@ -163,7 +163,7 @@ class TableReader(nodeTable: Map[Long, Map[String, String]], edgeTable: Map[Long
       extractInnerComputationFrom(childOfType(node, "innerComputation", context), context),
       unmarshal(childOfType(node, "imports", context), context).asInstanceOf[Imports],
       unmarshal(childOfType(node, "inputs", context), context).asInstanceOf[Inputs],
-      unmarshalToString(childOfType(node, "logger", context)),
+      attrValue(node, "logger", context),
       unmarshalToString(childOfType(node, "securityConfiguration", context))
     )
   }
