@@ -27,7 +27,7 @@ class CsvParserTest extends FlatSpec with Matchers {
     table(32)("label") should be("ref")
     table(40)("text") should be("testValues")
     table(51)("label") should be("key")
-    table(66)("label") should be("securityConfiguration")
+    table(54)("securityConfiguration") should be("testSecurityConfiguration")
   }
 
   "A CSV edge parser" should "generate a map of origin nodeId to target nodeId from a CSV edges file" in {
@@ -37,8 +37,8 @@ class CsvParserTest extends FlatSpec with Matchers {
     table(1)  should be(List(2))
     table(2)  should be(List(3, 67))
     table(3)  should be(List(4, 16, 28, 42))
-    table(4)  should be(List(5, 6, 9, 13, 14, 15))
-    table(54) should be(List(55, 56, 57, 64, 65, 66))
+    table(4)  should be(List(6, 9))
+    table(54) should be(List(56, 57))
     table(61) should be(List(62, 63))
   }
 }
