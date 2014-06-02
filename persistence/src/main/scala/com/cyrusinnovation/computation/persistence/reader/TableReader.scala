@@ -159,7 +159,7 @@ class TableReader(nodeTable: Map[Long, Map[String, String]], edgeTable: Map[Long
       attrValue(node, "description", context),
       attrValue(node, "changedInVersion", context),
       attrValue(node, "shouldPropagateExceptions", context).toBoolean,
-      unmarshalToString(childOfType(node, "predicateExpression", context)),
+      attrValue(node, "predicateExpression", context),
       extractInnerComputationFrom(childOfType(node, "innerComputation", context), context),
       unmarshal(childOfType(node, "imports", context), context).asInstanceOf[Imports],
       unmarshal(childOfType(node, "inputs", context), context).asInstanceOf[Inputs],
