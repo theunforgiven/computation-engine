@@ -16,7 +16,7 @@ class CsvParserTest extends FlatSpec with Matchers {
     table(2)("lastEditDate") should be("2014-04-07T09:30:10Z")
     table(3)("label") should be("computations")
     table(4)("label") should be("simpleComputation")
-    table(70)("package") should be("test.computations")
+    table(67)("package") should be("test.computations")
     table(4)("name") should be("MaximumTestValueComputation")
     table(4)("changedInVersion") should be("1.0")
     table(4)("description") should be("Take the maximum of the values of the testValues map")
