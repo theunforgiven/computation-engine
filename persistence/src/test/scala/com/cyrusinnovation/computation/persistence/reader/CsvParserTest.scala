@@ -21,7 +21,7 @@ class CsvParserTest extends FlatSpec with Matchers {
     table(4)("changedInVersion") should be("1.0")
     table(4)("description") should be("Take the maximum of the values of the testValues map")
     table(4)("shouldPropagateExceptions") should be("false")
-    table(5)("label") should be("computationExpression")
+    table(4)("computationExpression") should be("val toTestImports = MutableSet()\n val maxTuple = testValues.maxBy(aTuple => aTuple._2)\n Some(MutableMap(maxTuple))")
     table(7)("label") should be("import")
     table(7)("text") should be("scala.collection.mutable.{Map => MutableMap}")
     table(32)("label") should be("ref")
