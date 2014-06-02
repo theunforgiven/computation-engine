@@ -2,3 +2,4 @@ rootProject.name = 'computation-engine'
 
 include 'core'
 include 'persistence'
+include 'examples:computation-store'
