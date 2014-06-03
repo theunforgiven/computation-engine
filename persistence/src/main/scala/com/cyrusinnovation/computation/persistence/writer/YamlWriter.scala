@@ -1,7 +1,7 @@
 package com.cyrusinnovation.computation.persistence.writer
 
 import java.io.{OutputStreamWriter, OutputStream}
-import org.yaml.snakeyaml.Yaml
+import org.yaml.snakeyaml.{DumperOptions, Yaml}
 import java.util.{HashMap => JHMap}
 import java.util.{Map => JMap}
 import collection.JavaConverters._
@@ -10,7 +10,11 @@ import java.text.SimpleDateFormat
 
 object YamlWriter {
   def forOutputStream(outputStream: OutputStream): Writer = {
-    new YamlWriter(outputStream, new Yaml())
+    val opts = new DumperOptions()
+    //When writing yaml: Use indents to denote objects instead of { }
+    //This prevents small objects like library and version from being rolled up into one line
+    opts.setDefaultFlowStyle(DumperOptions.FlowStyle.BLOCK)
+    new YamlWriter(outputStream, new Yaml(opts))
   }
 }
 
