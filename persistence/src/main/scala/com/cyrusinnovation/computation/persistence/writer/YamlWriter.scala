@@ -56,8 +56,8 @@ class YamlWriter(stream: OutputStream, snakeYaml: Yaml) extends Writer {
       val flattenedLibrary = context.copy(children = List())
       val ver = context.children.head.asInstanceOf[EntryNode]
       val verWithOutKids = ver.copy(children = List())
-      val blah = (List(flattenedLibrary, verWithOutKids) ++ ver.children).map(extract).asJava
-      snakeYaml.dump(blah, streamWriter)
+      val topLevelNodeList = (List(flattenedLibrary, verWithOutKids) ++ ver.children).map(extract).asJava
+      snakeYaml.dump(topLevelNodeList, streamWriter)
     } finally {
       streamWriter.close()
     }
