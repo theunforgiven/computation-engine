@@ -105,7 +105,7 @@ trait Writer {
     createMapNode(mapping.label, Map(mapping.mapping.key -> mapping.mapping.value))
   }
 
-  protected def inputs(inputs: Inputs) = {
+  private def inputs(inputs: Inputs) = {
     val map = inputs.inputMappings.map(x => marshal(MappingWrapper("", x))).toList
     createContextNodeList("inputs", map)
   }

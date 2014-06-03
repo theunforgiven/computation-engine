@@ -43,9 +43,10 @@ abstract class TableWriter extends Writer {
 
   protected override def mapping(mapping: MappingWrapper) = {
     val maps = List(createMapNode("", Map("key" -> mapping.mapping.key)), createMapNode("", Map("value" -> mapping.mapping.value)))
+    val mappingNode = createContextNodeList("mapping", maps)
     mapping.label match {
-      case "" => createContextNodeList("mapping", maps)
-      case label: String => createContextNodeList(label, List(createContextNodeList("mapping", maps)))
+      case "" => mappingNode
+      case label: String => createContextNodeList(label, List(mappingNode))
     }
   }
 
