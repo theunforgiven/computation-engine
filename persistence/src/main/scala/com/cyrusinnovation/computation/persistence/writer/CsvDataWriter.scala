@@ -16,7 +16,7 @@ class CsvDataWriter(private val nodeFileWriter: java.io.Writer,
                     private val config: CsvWriterConfig = CsvWriterConfig()) extends TableWriter {
   override protected def write(nodes: List[NodeDataRow], edges: List[NodeDataEdge]): Unit = {
     val nodeRows = nodes.sortBy(_.id).map(x => Array(x.id, "test", "1.0", x.key, x.value).map(_.toString))
-    val edgeRows = edges.map(x => Array("test", "1.0", x.origin, x.target, x.sequence).map(_.toString))
+    val edgeRows = edges.map(x => Array("test", "1.0", x.origin, x.target, x.sequenceNumber).map(_.toString))
       writeRows(nodeFileWriter, nodeRows)
       writeRows(edgeFileWriter, edgeRows)
   }

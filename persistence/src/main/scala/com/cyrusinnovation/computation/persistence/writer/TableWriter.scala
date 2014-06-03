@@ -129,4 +129,4 @@ case class DataRow(id: Int, key: String, value: String, origin: Int, sequence: I
 
 case class NodeDataRow(id: Int, key: String, value: String)
 
-case class NodeDataEdge(origin: Int, target: Int, sequence: Int)
+case class NodeDataEdge(origin: Int, target: Int, sequenceNumber: Int)
