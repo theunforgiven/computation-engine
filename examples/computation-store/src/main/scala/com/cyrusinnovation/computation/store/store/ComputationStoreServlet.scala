@@ -4,7 +4,7 @@ import org.scalatra.ScalatraServlet
 import org.scalatra.json.JacksonJsonSupport
 import org.json4s.DefaultFormats
 
-class ComputationStoreServlet extends ScalatraServlet with JacksonJsonSupport {
+abstract class ComputationStoreServlet extends ScalatraServlet with JacksonJsonSupport {
   protected implicit val jsonFormats = DefaultFormats.withBigDecimal
 
   before() {
