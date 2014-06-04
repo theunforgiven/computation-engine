@@ -58,10 +58,12 @@ abstract class TableWriter extends Writer {
 
   protected override def persist(nodeContext: Node) {
     val context = nodeContext.asInstanceOf[EntryNode]
+    val libraryName = context.attrs("name")
+    val versionNumber = context.children.head.asInstanceOf[EntryNode].attrs("versionNumber")
     val dataRows = parse(1, context, 1, 1)
-    val nodes = dataRows.map(x => NodeDataRow(x.id, x.key, x.value))
-    val edges = dataRows.map(x => NodeDataEdge(x.origin, x.id, x.sequence))
-      .filterNot { case row => row == NodeDataEdge(1, 1, 1)}
+    val nodes = dataRows.map(x => NodeDataRow(libraryName, versionNumber, x.id, x.key, x.value))
+    val edges = dataRows.map(x => NodeDataEdge(libraryName, versionNumber, x.origin, x.id, x.sequence))
+      .filterNot { case edge => edge.isRootRow }
       .distinct
     write(nodes, edges)
   }
@@ -113,6 +115,8 @@ abstract class TableWriter extends Writer {
 
 case class DataRow(id: Int, key: String, value: String, origin: Int, sequence: Int)
 
-case class NodeDataRow(id: Int, key: String, value: String)
+case class NodeDataRow(libraryName: String, versionNumber: String, id: Int, key: String, value: String)
 
-case class NodeDataEdge(origin: Int, target: Int, sequenceNumber: Int)
+case class NodeDataEdge(libraryName: String, versionNumber: String, origin: Int, target: Int, sequenceNumber: Int) {
+  def isRootRow = origin == 1 && target == 1 && sequenceNumber == 1
+}
