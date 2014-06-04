@@ -13,26 +13,26 @@ abstract class TableWriter extends Writer {
 
   protected override def version(version: Version) = {
     val withoutComputationsWrapper = super.version(version).asInstanceOf[EntryNode]
-    withoutComputationsWrapper.copy(children = List(createContextNodeList("computations", withoutComputationsWrapper.children)))
+    withoutComputationsWrapper.copy(children = List(createNodeListNode("computations", withoutComputationsWrapper.children)))
   }
 
   protected override def imports(imports: Imports) = {
     val s = imports.importSequence.map(x =>  createMapNode("import", Map("text" -> x)))
-    createContextNodeList("imports", s.toList)
+    createNodeListNode("imports", s.toList)
   }
 
   protected override def sequentialComputationSpec(computation: SequentialComputationSpecification) = {
-    val inners = computation.innerSpecs.map(x => createContextNodeList("innerComputation", List(marshal(x))))
-    val ictx = createContextNodeList("innerComputations", inners)
+    val inners = computation.innerSpecs.map(x => createNodeListNode("innerComputation", List(marshal(x))))
+    val ictx = createNodeListNode("innerComputations", inners)
     createNode("sequentialComputation", Map(), List(ictx))
   }
 
   protected override def mapping(mapping: MappingWrapper) = {
     val maps = List(createMapNode("", Map("key" -> mapping.mapping.key)), createMapNode("", Map("value" -> mapping.mapping.value)))
-    val mappingNode = createContextNodeList("mapping", maps)
+    val mappingNode = createNodeListNode("mapping", maps)
     mapping.label match {
       case "" => mappingNode
-      case label: String => createContextNodeList(label, List(mappingNode))
+      case label: String => createNodeListNode(label, List(mappingNode))
     }
   }
 
@@ -40,12 +40,12 @@ abstract class TableWriter extends Writer {
     EntryNode(label, attrs, children)
   }
 
-  protected override def createNodeList(label: String, children: List[String]): Node = {
-    ListNode(label, children)
+  protected override def createStringListNode(label: String, children: List[String]): Node = {
+    StringListNode(label, children)
   }
 
-  protected override def createContextNodeList(label: String, children: List[Node]): Node = {
-    ContextListNode(label, children)
+  protected override def createNodeListNode(label: String, children: List[Node]): Node = {
+    NodeListNode(label, children)
   }
 
   protected override def createMapNode(label: String, children: Map[String, String]): Node = {
@@ -80,7 +80,7 @@ abstract class TableWriter extends Writer {
           parse(next, ctx._1, newId, sequence + 1) ::: soFar
         })
       }
-      case e: ContextListNode => {
+      case e: NodeListNode => {
         e.children.zipWithIndex.foldLeft(List(DataRow(newId, "label", e.label, origin, sequence)))((soFar, ctx) => {
           val next = nextId(soFar)
           soFar ::: parse(next, ctx._1, newId, sequence)
@@ -102,7 +102,7 @@ abstract class TableWriter extends Writer {
           }
         }
       }
-      case e: ListNode        => {
+      case e: StringListNode        => {
         e.children.zipWithIndex.foldLeft(List(DataRow(newId, "label", e.label, origin, sequence)))((soFar, x) => {
           val next = nextId(soFar)
           val listSequence = sequence

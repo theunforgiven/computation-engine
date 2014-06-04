@@ -9,9 +9,9 @@ object Writer {
 
   case class EntryNode(label: String, attrs: Map[String, String], children: List[Node]) extends Node
 
-  case class ListNode(label: String, children: List[String]) extends Node
+  case class StringListNode(label: String, children: List[String]) extends Node
 
-  case class ContextListNode(label: String, children: List[Node]) extends Node
+  case class NodeListNode(label: String, children: List[Node]) extends Node
 
   case class MapNode(label: String, children: Map[String, String]) extends Node
 }
@@ -89,7 +89,7 @@ trait Writer {
 
   protected def sequentialComputationSpec(computation: SequentialComputationSpecification) = {
     val inners = computation.innerSpecs.map(marshal(_))
-    val ictx = createContextNodeList("innerComputations", inners)
+    val ictx = createNodeListNode("innerComputations", inners)
     createNode("sequentialComputation", Map(), List(ictx))
   }
 
@@ -118,23 +118,23 @@ trait Writer {
 
   private def inputs(inputs: Inputs) = {
     val map = inputs.inputMappings.map(x => marshal(MappingWrapper("", x))).toList
-    createContextNodeList("inputs", map)
+    createNodeListNode("inputs", map)
   }
 
   protected def imports(imports: Imports) = {
     val s = imports.importSequence
-    createNodeList("imports", s.toList)
+    createStringListNode("imports", s.toList)
   }
 
   protected def dateTime(d: DateTime): String
 
   protected def createNode(label: String, attrs: Map[String, String], children: List[Node]): Node
 
-  protected def createNodeList(label: String, children: List[String]): Node
+  protected def createStringListNode(label: String, children: List[String]): Node
 
   protected def createMapNode(label: String, children: Map[String, String]): Node
 
-  protected def createContextNodeList(label: String, children: List[Node]): Node
+  protected def createNodeListNode(label: String, children: List[Node]): Node
 
   protected def persist(context: Node)
 

@@ -24,12 +24,12 @@ class YamlWriter(stream: OutputStream, snakeYaml: Yaml) extends Writer {
     EntryNode(label, attrs, children)
   }
 
-  protected override def createNodeList(label: String, children: List[String]): Node = {
-    ListNode(label, children)
+  protected override def createStringListNode(label: String, children: List[String]): Node = {
+    StringListNode(label, children)
   }
 
-  protected override def createContextNodeList(label: String, children: List[Node]): Node = {
-    ContextListNode(label, children)
+  protected override def createNodeListNode(label: String, children: List[Node]): Node = {
+    NodeListNode(label, children)
   }
 
   protected override def createMapNode(label: String, children: Map[String, String]): Node = {
@@ -65,11 +65,11 @@ class YamlWriter(stream: OutputStream, snakeYaml: Yaml) extends Writer {
         aNode.children.map(extract).foreach(x => children.putAll(x))
         map
       }
-      case aContextNodeList: ContextListNode => {
+      case aContextNodeList: NodeListNode => {
         map.put(aContextNodeList.label, aContextNodeList.children.map(extract).asJava)
         map
       }
-      case aNodeList: ListNode               => {
+      case aNodeList: StringListNode               => {
         map.put(aNodeList.label, aNodeList.children.asJava)
         map
       }
