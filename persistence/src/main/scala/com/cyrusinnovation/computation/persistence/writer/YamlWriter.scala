@@ -3,11 +3,12 @@ package com.cyrusinnovation.computation.persistence.writer
 import java.io.{OutputStreamWriter, OutputStream}
 import org.yaml.snakeyaml.{DumperOptions, Yaml}
 import java.util.{HashMap => JHMap}
-import java.util.{Map => JMap}
+import java.util.{Map => JMap, List => JList}
 import collection.JavaConverters._
 import org.joda.time.DateTime
 import java.text.SimpleDateFormat
 import Writer._
+import java.util
 
 object YamlWriter {
   def forOutputStream(outputStream: OutputStream): Writer = {
@@ -28,15 +29,18 @@ class YamlWriter(stream: OutputStream, snakeYaml: Yaml) extends Writer {
   protected override def persist(nodeContext: Node) {
     val streamWriter = new OutputStreamWriter(stream)
     try {
-      val context = nodeContext.asInstanceOf[EntryNode]
-      val flattenedLibrary = context.copy(children = List())
-      val ver = context.children.head.asInstanceOf[EntryNode]
-      val verWithOutKids = ver.copy(children = List())
-      val topLevelNodeList = (List(flattenedLibrary, verWithOutKids) ++ ver.children).map(extract).asJava
-      snakeYaml.dump(topLevelNodeList, streamWriter)
+      snakeYaml.dump(convertNodeToSnakeYamlMaps(nodeContext), streamWriter)
     } finally {
       streamWriter.close()
     }
+  }
+
+  def convertNodeToSnakeYamlMaps(nodeContext: Node): JList[JMap[Object, Object]] = {
+    val context = nodeContext.asInstanceOf[EntryNode]
+    val flattenedLibrary = context.copy(children = List())
+    val ver = context.children.head.asInstanceOf[EntryNode]
+    val verWithOutKids = ver.copy(children = List())
+    (List(flattenedLibrary, verWithOutKids) ++ ver.children).map(extract).asJava
   }
 
   private def extract(node: Node): JMap[Object, Object] = {

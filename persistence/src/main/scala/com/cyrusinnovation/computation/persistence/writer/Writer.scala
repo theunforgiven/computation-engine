@@ -39,9 +39,7 @@ trait Writer {
   }
 
   private def library(library: Library) = {
-    val versions = library.versions.map(x => {
-      marshal(x._2)
-    }).toList
+    val versions = library.versions.map(x => marshal(x._2)).toList
     createNode("library", Map("name" -> library.name), versions)
   }
 

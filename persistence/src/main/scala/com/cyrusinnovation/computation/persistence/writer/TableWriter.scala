@@ -36,18 +36,23 @@ abstract class TableWriter extends Writer {
   }
 
   protected override def persist(nodeContext: Node) {
-    val context = nodeContext.asInstanceOf[EntryNode]
-    val libraryName = context.attrs("name")
-    val versionNumber = context.children.head.asInstanceOf[EntryNode].attrs("versionNumber")
-    val dataRows = parse(1, context, 1, 1)
-    val nodes = dataRows.map(x => NodeDataRow(libraryName, versionNumber, x.id, x.key, x.value))
-    val edges = dataRows.map(x => NodeDataEdge(libraryName, versionNumber, x.origin, x.id, x.sequence))
-      .filterNot { case edge => edge.isRootRow }
-      .distinct
+    val (nodes, edges) = convertNodeToNodeData(nodeContext)
     write(nodes, edges)
   }
 
   protected def write(rows: List[NodeDataRow], edges: List[NodeDataEdge])
+
+  private def convertNodeToNodeData(rootNode: Node): (List[NodeDataRow], List[NodeDataEdge]) = {
+    val node = rootNode.asInstanceOf[EntryNode]
+    val libraryName = node.attrs("name")
+    val versionNumber = node.children.head.asInstanceOf[EntryNode].attrs("versionNumber")
+    val dataRows = parse(1, node, 1, 1)
+    val nodes = dataRows.map(x => NodeDataRow(libraryName, versionNumber, x.id, x.key, x.value))
+    val edges = dataRows.map(x => NodeDataEdge(libraryName, versionNumber, x.origin, x.id, x.sequence))
+      .filterNot { case edge => edge.isRootRow }
+      .distinct
+    (nodes, edges)
+  }
 
   private def parse(newId: Int, context: Node, origin: Int, sequence: Int): List[DataRow] = {
     def nextId(rows: List[DataRow]) = if (rows.isEmpty) newId else rows.maxBy(_.id).id + 1
