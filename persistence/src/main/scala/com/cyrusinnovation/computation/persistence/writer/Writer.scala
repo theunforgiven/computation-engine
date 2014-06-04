@@ -2,25 +2,26 @@ package com.cyrusinnovation.computation.persistence.writer
 
 import com.cyrusinnovation.computation.specification._
 import org.joda.time.DateTime
+import Writer._
 
+object Writer {
+  sealed abstract class Node
+
+  case class EntryNode(label: String, attrs: Map[String, String], children: List[Node]) extends Node
+
+  case class ListNode(label: String, children: List[String]) extends Node
+
+  case class ContextListNode(label: String, children: List[Node]) extends Node
+
+  case class MapNode(label: String, children: Map[String, String]) extends Node
+}
 trait Writer {
-  protected sealed abstract class Node
-
-  protected case class EntryNode(label: String, attrs: Map[String, String], children: List[Context]) extends Node
-
-  protected case class ListNode(label: String, children: List[String]) extends Node
-
-  protected case class ContextListNode(label: String, children: List[Context]) extends Node
-
-  protected case class MapNode(label: String, children: Map[String, String]) extends Node
-
-  protected type Context = Node
 
   def write(library: Library) {
     persist(marshal(library))
   }
 
-  protected def marshal(node: SyntaxTreeNode): Context = {
+  protected def marshal(node: SyntaxTreeNode): Node = {
     node match {
       case node: Library                            => library(node)
       case node: Version                            => version(node)
@@ -127,15 +128,15 @@ trait Writer {
 
   protected def dateTime(d: DateTime): String
 
-  protected def createNode(label: String, attrs: Map[String, String], children: List[Context]): Context
+  protected def createNode(label: String, attrs: Map[String, String], children: List[Node]): Node
 
-  protected def createNodeList(label: String, children: List[String]): Context
+  protected def createNodeList(label: String, children: List[String]): Node
 
-  protected def createMapNode(label: String, children: Map[String, String]): Context
+  protected def createMapNode(label: String, children: Map[String, String]): Node
 
-  protected def createContextNodeList(label: String, children: List[Context]): Context
+  protected def createContextNodeList(label: String, children: List[Node]): Node
 
-  protected def persist(context: Context)
+  protected def persist(context: Node)
 
   protected case class MappingWrapper(label: String, mapping: Mapping) extends SyntaxTreeNode {
     def children : List[SyntaxTreeNode] = List.empty

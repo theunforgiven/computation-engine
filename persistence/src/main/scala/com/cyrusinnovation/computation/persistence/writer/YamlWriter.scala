@@ -7,6 +7,7 @@ import java.util.{Map => JMap}
 import collection.JavaConverters._
 import org.joda.time.DateTime
 import java.text.SimpleDateFormat
+import Writer._
 
 object YamlWriter {
   def forOutputStream(outputStream: OutputStream): Writer = {
@@ -19,19 +20,19 @@ object YamlWriter {
 }
 
 class YamlWriter(stream: OutputStream, snakeYaml: Yaml) extends Writer {
-  protected override def createNode(label: String, attrs: Map[String, String], children: List[Context]): Context = {
+  protected override def createNode(label: String, attrs: Map[String, String], children: List[Node]): Node = {
     EntryNode(label, attrs, children)
   }
 
-  protected override def createNodeList(label: String, children: List[String]): Context = {
+  protected override def createNodeList(label: String, children: List[String]): Node = {
     ListNode(label, children)
   }
 
-  protected override def createContextNodeList(label: String, children: List[Context]): Context = {
+  protected override def createContextNodeList(label: String, children: List[Node]): Node = {
     ContextListNode(label, children)
   }
 
-  protected override def createMapNode(label: String, children: Map[String, String]): Context = {
+  protected override def createMapNode(label: String, children: Map[String, String]): Node = {
     MapNode(label, children)
   }
 
@@ -40,7 +41,7 @@ class YamlWriter(stream: OutputStream, snakeYaml: Yaml) extends Writer {
     formatter.format(d.toDate)
   }
 
-  protected override def persist(nodeContext: Context) {
+  protected override def persist(nodeContext: Node) {
     val streamWriter = new OutputStreamWriter(stream)
     try {
       val context = nodeContext.asInstanceOf[EntryNode]
@@ -57,7 +58,7 @@ class YamlWriter(stream: OutputStream, snakeYaml: Yaml) extends Writer {
   private def extract(node: Node): JMap[Object, Object] = {
     val map = new JHMap[Object, Object]
     node match {
-      case aNode: EntryNode    => {
+      case aNode: EntryNode                  => {
         val children = new JHMap[Object, Object]
         map.put(aNode.label, children)
         aNode.attrs.foreach(x => children.put(x._1, x._2))
@@ -68,11 +69,11 @@ class YamlWriter(stream: OutputStream, snakeYaml: Yaml) extends Writer {
         map.put(aContextNodeList.label, aContextNodeList.children.map(extract).asJava)
         map
       }
-      case aNodeList: ListNode => {
+      case aNodeList: ListNode               => {
         map.put(aNodeList.label, aNodeList.children.asJava)
         map
       }
-      case aMapNode: MapNode   => {
+      case aMapNode: MapNode                 => {
         aMapNode.label match {
           case "" => {
             //A blank label means the children do not have a parent map

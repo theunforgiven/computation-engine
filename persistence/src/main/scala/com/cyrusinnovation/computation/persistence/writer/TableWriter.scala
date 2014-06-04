@@ -3,9 +3,7 @@ package com.cyrusinnovation.computation.persistence.writer
 import org.joda.time.DateTime
 import org.joda.time.format.ISODateTimeFormat
 import com.cyrusinnovation.computation.specification._
-import com.cyrusinnovation.computation.specification.Imports
-import com.cyrusinnovation.computation.specification.Version
-import com.cyrusinnovation.computation.specification.Inputs
+import Writer._
 
 object TableWriter {
   private val formatter = ISODateTimeFormat.dateTime()
@@ -38,19 +36,19 @@ abstract class TableWriter extends Writer {
     }
   }
 
-  protected override def createNode(label: String, attrs: Map[String, String], children: List[Context]): Context = {
+  protected override def createNode(label: String, attrs: Map[String, String], children: List[Node]): Node = {
     EntryNode(label, attrs, children)
   }
 
-  protected override def createNodeList(label: String, children: List[String]): Context = {
+  protected override def createNodeList(label: String, children: List[String]): Node = {
     ListNode(label, children)
   }
 
-  protected override def createContextNodeList(label: String, children: List[Context]): Context = {
+  protected override def createContextNodeList(label: String, children: List[Node]): Node = {
     ContextListNode(label, children)
   }
 
-  protected override def createMapNode(label: String, children: Map[String, String]): Context = {
+  protected override def createMapNode(label: String, children: Map[String, String]): Node = {
     MapNode(label, children)
   }
 
@@ -58,7 +56,7 @@ abstract class TableWriter extends Writer {
     TableWriter.formatter.print(d)
   }
 
-  protected override def persist(nodeContext: Context) {
+  protected override def persist(nodeContext: Node) {
     val context = nodeContext.asInstanceOf[EntryNode]
     val dataRows = parse(1, context, 1, 1)
     val nodes = dataRows.map(x => NodeDataRow(x.id, x.key, x.value))
@@ -70,7 +68,7 @@ abstract class TableWriter extends Writer {
 
   protected def write(rows: List[NodeDataRow], edges: List[NodeDataEdge])
 
-  private def parse(newId: Int, context: Context, origin: Int, sequence: Int): List[DataRow] = {
+  private def parse(newId: Int, context: Node, origin: Int, sequence: Int): List[DataRow] = {
     def nextId(rows: List[DataRow]) = if (rows.isEmpty) newId else rows.maxBy(_.id).id + 1
     context match {
       case e: EntryNode       => {
