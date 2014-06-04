@@ -20,22 +20,6 @@ object YamlWriter {
 }
 
 class YamlWriter(stream: OutputStream, snakeYaml: Yaml) extends Writer {
-  protected override def createNode(label: String, attrs: Map[String, String], children: List[Node]): Node = {
-    EntryNode(label, attrs, children)
-  }
-
-  protected override def createStringListNode(label: String, children: List[String]): Node = {
-    StringListNode(label, children)
-  }
-
-  protected override def createNodeListNode(label: String, children: List[Node]): Node = {
-    NodeListNode(label, children)
-  }
-
-  protected override def createMapNode(label: String, children: Map[String, String]): Node = {
-    MapNode(label, children)
-  }
-
   protected override def dateTime(d: DateTime): String = {
     val formatter = new SimpleDateFormat("EEE MMM dd HH:mm:ss zzz yyyy")
     formatter.format(d.toDate)

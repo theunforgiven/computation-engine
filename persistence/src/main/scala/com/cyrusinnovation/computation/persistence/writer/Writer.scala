@@ -7,13 +7,13 @@ import Writer._
 object Writer {
   sealed abstract class Node
 
-  case class EntryNode(label: String, attrs: Map[String, String], children: List[Node]) extends Node
+  sealed case class EntryNode(label: String, attrs: Map[String, String], children: List[Node]) extends Node
 
-  case class StringListNode(label: String, children: List[String]) extends Node
+  sealed case class StringListNode(label: String, children: List[String]) extends Node
 
-  case class NodeListNode(label: String, children: List[Node]) extends Node
+  sealed case class NodeListNode(label: String, children: List[Node]) extends Node
 
-  case class MapNode(label: String, children: Map[String, String]) extends Node
+  sealed case class MapNode(label: String, children: Map[String, String]) extends Node
 }
 trait Writer {
 
@@ -130,15 +130,23 @@ trait Writer {
     createStringListNode("imports", s.toList)
   }
 
+  protected def createNode(label: String, attrs: Map[String, String], children: List[Node]): Node = {
+    EntryNode(label, attrs, children)
+  }
+
+  protected def createStringListNode(label: String, children: List[String]): Node = {
+    StringListNode(label, children)
+  }
+
+  protected def createMapNode(label: String, children: Map[String, String]): Node = {
+    MapNode(label, children)
+  }
+
+  protected def createNodeListNode(label: String, children: List[Node]): Node = {
+    NodeListNode(label, children)
+  }
+
   protected def dateTime(d: DateTime): String
-
-  protected def createNode(label: String, attrs: Map[String, String], children: List[Node]): Node
-
-  protected def createStringListNode(label: String, children: List[String]): Node
-
-  protected def createMapNode(label: String, children: Map[String, String]): Node
-
-  protected def createNodeListNode(label: String, children: List[Node]): Node
 
   protected def persist(context: Node)
 }
