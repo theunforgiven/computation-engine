@@ -13,7 +13,7 @@ object Writer {
 
   sealed case class NodeListNode(label: String, children: List[Node]) extends Node
 
-  sealed case class MapNode(label: String, children: Map[String, String]) extends Node
+  sealed case class MapKeyValueNode(children: Map[String, String]) extends Node
 }
 trait Writer {
 
@@ -88,7 +88,7 @@ trait Writer {
   protected def sequentialComputationSpec(computation: SequentialComputationSpecification) = {
     val inners = computation.innerSpecs.map(marshal(_))
     val ictx = createNodeListNode("innerComputations", inners)
-    createNode("sequentialComputation", Map(), List(ictx))
+    createNode("sequentialComputation", Map.empty, List(ictx))
   }
 
   private def mappingComputationSpec(computation: MappingComputationSpecification) = {
@@ -111,7 +111,7 @@ trait Writer {
   }
 
   private def ref(ref: Ref) = {
-    createMapNode("", Map("ref" -> ref.referencedSpecification))
+    createMapNode(Map("ref" -> ref.referencedSpecification))
   }
 
   private def inputs(inputs: Inputs) = {
@@ -120,7 +120,7 @@ trait Writer {
   }
 
   protected def mapping(mapping: Mapping) = {
-    createMapNode("", Map(mapping.key -> mapping.value))
+    createMapNode(Map(mapping.key -> mapping.value))
   }
 
   protected def imports(imports: Imports) = {
@@ -136,8 +136,8 @@ trait Writer {
     StringListNode(label, children)
   }
 
-  protected def createMapNode(label: String, children: Map[String, String]): Node = {
-    MapNode(label, children)
+  protected def createMapNode(children: Map[String, String]): Node = {
+    MapKeyValueNode(children)
   }
 
   protected def createNodeListNode(label: String, children: List[Node]): Node = {

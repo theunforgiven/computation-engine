@@ -10,6 +10,9 @@ object TableWriter {
 }
 
 abstract class TableWriter extends Writer {
+  private def createTextContainerNode(label: String, textValue: String) = {
+    createNode(label, Map("text" -> textValue), List())
+  }
 
   protected override def version(version: Version) = {
     val withoutComputationsWrapper = super.version(version).asInstanceOf[EntryNode]
@@ -17,18 +20,19 @@ abstract class TableWriter extends Writer {
   }
 
   protected override def imports(imports: Imports) = {
-    val s = imports.importSequence.map(x =>  createMapNode("import", Map("text" -> x)))
+    val s = imports.importSequence.map(x =>  createTextContainerNode("import", x))
     createNodeListNode("imports", s.toList)
   }
 
   protected override def sequentialComputationSpec(computation: SequentialComputationSpecification) = {
     val innerComputations = computation.innerSpecs.map(x => createNodeListNode("innerComputation", List(marshal(x))))
     val computationList = createNodeListNode("innerComputations", innerComputations)
-    createNode("sequentialComputation", Map(), List(computationList))
+    createNode("sequentialComputation", Map.empty, List(computationList))
   }
 
   protected override def mapping(mapping: Mapping) = {
-    createNode("mapping", Map.empty, List(createMapNode("key", Map("text" -> mapping.key)), createMapNode("value", Map("text" -> mapping.value))))
+    val mappingChildren = List(createTextContainerNode("key", mapping.key), createTextContainerNode("value", mapping.value))
+    createNode("mapping", Map.empty, mappingChildren)
   }
 
   protected override def dateTime(d: DateTime): String = {
@@ -70,21 +74,11 @@ abstract class TableWriter extends Writer {
           soFar ::: parse(next, ctx._1, newId, sequence)
         })
       }
-      case e: MapNode         => {
-        e.label match {
-          case "" => {
-            e.children.zipWithIndex.foldLeft(List.empty[DataRow])((soFar, x) => {
-              val next = nextId(soFar)
-              soFar ::: List(DataRow(next, "label", x._1._1, origin, sequence ), DataRow(next, "text", x._1._2, origin,  sequence))
-            })
-          }
-          case _  => {
-            e.children.zipWithIndex.foldLeft(List(DataRow(newId, "label", e.label, origin, sequence)))((soFar, x) => {
-              val next = newId
-              soFar ::: List(DataRow(next, x._1._1, x._1._2, origin,  sequence ))
-            })
-          }
-        }
+      case e: MapKeyValueNode => {
+        e.children.zipWithIndex.foldLeft(List.empty[DataRow])((soFar, x) => {
+          val next = nextId(soFar)
+          soFar ::: List(DataRow(next, "label", x._1._1, origin, sequence ), DataRow(next, "text", x._1._2, origin,  sequence))
+        })
       }
       case e: StringListNode        => {
         e.children.zipWithIndex.foldLeft(List(DataRow(newId, "label", e.label, origin, sequence)))((soFar, x) => {

@@ -61,15 +61,8 @@ class YamlWriter(stream: OutputStream, snakeYaml: Yaml) extends Writer {
         map.put(aNodeList.label, aNodeList.children.asJava)
         map
       }
-      case aMapNode: MapNode                 => {
-        aMapNode.label match {
-          case "" => {
-            //A blank label means the children do not have a parent map
-            //and should be added directly
-            aMapNode.children.foreach(x => map.put(x._1, x._2))
-          }
-          case _  => map.put(aMapNode.label, aMapNode.children.asJava)
-        }
+      case aMapNode: MapKeyValueNode => {
+        aMapNode.children.foreach(x => map.put(x._1, x._2))
         map
       }
     }
