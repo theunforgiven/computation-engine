@@ -13,18 +13,6 @@ object TableWriter {
 
 abstract class TableWriter extends Writer {
 
-  sealed abstract class Node
-
-  case class EntryNode(label: String, attrs: Map[String, String], children: List[Context]) extends Node
-
-  case class ListNode(label: String, children: List[String]) extends Node
-
-  case class ContextListNode(label: String, children: List[Context]) extends Node
-
-  case class MapNode(label: String, children: Map[String, String]) extends Node
-
-  type Context = Node
-
   protected override def version(version: Version) = {
     val withoutComputationsWrapper = super.version(version).asInstanceOf[EntryNode]
     withoutComputationsWrapper.copy(children = List(createContextNodeList("computations", withoutComputationsWrapper.children)))

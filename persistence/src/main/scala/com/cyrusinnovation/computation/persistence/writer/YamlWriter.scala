@@ -19,19 +19,6 @@ object YamlWriter {
 }
 
 class YamlWriter(stream: OutputStream, snakeYaml: Yaml) extends Writer {
-
-  sealed abstract class Node
-
-  case class EntryNode(label: String, attrs: Map[String, String], children: List[Context]) extends Node
-
-  case class ListNode(label: String, children: List[String]) extends Node
-
-  case class ContextListNode(label: String, children: List[Context]) extends Node
-
-  case class MapNode(label: String, children: Map[String, String]) extends Node
-
-  type Context = Node
-
   protected override def createNode(label: String, attrs: Map[String, String], children: List[Context]): Context = {
     EntryNode(label, attrs, children)
   }

@@ -4,7 +4,17 @@ import com.cyrusinnovation.computation.specification._
 import org.joda.time.DateTime
 
 trait Writer {
-  type Context
+  protected sealed abstract class Node
+
+  protected case class EntryNode(label: String, attrs: Map[String, String], children: List[Context]) extends Node
+
+  protected case class ListNode(label: String, children: List[String]) extends Node
+
+  protected case class ContextListNode(label: String, children: List[Context]) extends Node
+
+  protected case class MapNode(label: String, children: Map[String, String]) extends Node
+
+  protected type Context = Node
 
   def write(library: Library) {
     persist(marshal(library))
