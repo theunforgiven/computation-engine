@@ -15,13 +15,13 @@ abstract class TableWriter extends Writer {
 
   sealed abstract class Node
 
-  case class EntryNode(id: Int, label: String, attrs: Map[String, String], children: List[Context]) extends Node
+  case class EntryNode(label: String, attrs: Map[String, String], children: List[Context]) extends Node
 
-  case class ListNode(id: Int, label: String, children: List[String]) extends Node
+  case class ListNode(label: String, children: List[String]) extends Node
 
-  case class ContextListNode(id: Int, label: String, children: List[Context]) extends Node
+  case class ContextListNode(label: String, children: List[Context]) extends Node
 
-  case class MapNode(id: Int, label: String, children: Map[String, String]) extends Node
+  case class MapNode(label: String, children: Map[String, String]) extends Node
 
   type Context = Node
 
@@ -51,19 +51,19 @@ abstract class TableWriter extends Writer {
   }
 
   protected override def createNode(label: String, attrs: Map[String, String], children: List[Context]): Context = {
-    EntryNode(0, label, attrs, children)
+    EntryNode(label, attrs, children)
   }
 
   protected override def createNodeList(label: String, children: List[String]): Context = {
-    ListNode(0, label, children)
+    ListNode(label, children)
   }
 
   protected override def createContextNodeList(label: String, children: List[Context]): Context = {
-    ContextListNode(0, label, children)
+    ContextListNode(label, children)
   }
 
   protected override def createMapNode(label: String, children: Map[String, String]): Context = {
-    MapNode(0, label, children)
+    MapNode(label, children)
   }
 
   protected override def dateTime(d: DateTime): String = {
