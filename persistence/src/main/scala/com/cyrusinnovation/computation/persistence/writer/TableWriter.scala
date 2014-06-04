@@ -22,18 +22,13 @@ abstract class TableWriter extends Writer {
   }
 
   protected override def sequentialComputationSpec(computation: SequentialComputationSpecification) = {
-    val inners = computation.innerSpecs.map(x => createNodeListNode("innerComputation", List(marshal(x))))
-    val ictx = createNodeListNode("innerComputations", inners)
-    createNode("sequentialComputation", Map(), List(ictx))
+    val innerComputations = computation.innerSpecs.map(x => createNodeListNode("innerComputation", List(marshal(x))))
+    val computationList = createNodeListNode("innerComputations", innerComputations)
+    createNode("sequentialComputation", Map(), List(computationList))
   }
 
-  protected override def mapping(mapping: MappingWrapper) = {
-    val maps = List(createMapNode("", Map("key" -> mapping.mapping.key)), createMapNode("", Map("value" -> mapping.mapping.value)))
-    val mappingNode = createNodeListNode("mapping", maps)
-    mapping.label match {
-      case "" => mappingNode
-      case label: String => createNodeListNode(label, List(mappingNode))
-    }
+  protected override def mapping(mapping: Mapping) = {
+    createNode("mapping", Map.empty, List(createMapNode("key", Map("text" -> mapping.key)), createMapNode("value", Map("text" -> mapping.value))))
   }
 
   protected override def createNode(label: String, attrs: Map[String, String], children: List[Node]): Node = {

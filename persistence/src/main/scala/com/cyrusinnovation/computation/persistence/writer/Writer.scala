@@ -32,7 +32,7 @@ trait Writer {
       case node: MappingComputationSpecification    => mappingComputationSpec(node)
       case node: FoldingComputationSpecification    => foldingComputationSpec(node)
       case node: Ref                                => ref(node)
-      case node: MappingWrapper                     => mapping(node)
+      case node: Mapping                            => mapping(node)
       case node: Inputs                             => inputs(node)
       case node: Imports                            => imports(node)
     }
@@ -95,30 +95,34 @@ trait Writer {
 
   private def mappingComputationSpec(computation: MappingComputationSpecification) = {
     val attrs = Map("resultKey" -> computation.resultKey)
-    val inputTupeCtx = marshal(MappingWrapper("inputTuple", computation.inputTuple))
+    val inputTupeCtx = tuple("inputTuple", computation.inputTuple)
     val innerCompCtx = createNode("innerComputation", Map(), List(marshal(computation.innerSpecification)))
     createNode("mappingComputation", attrs, List(inputTupeCtx, innerCompCtx))
   }
 
   private def foldingComputationSpec(computation: FoldingComputationSpecification) = {
     val attrs = Map("initialAccumulatorKey" -> computation.initialAccumulatorKey)
-    val inputTupelCtx = marshal(MappingWrapper("inputTuple", computation.inputTuple))
-    val accumulatorTupleCtx = marshal(MappingWrapper("accumulatorTuple", computation.accumulatorTuple))
+    val inputTupelCtx = tuple("inputTuple", computation.inputTuple)
+    val accumulatorTupleCtx = tuple("accumulatorTuple", computation.accumulatorTuple)
     val innerCompCtx = createNode("innerComputation", Map(), List(marshal(computation.innerSpecification)))
     createNode("foldingComputation", attrs, List(inputTupelCtx, accumulatorTupleCtx, innerCompCtx))
+  }
+
+  private def tuple(label: String, mapping: Mapping): Node = {
+    createNode(label, Map.empty, List(marshal(mapping)))
   }
 
   private def ref(ref: Ref) = {
     createMapNode("", Map("ref" -> ref.referencedSpecification))
   }
 
-  protected def mapping(mapping: MappingWrapper) = {
-    createMapNode(mapping.label, Map(mapping.mapping.key -> mapping.mapping.value))
+  private def inputs(inputs: Inputs) = {
+    val map = inputs.inputMappings.map(x => marshal(x)).toList
+    createNodeListNode("inputs", map)
   }
 
-  private def inputs(inputs: Inputs) = {
-    val map = inputs.inputMappings.map(x => marshal(MappingWrapper("", x))).toList
-    createNodeListNode("inputs", map)
+  protected def mapping(mapping: Mapping) = {
+    createMapNode("", Map(mapping.key -> mapping.value))
   }
 
   protected def imports(imports: Imports) = {
@@ -137,8 +141,4 @@ trait Writer {
   protected def createNodeListNode(label: String, children: List[Node]): Node
 
   protected def persist(context: Node)
-
-  protected case class MappingWrapper(label: String, mapping: Mapping) extends SyntaxTreeNode {
-    def children : List[SyntaxTreeNode] = List.empty
-  }
 }
