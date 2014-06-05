@@ -7,7 +7,7 @@ import com.cyrusinnovation.computation.util.Log
 
 case class TestRules(logger: Log) {
 
-  val maxValueComputation = new SimpleComputation("test.computations",
+  lazy val maxValueComputation = new SimpleComputation("test.computations",
                                                   "MaximumTestValueComputation",
                                                   "Take the maximum of the values of the testValues map",
                                                   List("scala.collection.mutable.{Map => MutableMap}", 
@@ -23,7 +23,7 @@ case class TestRules(logger: Log) {
                                                   shouldPropagateExceptions = true
                                                   )
 
-  val negationComputation = new SimpleComputation("test.computations",
+  lazy val negationComputation = new SimpleComputation("test.computations",
                                                   "NegationComputation",
                                                   "Take the negative of the maxTestValue value",
                                                   List("scala.collection.mutable.{Map => MutableMap}"),
@@ -35,7 +35,7 @@ case class TestRules(logger: Log) {
                                                   logger,
                                                   shouldPropagateExceptions = true)
 
-  val sumComputation = new SimpleComputation("test.computations",
+  lazy val sumComputation = new SimpleComputation("test.computations",
                                              "SumComputation",
                                              "Take the sum of the values passed in",
                                              List(),
@@ -46,7 +46,7 @@ case class TestRules(logger: Log) {
                                              logger,
                                              shouldPropagateExceptions = true)
 
-  val noResultsComputation = new SimpleComputation( "test.computations",
+  lazy val noResultsComputation = new SimpleComputation( "test.computations",
                                                     "NoResultsComputation",
                                                     "Return no results",
                                                     List(),
@@ -81,7 +81,7 @@ case class TestRules(logger: Log) {
                             logger,
                             shouldPropagateExceptions = shouldPropagate)
 
-  val whitelistViolatingComputation = new SimpleComputation("test.computations",
+  lazy val whitelistViolatingComputation = new SimpleComputation("test.computations",
                                                             "SecurityWhitelistViolatingComputation",
                                                             "Use a class from a package that security configuration does not allow",
                                                             List("java.io.File"),
@@ -92,7 +92,7 @@ case class TestRules(logger: Log) {
                                                             logger,
                                                             shouldPropagateExceptions = true)
 
-  val blacklistViolatingComputation = new SimpleComputation("test.computations",
+  lazy val blacklistViolatingComputation = new SimpleComputation("test.computations",
                                                             "SecurityBlacklistViolatingComputation",
                                                             "Use a class that security configuration blacklists",
                                                             List("java.util.Timer"),
@@ -114,7 +114,7 @@ case class TestRules(logger: Log) {
                                                                   logger,
                                                                   shouldPropagateExceptions = true)
 
-  val simpleNegationComputation = new SimpleComputation("test.computations",
+  lazy val simpleNegationComputation = new SimpleComputation("test.computations",
                                                         "NegationComputation",
                                                         "Take the negative of the input value",
                                                         List(),
