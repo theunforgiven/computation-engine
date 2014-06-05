@@ -1,50 +1,11 @@
 package com.cyrusinnovation.computation.persistence.writer
 
-import org.joda.time.DateTime
-import org.joda.time.format.ISODateTimeFormat
-import com.cyrusinnovation.computation.specification._
-import Writer._
+import com.cyrusinnovation.computation.persistence.writer.LibraryExtractor._
 
-object TableWriter {
-  private val formatter = ISODateTimeFormat.dateTime()
-}
-
-abstract class TableWriter extends Writer {
-  private def createTextContainerNode(label: String, textValue: String) = {
-    createNode(label, Map("text" -> textValue), List())
+object TableDataTransformer {
+  def extractRowsAndEdges(nodeContext: Node): (List[NodeDataRow], List[NodeDataEdge]) = {
+    convertNodeToNodeData(nodeContext)
   }
-
-  protected override def version(version: Version) = {
-    val withoutComputationsWrapper = super.version(version).asInstanceOf[EntryNode]
-    withoutComputationsWrapper.copy(children = List(createNodeListNode("computations", withoutComputationsWrapper.children)))
-  }
-
-  protected override def imports(imports: Imports) = {
-    val s = imports.importSequence.map(x =>  createTextContainerNode("import", x))
-    createNodeListNode("imports", s.toList)
-  }
-
-  protected override def sequentialComputationSpec(computation: SequentialComputationSpecification) = {
-    val innerComputations = computation.innerSpecs.map(x => createNodeListNode("innerComputation", List(marshal(x))))
-    val computationList = createNodeListNode("innerComputations", innerComputations)
-    createNode("sequentialComputation", Map.empty, List(computationList))
-  }
-
-  protected override def mapping(mapping: Mapping) = {
-    val mappingChildren = List(createTextContainerNode("key", mapping.key), createTextContainerNode("value", mapping.value))
-    createNode("mapping", Map.empty, mappingChildren)
-  }
-
-  protected override def dateTime(d: DateTime): String = {
-    TableWriter.formatter.print(d)
-  }
-
-  protected override def persist(nodeContext: Node) {
-    val (nodes, edges) = convertNodeToNodeData(nodeContext)
-    write(nodes, edges)
-  }
-
-  protected def write(rows: List[NodeDataRow], edges: List[NodeDataEdge])
 
   private def convertNodeToNodeData(rootNode: Node): (List[NodeDataRow], List[NodeDataEdge]) = {
     val node = rootNode.asInstanceOf[EntryNode]
@@ -89,9 +50,9 @@ abstract class TableWriter extends Writer {
       }
     }
   }
-}
 
-case class DataRow(id: Int, key: String, value: String, origin: Int, sequence: Int)
+  private case class DataRow(id: Int, key: String, value: String, origin: Int, sequence: Int)
+}
 
 case class NodeDataRow(libraryName: String, versionNumber: String, id: Int, key: String, value: String)
 

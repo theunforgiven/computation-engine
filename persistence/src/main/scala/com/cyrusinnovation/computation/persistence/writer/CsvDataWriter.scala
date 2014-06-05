@@ -3,6 +3,7 @@ package com.cyrusinnovation.computation.persistence.writer
 import au.com.bytecode.opencsv.CSVWriter
 import scala.collection.JavaConversions._
 import java.io.{OutputStream, OutputStreamWriter}
+import com.cyrusinnovation.computation.specification.Library
 
 object CsvDataWriter {
   def forOutputStream(nodeFileWriter: OutputStream,
@@ -17,10 +18,18 @@ object CsvDataWriter {
   }
 }
 
+
+
 class CsvDataWriter(private val nodeFileWriter: java.io.Writer,
                     private val edgeFileWriter: java.io.Writer,
-                    private val config: CsvWriterConfig = CsvWriterConfig()) extends TableWriter {
-  override protected def write(nodes: List[NodeDataRow], edges: List[NodeDataEdge]): Unit = {
+                    private val config: CsvWriterConfig = CsvWriterConfig()) extends Writer {
+  def write(library: Library) {
+    val nodeContext = TableDataExtractor.marshal(library)
+    val (nodes, edges) = TableDataTransformer.extractRowsAndEdges(nodeContext)
+    write(nodes, edges)
+  }
+
+  protected def write(nodes: List[NodeDataRow], edges: List[NodeDataEdge]): Unit = {
     val nodeRows = nodes.sortBy(_.id).map(x => List(x.id, x.libraryName, x.versionNumber, x.key, x.value).map(_.toString).toArray)
     val edgeRows = edges.map(x => List(x.libraryName, x.versionNumber, x.origin, x.target, x.sequenceNumber).map(_.toString).toArray)
     writeRows(nodeFileWriter, nodeRows)
