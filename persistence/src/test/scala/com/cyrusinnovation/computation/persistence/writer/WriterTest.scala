@@ -1,0 +1,44 @@
+package com.cyrusinnovation.computation.persistence.writer
+
+import com.cyrusinnovation.computation.persistence.reader.{YamlReader, CsvReaderConfig, CsvDataReader}
+import java.io.{OutputStream, ByteArrayInputStream, StringReader, ByteArrayOutputStream}
+import org.scalatest.{Matchers, FlatSpec}
+import com.cyrusinnovation.computation.util.SampleLibraryVerifier
+
+class WriterTest extends FlatSpec with Matchers with SampleLibraryVerifier {
+  "A CSV Writer" should "be able to write a CSV file from a Library" in {
+    val tableReader = CsvDataReader.fromFileOnClasspath("/sampleNodes.csv", "/sampleEdges.csv", "test", "1.0", CsvReaderConfig(1))
+    val library = tableReader.unmarshal
+    val edgeOutputStream = new ByteArrayOutputStream()
+    val nodeOutputStream = new ByteArrayOutputStream()
+    CsvDataWriter.forOutputStream(nodeOutputStream, edgeOutputStream).write(library)
+    val nodeText = byteStreamToReader(nodeOutputStream)
+    val edgeText = byteStreamToReader(edgeOutputStream)
+    val rereadCsvLibrary = CsvDataReader.fromJavaIoReader(nodeText, edgeText, "test", "1.0")
+    verifyThatLibraryIsConstructedProperly(rereadCsvLibrary)
+  }
+
+  "A Yaml Writer" should "be able to write a YAML file from a Library" in {
+    val yamlReader = YamlReader.fromFileOnClasspath("/sample.yaml")
+    val writtenYamlBytes = byteArrayCapturingOutputStream { stream =>
+      YamlWriter.forOutputStream(stream).write(yamlReader.unmarshal)
+    }
+
+    val rereadYamlLibrary = YamlReader.fromInputStream(new ByteArrayInputStream(writtenYamlBytes))
+    verifyThatLibraryIsConstructedProperly(rereadYamlLibrary)
+  }
+
+  private def byteArrayCapturingOutputStream(whatToDo: => (OutputStream) => Unit): Array[Byte] = {
+    val stream = new ByteArrayOutputStream()
+    try {
+      whatToDo(stream)
+      stream.toByteArray
+    } finally {
+      stream.close()
+    }
+  }
+
+  private def byteStreamToReader(edgeOutputStream: ByteArrayOutputStream): StringReader = {
+    new StringReader(new String(edgeOutputStream.toByteArray))
+  }
+}
