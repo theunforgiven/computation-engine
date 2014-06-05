@@ -5,6 +5,10 @@ import java.sql.{ResultSet, PreparedStatement, DriverManager, Connection}
 object SqlTableReader {
   def fromJdbcUrl(library: String, version: String, url: String, schema: Option[String] = None): TableReader = {
     val connection: Connection = DriverManager.getConnection(url)
+    fromJdbcConnection(library, version, connection, schema)
+  }
+
+  def fromJdbcConnection(library: String, version: String, connection: Connection, schema: Option[String] = None): TableReader = {
     val nodeTable = SqlNodeDataParser.nodeTableFor(library, version, connection, schema)
     val edgeTable = SqlEdgeDataParser.edgeTableFor(library, version, connection, schema)
     new TableReader(nodeTable, edgeTable)

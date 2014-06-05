@@ -1,9 +1,10 @@
 package com.cyrusinnovation.computation.persistence.writer
 
-import com.cyrusinnovation.computation.persistence.reader.{YamlReader, CsvReaderConfig, CsvDataReader}
+import com.cyrusinnovation.computation.persistence.reader.{SqlTableReader, YamlReader, CsvReaderConfig, CsvDataReader}
 import java.io.{OutputStream, ByteArrayInputStream, StringReader, ByteArrayOutputStream}
 import org.scalatest.{Matchers, FlatSpec}
 import com.cyrusinnovation.computation.util.SampleLibraryVerifier
+import java.sql.DriverManager
 
 class WriterTest extends FlatSpec with Matchers with SampleLibraryVerifier {
   "A CSV Writer" should "be able to write a CSV file from a Library" in {
@@ -28,6 +29,16 @@ class WriterTest extends FlatSpec with Matchers with SampleLibraryVerifier {
     verifyThatLibraryIsConstructedProperly(rereadYamlLibrary)
   }
 
+  "A SQL Writer" should "be able to persist to a SQL database from a Library" in {
+    val sqlReader = SqlTableReader.fromJdbcUrl("test", "1.0", "jdbc:h2:./src/test/resources/h2-sample", Some("public"))
+
+    val connection = DriverManager.getConnection("jdbc:h2:mem:;INIT=RUNSCRIPT FROM './src/main/resources/schema/schema.sql'")
+    SqlWriter.forJdbcConnection(connection).write(sqlReader.unmarshal)
+
+    val rereadSqlLibrary = SqlTableReader.fromJdbcConnection("test", "1.0", connection, Some("public"))
+    verifyThatLibraryIsConstructedProperly(rereadSqlLibrary)
+  }
+
   private def byteArrayCapturingOutputStream(whatToDo: => (OutputStream) => Unit): Array[Byte] = {
     val stream = new ByteArrayOutputStream()
     try {
@@ -38,7 +49,7 @@ class WriterTest extends FlatSpec with Matchers with SampleLibraryVerifier {
     }
   }
 
-  private def byteStreamToReader(edgeOutputStream: ByteArrayOutputStream): StringReader = {
-    new StringReader(new String(edgeOutputStream.toByteArray))
+  private def byteStreamToReader(stream: ByteArrayOutputStream): StringReader = {
+    new StringReader(new String(stream.toByteArray))
   }
 }
