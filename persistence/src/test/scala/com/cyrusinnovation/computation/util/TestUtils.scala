@@ -17,7 +17,14 @@ object TestUtils {
     val trimmed = stringWithWhitespace.trim
     trimmed.replaceAll("\\s+", " ")
   }
-  
+
+  def using[S <: { def close(): Unit }, T](closeable: S)(whatToDo: => (S) => T) ={
+    try {
+      whatToDo(closeable)
+    } finally {
+      closeable.close()
+    }
+  }
 }
 
 object StdOutLogger extends Logger {

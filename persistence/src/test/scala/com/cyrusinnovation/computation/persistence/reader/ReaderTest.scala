@@ -3,6 +3,8 @@ package com.cyrusinnovation.computation.persistence.reader
 import scala.Some
 import org.scalatest.{Matchers, FlatSpec}
 import com.cyrusinnovation.computation.util.SampleLibraryVerifier
+import java.sql.DriverManager
+import com.cyrusinnovation.computation.util.TestUtils.using
 
 class ReaderTest extends FlatSpec with Matchers with SampleLibraryVerifier {
 
@@ -14,8 +16,10 @@ class ReaderTest extends FlatSpec with Matchers with SampleLibraryVerifier {
   //Depends on current working directory being persistence module directory
   "A Table Reader" should "be able to read a library from a database" in {
     //To re-load load-sample-db.sql on connection append ";INIT=RUNSCRIPT FROM './src/test/resources/load-sample-db.sql'" to the connection string
-    val tableReader = SqlTableReader.fromJdbcUrl("test", "1.0", "jdbc:h2:./src/test/resources/h2-sample", Some("public"))
-    verifyThatLibraryIsConstructedProperly(tableReader)
+    using(DriverManager.getConnection("jdbc:h2:./src/test/resources/h2-sample")) { connection =>
+      val tableReader = SqlTableReader.fromJdbcConnection("test", "1.0", connection, Some("public"))
+      verifyThatLibraryIsConstructedProperly(tableReader)
+    }
   }
 
   "A Table Reader" should "be able to read a library from parsed CSV data" in {
