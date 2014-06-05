@@ -17,9 +17,9 @@ object YamlWriter {
 class YamlWriter(stream: OutputStream, snakeYaml: Yaml) extends Writer {
   override def write(library: Library) {
     val nodeContext = YamlExtractor.marshal(library)
+    val transformed = YamlDataTransformer.convertNodeToSnakeYamlMaps(nodeContext)
     val streamWriter = new OutputStreamWriter(stream)
     try {
-      val transformed = YamlDataTransformer.convertNodeToSnakeYamlMaps(nodeContext)
       snakeYaml.dump(transformed, streamWriter)
     } finally {
       streamWriter.close()

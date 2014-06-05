@@ -3,11 +3,7 @@ package com.cyrusinnovation.computation.persistence.writer
 import com.cyrusinnovation.computation.persistence.writer.LibraryExtractor._
 
 object TableDataTransformer {
-  def extractRowsAndEdges(nodeContext: Node): (List[NodeDataRow], List[NodeDataEdge]) = {
-    convertNodeToNodeData(nodeContext)
-  }
-
-  private def convertNodeToNodeData(rootNode: Node): (List[NodeDataRow], List[NodeDataEdge]) = {
+  def extractRowsAndEdges(rootNode: Node): (List[NodeDataRow], List[NodeDataEdge]) = {
     val node = rootNode.asInstanceOf[EntryNode]
     val libraryName = node.attrs("name")
     val versionNumber = node.children.head.asInstanceOf[EntryNode].attrs("versionNumber")
