@@ -2,15 +2,29 @@ package com.cyrusinnovation.computation.persistence.writer
 
 import au.com.bytecode.opencsv.CSVWriter
 import scala.collection.JavaConversions._
-import java.io.{OutputStream, OutputStreamWriter}
+import java.io._
+import java.net.URI
 import com.cyrusinnovation.computation.specification.Library
 
 object CsvDataWriter {
+  def fromFile(nodeFilePath: String,
+               edgeFilePath: String,
+               config: CsvWriterConfig = CsvWriterConfig()) : Writer = {
+    forJavaIoWriter(new FileWriter(new File(nodeFilePath)), new FileWriter(new File(edgeFilePath)), config)
+  }
+
+  def fromFileUri(nodeFileUri: URI,
+                  edgeFileUri: URI,
+                  config: CsvWriterConfig = CsvWriterConfig()) : Writer = {
+    forJavaIoWriter(new FileWriter(new File(nodeFileUri)), new FileWriter(new File(edgeFileUri)), config)
+  }
+
   def forOutputStream(nodeFileWriter: OutputStream,
                       edgeFileWriter: OutputStream,
                       config: CsvWriterConfig = CsvWriterConfig()): Writer = {
     forJavaIoWriter(new OutputStreamWriter(nodeFileWriter), new OutputStreamWriter(edgeFileWriter), config)
   }
+
   def forJavaIoWriter(nodeFileWriter: java.io.Writer,
                       edgeFileWriter: java.io.Writer,
                       config: CsvWriterConfig = CsvWriterConfig()): Writer = {
