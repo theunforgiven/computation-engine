@@ -10,7 +10,7 @@ class ProductsServlet extends ComputationStoreServlet {
     StoreProducts.all
   }
 
-  put("/") {
+  post("/") {
     Some(parsedBody.extract[StoreProduct])
       .fold(BadRequest("Could not create product from argument"))(x => Ok(StoreProducts.create(x)))
   }
@@ -22,7 +22,7 @@ class ProductsServlet extends ComputationStoreServlet {
       .getOrElse(NotFound("Sorry, the product could not be found"))
   }
 
-  post("/:productId") {
+  put("/:productId") {
     Some(parsedBody.extract[StoreProduct])
       .fold(BadRequest("Could not create product from argument"))(x => Ok(StoreProducts.update(x)))
   }

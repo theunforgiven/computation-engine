@@ -7,7 +7,7 @@ import com.cyrusinnovation.computation.store.store.ProductsServlet
 
 class ScalatraBootstrap extends LifeCycle {
   override def init(context: ServletContext) {
-    context mount (new ProductsServlet, "/products/*")
+    context mount (new ProductsServlet, "/rest/products/*")
     context.addServlet("assets", new DefaultServlet()).addMapping("/", "/*")
   }
 }
