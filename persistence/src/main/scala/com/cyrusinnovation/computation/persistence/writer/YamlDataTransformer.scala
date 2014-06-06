@@ -6,9 +6,9 @@ import com.cyrusinnovation.computation.persistence.writer.LibraryExtractor._
 
 object YamlDataTransformer {
   def convertNodeToSnakeYamlMaps(nodeContext: Node): JList[JMap[Object, Object]] = {
-    val context = nodeContext.asInstanceOf[EntryNode]
+    val context = nodeContext.asInstanceOf[CompoundNode]
     val flattenedLibrary = context.copy(children = List())
-    val ver = context.children.head.asInstanceOf[EntryNode]
+    val ver = context.children.head.asInstanceOf[CompoundNode]
     val verWithOutKids = ver.copy(children = List())
     (List(flattenedLibrary, verWithOutKids) ++ ver.children).map(extract).asJava
   }
@@ -16,7 +16,7 @@ object YamlDataTransformer {
   private def extract(node: Node): JMap[Object, Object] = {
     val map = new JHMap[Object, Object]
     node match {
-      case aNode: EntryNode                  => {
+      case aNode: CompoundNode                  => {
         val children = new JHMap[Object, Object]
         map.put(aNode.label, children)
         aNode.attrs.foreach(x => children.put(x._1, x._2))

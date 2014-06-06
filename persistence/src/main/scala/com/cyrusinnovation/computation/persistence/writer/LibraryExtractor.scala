@@ -7,7 +7,7 @@ import LibraryExtractor._
 object LibraryExtractor {
   sealed abstract class Node
 
-  sealed case class EntryNode(label: String, attrs: Map[String, String], children: List[Node]) extends Node
+  sealed case class CompoundNode(label: String, attrs: Map[String, String], children: List[Node]) extends Node
 
   sealed case class StringListNode(label: String, children: List[String]) extends Node
 
@@ -36,13 +36,13 @@ trait LibraryExtractor {
 
   private def library(library: Library) = {
     val versions = library.versions.map(x => marshal(x._2)).toList
-    createNode("library", Map("name" -> library.name), versions)
+    createCompoundNode("library", Map("name" -> library.name), versions)
   }
 
   protected def version(version: Version) = {
     val lastEditDate = version.lastEditDate.map(dateTime).getOrElse(null)
     val kids = List(marshal(version.firstTopLevelComputation)) ++ version.moreTopLevelComputations.map(marshal(_))
-    createNode("version", Map("versionNumber" -> version.versionNumber, "state" -> version.state.toString, "lastEditDate" -> lastEditDate), kids)
+    createCompoundNode("version", Map("versionNumber" -> version.versionNumber, "state" -> version.state.toString, "lastEditDate" -> lastEditDate), kids)
   }
 
   private def simpleComputationSpec(computation: SimpleComputationSpecification) = {
@@ -55,7 +55,7 @@ trait LibraryExtractor {
       "resultKey" -> computation.resultKey,
       "logger" -> computation.logger,
       "securityConfiguration" -> computation.securityConfiguration)
-    createNode("simpleComputation", attrs, List(marshal(computation.imports), marshal(computation.input)))
+    createCompoundNode("simpleComputation", attrs, List(marshal(computation.imports), marshal(computation.input)))
   }
 
   private def abortIfComputationSpec(computation: AbortIfComputationSpecification) = {
@@ -69,8 +69,8 @@ trait LibraryExtractor {
       "predicateExpression" -> computation.predicateExpression)
 
     val inners = List(marshal(computation.innerSpecification))
-    val innerComputation = createNode("innerComputation", Map(), inners)
-    createNode("abortIfComputation", attrs, List(innerComputation, marshal(computation.imports), marshal(computation.input)))
+    val innerComputation = createCompoundNode("innerComputation", Map(), inners)
+    createCompoundNode("abortIfComputation", attrs, List(innerComputation, marshal(computation.imports), marshal(computation.input)))
   }
 
   private def namedComputationSpec(computation: NamedComputationSpecification) = {
@@ -78,32 +78,32 @@ trait LibraryExtractor {
       "name" -> computation.name,
       "description" -> computation.description,
       "changedInVersion" -> computation.changedInVersion)
-    createNode("namedComputation", attrs, List(marshal(computation.specForNamableComputation)))
+    createCompoundNode("namedComputation", attrs, List(marshal(computation.specForNamableComputation)))
   }
 
   protected def sequentialComputationSpec(computation: SequentialComputationSpecification) = {
     val inners = computation.innerSpecs.map(marshal(_))
     val ictx = createNodeListNode("innerComputations", inners)
-    createNode("sequentialComputation", Map.empty, List(ictx))
+    createCompoundNode("sequentialComputation", Map.empty, List(ictx))
   }
 
   private def mappingComputationSpec(computation: MappingComputationSpecification) = {
     val attrs = Map("resultKey" -> computation.resultKey)
     val inputTupeCtx = tuple("inputTuple", computation.inputTuple)
-    val innerCompCtx = createNode("innerComputation", Map(), List(marshal(computation.innerSpecification)))
-    createNode("mappingComputation", attrs, List(inputTupeCtx, innerCompCtx))
+    val innerCompCtx = createCompoundNode("innerComputation", Map(), List(marshal(computation.innerSpecification)))
+    createCompoundNode("mappingComputation", attrs, List(inputTupeCtx, innerCompCtx))
   }
 
   private def foldingComputationSpec(computation: FoldingComputationSpecification) = {
     val attrs = Map("initialAccumulatorKey" -> computation.initialAccumulatorKey)
     val inputTupelCtx = tuple("inputTuple", computation.inputTuple)
     val accumulatorTupleCtx = tuple("accumulatorTuple", computation.accumulatorTuple)
-    val innerCompCtx = createNode("innerComputation", Map(), List(marshal(computation.innerSpecification)))
-    createNode("foldingComputation", attrs, List(inputTupelCtx, accumulatorTupleCtx, innerCompCtx))
+    val innerCompCtx = createCompoundNode("innerComputation", Map(), List(marshal(computation.innerSpecification)))
+    createCompoundNode("foldingComputation", attrs, List(inputTupelCtx, accumulatorTupleCtx, innerCompCtx))
   }
 
   private def tuple(label: String, mapping: Mapping): Node = {
-    createNode(label, Map.empty, List(marshal(mapping)))
+    createCompoundNode(label, Map.empty, List(marshal(mapping)))
   }
 
   private def ref(ref: Ref) = {
@@ -124,8 +124,8 @@ trait LibraryExtractor {
     createStringListNode("imports", s.toList)
   }
 
-  protected def createNode(label: String, attrs: Map[String, String], children: List[Node]): Node = {
-    EntryNode(label, attrs, children)
+  protected def createCompoundNode(label: String, attrs: Map[String, String], children: List[Node]): Node = {
+    CompoundNode(label, attrs, children)
   }
 
   protected def createStringListNode(label: String, children: List[String]): Node = {

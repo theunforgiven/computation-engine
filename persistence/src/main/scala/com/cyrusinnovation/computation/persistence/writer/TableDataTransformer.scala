@@ -4,9 +4,9 @@ import com.cyrusinnovation.computation.persistence.writer.LibraryExtractor._
 
 object TableDataTransformer {
   def extractRowsAndEdges(rootNode: Node): (List[NodeDataRow], List[NodeDataEdge]) = {
-    val node = rootNode.asInstanceOf[EntryNode]
+    val node = rootNode.asInstanceOf[CompoundNode]
     val libraryName = node.attrs("name")
-    val versionNumber = node.children.head.asInstanceOf[EntryNode].attrs("versionNumber")
+    val versionNumber = node.children.head.asInstanceOf[CompoundNode].attrs("versionNumber")
     val dataRows = parse(1, node, 1, 1)
     val nodes = dataRows.map(x => NodeDataRow(libraryName, versionNumber, x.id, x.key, x.value))
     val edges = dataRows.map(x => NodeDataEdge(libraryName, versionNumber, x.origin, x.id, x.sequence))
@@ -18,7 +18,7 @@ object TableDataTransformer {
   private def parse(newId: Int, context: Node, origin: Int, sequence: Int): List[DataRow] = {
     def nextId(rows: List[DataRow]) = if (rows.isEmpty) newId else rows.maxBy(_.id).id + 1
     context match {
-      case e: EntryNode       => {
+      case e: CompoundNode       => {
         val rows = DataRow(newId, "label", e.label, origin, sequence) :: e.attrs.map(x => DataRow(newId, x._1, x._2, origin, sequence)).toList
         e.children.zipWithIndex.foldLeft(rows)((soFar, ctx) => {
           val next = nextId(soFar)
