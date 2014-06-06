@@ -26,10 +26,10 @@ class WriterTest extends FlatSpec with Matchers with SampleLibraryVerifier {
     val yamlReader = YamlReader.fromFileOnClasspath("/sample.yaml")
     val writtenYamlBytesInputStream = using(new ByteArrayOutputStream()) { stream =>
       YamlWriter.forOutputStream(stream).write(yamlReader.unmarshal)
-      new ByteArrayInputStream(stream.toByteArray)
+      byteStreamToReader(stream)
     }
 
-    val rereadYamlLibrary = YamlReader.fromInputStream(writtenYamlBytesInputStream)
+    val rereadYamlLibrary = YamlReader.fromReader(writtenYamlBytesInputStream)
     verifyThatLibraryIsConstructedProperly(rereadYamlLibrary)
   }
 
