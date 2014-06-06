@@ -1,35 +1,38 @@
 package com.cyrusinnovation.computation.persistence.writer
 
 import com.cyrusinnovation.computation.persistence.reader.{SqlTableReader, YamlReader, CsvReaderConfig, CsvDataReader}
-import java.io.{OutputStream, ByteArrayInputStream, StringReader, ByteArrayOutputStream}
+import java.io._
 import org.scalatest.{Matchers, FlatSpec}
 import com.cyrusinnovation.computation.util.SampleLibraryVerifier
 import java.sql.DriverManager
 import com.cyrusinnovation.computation.util.TestUtils.using
+import com.cyrusinnovation.computation.persistence.reader.CsvReaderConfig
+import scala.Some
 
 class WriterTest extends FlatSpec with Matchers with SampleLibraryVerifier {
   "A CSV Writer" should "be able to write a CSV file from a Library" in {
     val tableReader = CsvDataReader.fromFileOnClasspath("/sampleNodes.csv", "/sampleEdges.csv", "test", "1.0", CsvReaderConfig(1))
     val library = tableReader.unmarshal
-    val (nodeStreamReader, edgeStreamReader) = using(new ByteArrayOutputStream()) { nodeStream =>
-      using(new ByteArrayOutputStream()) { edgeStream =>
-        CsvDataWriter.forOutputStream(nodeStream, edgeStream).write(library)
-        (byteStreamToReader(nodeStream), byteStreamToReader(edgeStream))
+
+    val (nodeReader, edgeReader) = using(new StringWriter()) { nodeWriter =>
+      using(new StringWriter()) { edgeWriter =>
+        CsvDataWriter.forJavaIoWriter(nodeWriter, edgeWriter).write(library)
+        (new StringReader(nodeWriter.toString), new StringReader(edgeWriter.toString))
       }
     }
 
-    val rereadCsvLibrary = CsvDataReader.fromJavaIoReader(nodeStreamReader, edgeStreamReader, "test", "1.0")
+    val rereadCsvLibrary = CsvDataReader.fromJavaIoReader(nodeReader, edgeReader, "test", "1.0")
     verifyThatLibraryIsConstructedProperly(rereadCsvLibrary)
   }
 
   "A Yaml Writer" should "be able to write a YAML file from a Library" in {
     val yamlReader = YamlReader.fromFileOnClasspath("/sample.yaml")
-    val writtenYamlBytesInputStream = using(new ByteArrayOutputStream()) { stream =>
-      YamlWriter.forOutputStream(stream).write(yamlReader.unmarshal)
-      byteStreamToReader(stream)
+    val writtenYamlReader = using(new StringWriter()) { writer =>
+      YamlWriter.forWriter(writer).write(yamlReader.unmarshal)
+      new StringReader(writer.toString)
     }
 
-    val rereadYamlLibrary = YamlReader.fromReader(writtenYamlBytesInputStream)
+    val rereadYamlLibrary = YamlReader.fromReader(writtenYamlReader)
     verifyThatLibraryIsConstructedProperly(rereadYamlLibrary)
   }
 
