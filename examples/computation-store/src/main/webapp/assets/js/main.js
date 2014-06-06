@@ -1,5 +1,6 @@
 require.config({
   paths: {
+    text: 'lib/text',
     jquery: 'lib/jquery',
     underscore: 'lib/lodash',
     backbone: 'lib/backbone'
@@ -7,6 +8,5 @@ require.config({
 });
 
 require(['app'], function(App){
-  // The "app" dependency is passed in as "App"
-  App.initialize();
+    App.initialize();
 });

@@ -1,0 +1,18 @@
+<table>
+    <thead>
+        <tr>
+            <th>Id</th>
+            <th>Name</th>
+            <th>Cost</th>
+        </tr>
+    </thead>
+    <tbody>
+        <% _.forEach(computations, function(c) { %>
+        <tr>
+            <td><%- c.id %></td>
+            <td><%- c.name %></td>
+            <td><%- c.cost %></td>
+        </tr>
+        <% }); %>
+    </tbody>
+</table>
