@@ -1,6 +1,5 @@
 package com.cyrusinnovation.computation.store
 
-import scala.collection.mutable.ListBuffer
 import scala.collection.mutable
 
 case class StoreProduct(id: Option[Long], name: String, cost: BigDecimal)
@@ -34,7 +33,7 @@ object StoreProducts {
   }
 
   def delete(productId: Long) {
-    products.remove(products.find(_.id == productId).get)
+    products.remove(products.find(_.id == Some(productId)).get)
   }
 
   private def nextId = Some(products.maxBy(_.id).id.get + 1)

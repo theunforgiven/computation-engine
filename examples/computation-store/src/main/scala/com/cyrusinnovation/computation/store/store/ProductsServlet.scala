@@ -1,8 +1,9 @@
 package com.cyrusinnovation.computation.store.store
 
-import com.cyrusinnovation.computation.store.{StoreProduct, StoreProducts}
-import org.scalatra.{NoContent, BadRequest, NotFound, Ok}
+import org.scalatra._
 import scala.util.Try
+import com.cyrusinnovation.computation.store._
+import scala.Some
 
 
 class ProductsServlet extends ComputationStoreServlet {
@@ -28,9 +29,9 @@ class ProductsServlet extends ComputationStoreServlet {
   }
 
   delete("/:productId") {
-    def doDelete(id: Int) = StoreProducts.delete(id); NoContent()
+    def doDelete(id: Int) = { StoreProducts.delete(id); JsonNoContent }
     Try(params("productId").toInt).map(x => doDelete(x))
-                                  .getOrElse(NotFound("Sorry, the product could not be found"))
+      .getOrElse(NotFound("Sorry, the product could not be found"))
   }
 }
 

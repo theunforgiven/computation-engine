@@ -4,15 +4,25 @@
             <th>Id</th>
             <th>Name</th>
             <th>Cost</th>
+            <th>Action</th>
+            <th>Remove?</th>
         </tr>
     </thead>
     <tbody>
         {{#each computations }}
-        <tr>
+        <tr class="computation-row">
             <td>{{ id }}</td>
-            <td>{{ name }}</td>
-            <td>{{ cost }}</td>
+            <td><input type="text" name="name" value="{{ name }}"></td>
+            <td><input type="text" name="cost" value="{{ cost }}"></td>
+            <td><input class="update" type="submit" value="Update" data-row-id="{{id}}"></td>
+            <td><input class="delete" type="submit" value="Delete" data-row-id="{{id}}"></td>
         </tr>
         {{/each}}
+        <tr class="computation-row">
+            <td></td>
+            <td><input type="text" name="name"></td>
+            <td><input type="text" name="cost"></td>
+            <td><input class="save" type="submit" value="Save"></td>
+        </tr>
     </tbody>
 </table>
