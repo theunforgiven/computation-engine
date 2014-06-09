@@ -47,8 +47,4 @@ class WriterTest extends FlatSpec with Matchers with SampleLibraryVerifier {
       verifyThatLibraryIsConstructedProperly(rereadSqlLibrary)
     }
   }
-
-  private def byteStreamToReader(stream: ByteArrayOutputStream): StringReader = {
-    new StringReader(new String(stream.toByteArray))
-  }
 }
