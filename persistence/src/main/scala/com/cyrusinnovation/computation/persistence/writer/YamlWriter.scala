@@ -31,7 +31,7 @@ object YamlWriter {
 
 class YamlWriter(writer: java.io.Writer, snakeYaml: Yaml) extends Writer {
   override def write(library: Library) {
-    val nodeContext = YamlExtractor.marshal(library)
+    val nodeContext = LibraryInspectorForYaml.marshal(library)
     val transformed = YamlDataTransformer.convertNodeToSnakeYamlMaps(nodeContext)
     try {
       snakeYaml.dump(transformed, writer)

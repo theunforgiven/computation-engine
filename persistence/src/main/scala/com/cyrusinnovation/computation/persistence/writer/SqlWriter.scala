@@ -16,7 +16,7 @@ object SqlWriter {
 
 class SqlWriter(private val connection: Connection, private val schema: Option[String]) extends Writer {
   def write(library: Library) {
-    val nodeContext = TableDataExtractor.marshal(library)
+    val nodeContext = LibraryInspectorForTables.marshal(library)
     val (nodes, edges) = TableDataTransformer.extractRowsAndEdges(nodeContext)
     write(nodes, edges)
   }

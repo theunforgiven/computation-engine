@@ -38,7 +38,7 @@ class CsvDataWriter(private val nodeFileWriter: java.io.Writer,
                     private val edgeFileWriter: java.io.Writer,
                     private val config: CsvWriterConfig = CsvWriterConfig()) extends Writer {
   def write(library: Library) {
-    val nodeContext = TableDataExtractor.marshal(library)
+    val nodeContext = LibraryInspectorForTables.marshal(library)
     val (nodes, edges) = TableDataTransformer.extractRowsAndEdges(nodeContext)
     write(nodes, edges)
   }

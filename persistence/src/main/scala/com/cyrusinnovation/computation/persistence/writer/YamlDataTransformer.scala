@@ -2,7 +2,7 @@ package com.cyrusinnovation.computation.persistence.writer
 import java.util.{List => JList, Map => JMap, HashMap => JHMap}
 import scala.collection.JavaConverters._
 
-import com.cyrusinnovation.computation.persistence.writer.LibraryExtractor._
+import com.cyrusinnovation.computation.persistence.writer.LibraryInspector._
 
 object YamlDataTransformer {
   def convertNodeToSnakeYamlMaps(nodeContext: Node): JList[JMap[Object, Object]] = {

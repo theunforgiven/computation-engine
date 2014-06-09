@@ -2,9 +2,9 @@ package com.cyrusinnovation.computation.persistence.writer
 
 import com.cyrusinnovation.computation.specification._
 import org.joda.time.DateTime
-import LibraryExtractor._
+import LibraryInspector._
 
-object LibraryExtractor {
+object LibraryInspector {
   sealed abstract class Node
 
   sealed case class CompoundNode(label: String, attrs: Map[String, String], children: List[Node]) extends Node
@@ -16,7 +16,7 @@ object LibraryExtractor {
   sealed case class MapKeyValueNode(children: Map[String, String]) extends Node
 }
 
-trait LibraryExtractor {
+trait LibraryInspector {
   def marshal(node: SyntaxTreeNode): Node = {
     node match {
       case node: Library                            => library(node)

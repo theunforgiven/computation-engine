@@ -1,6 +1,6 @@
 package com.cyrusinnovation.computation.persistence.writer
 
-import com.cyrusinnovation.computation.persistence.writer.LibraryExtractor._
+import com.cyrusinnovation.computation.persistence.writer.LibraryInspector._
 
 object TableDataTransformer {
   def extractRowsAndEdges(rootNode: Node): (List[NodeDataRow], List[NodeDataEdge]) = {

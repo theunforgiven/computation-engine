@@ -3,9 +3,9 @@ package com.cyrusinnovation.computation.persistence.writer
 import org.joda.time.DateTime
 import org.joda.time.format.ISODateTimeFormat
 import com.cyrusinnovation.computation.specification._
-import LibraryExtractor._
+import LibraryInspector._
 
-object TableDataExtractor extends LibraryExtractor {
+object LibraryInspectorForTables extends LibraryInspector {
   private val formatter = ISODateTimeFormat.dateTime()
 
   private def createTextContainerNode(label: String, textValue: String) = {
