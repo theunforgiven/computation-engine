@@ -18,5 +18,7 @@ require.config({
 });
 
 require(['app'], function(App){
-    App.initialize();
+    $(function() {
+        App.initialize($("body"));
+    })
 });

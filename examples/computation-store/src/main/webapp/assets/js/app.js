@@ -1,30 +1,40 @@
-define(['jquery', 'underscore', 'backbone', "hbars!view/computation-table"], function ($, _, Backbone, template) {
+define(['jquery',
+        'underscore',
+        'backbone',
+        'hbars!view/computation-table'],
+function ($,
+          _,
+          Backbone,
+          template) {
     var Computations = Backbone.Collection.extend({
         comparator: 'id',
         url: '/rest/products/'
     });
 
-    var ComputationTable = Backbone.View.extend({
+    var ExampleBaseView = Backbone.View.extend({
+        serialized: function() {
+            return this.model.toJSON();
+        }
+    });
+
+    var ComputationTable = ExampleBaseView.extend({
         tagName: "table",
         template: template,
         initialize: function () {
             this.model = new Computations();
             this.listenTo(this.model, "sync", this.render);
         },
-        sortedModel: function () {
-            return this.model.toJSON();
-        },
         render: function () {
-            var s = this.template({computations: this.sortedModel()});
+            var s = this.template({computations: this.serialized()});
             this.$el.html(s);
             return this;
         }
     });
 
     return {
-        initialize: function () {
+        initialize: function ($el) {
             var table = new ComputationTable();
-            $("body").append(table.$el);
+            $el.append(table.$el);
             table.model.fetch();
         }
     };
