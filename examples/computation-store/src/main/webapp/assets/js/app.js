@@ -1,4 +1,4 @@
-define(['jquery', 'underscore', 'backbone', "text!tmpl/computation-table.tmpl"], function ($, _, Backbone, template) {
+define(['jquery', 'underscore', 'backbone', "hbars!view/computation-table"], function ($, _, Backbone, template) {
     var Computations = Backbone.Collection.extend({
         comparator: 'id',
         url: '/rest/products/'
@@ -6,7 +6,7 @@ define(['jquery', 'underscore', 'backbone', "text!tmpl/computation-table.tmpl"],
 
     var ComputationTable = Backbone.View.extend({
         tagName: "table",
-        template: _.template(template),
+        template: template,
         initialize: function () {
             this.model = new Computations();
             this.listenTo(this.model, "sync", this.render);

@@ -7,12 +7,12 @@
         </tr>
     </thead>
     <tbody>
-        <% _.forEach(computations, function(c) { %>
+        {{#each computations }}
         <tr>
-            <td><%- c.id %></td>
-            <td><%- c.name %></td>
-            <td><%- c.cost %></td>
+            <td>{{ id }}</td>
+            <td>{{ name }}</td>
+            <td>{{ cost }}</td>
         </tr>
-        <% }); %>
+        {{/each}}
     </tbody>
 </table>
