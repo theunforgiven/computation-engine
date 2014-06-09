@@ -5,30 +5,31 @@ import scala.collection.JavaConverters._
 import com.cyrusinnovation.computation.persistence.writer.LibraryInspector._
 
 object YamlDataTransformer {
-  def convertNodeToSnakeYamlMaps(nodeContext: Node): JList[JMap[Object, Object]] = {
-    val context = nodeContext.asInstanceOf[CompoundNode]
+  def convertLibraryNodeToSnakeYamlMaps(libraryNode: Node): JList[JMap[Object, Object]] = {
+    val context = libraryNode.asInstanceOf[CompoundNode]
     val flattenedLibrary = context.copy(children = List())
-    val ver = context.children.head.asInstanceOf[CompoundNode]
-    val verWithOutKids = ver.copy(children = List())
-    (List(flattenedLibrary, verWithOutKids) ++ ver.children).map(extract).asJava
+    val version = context.children.head.asInstanceOf[CompoundNode]
+    val versionWithOutKids = version.copy(children = List())
+    val topLevelYamlNodes = flattenedLibrary :: versionWithOutKids :: version.children
+    topLevelYamlNodes.map(toYamlMap).asJava
   }
 
-  private def extract(node: Node): JMap[Object, Object] = {
+  private def toYamlMap(node: Node): JMap[Object, Object] = {
     val map = new JHMap[Object, Object]
     node match {
       case aNode: CompoundNode                  => {
         val children = new JHMap[Object, Object]
         map.put(aNode.label, children)
         aNode.attrs.foreach(x => children.put(x._1, x._2))
-        aNode.children.map(extract).foreach(x => children.putAll(x))
+        aNode.children.map(toYamlMap).foreach(x => children.putAll(x))
         map
       }
-      case aContextNodeList: NodeListNode => {
-        map.put(aContextNodeList.label, aContextNodeList.children.map(extract).asJava)
+      case aNodeList: NodeListNode => {
+        map.put(aNodeList.label, aNodeList.children.map(toYamlMap).asJava)
         map
       }
-      case aNodeList: StringListNode               => {
-        map.put(aNodeList.label, aNodeList.children.asJava)
+      case aStringList: StringListNode               => {
+        map.put(aStringList.label, aStringList.children.asJava)
         map
       }
       case aMapNode: MapKeyValueNode => {
