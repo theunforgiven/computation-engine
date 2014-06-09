@@ -38,10 +38,15 @@ object YamlReader {
     fromInputStream(inputStream)
   }
 
+  def fromReader(reader: java.io.Reader): YamlReader = {
+    val snakeYaml = new Yaml()
+    val data: Iterable[AnyRef] = snakeYaml.loadAll(reader)
+    new YamlReader(data)
+  }
+
   def fromInputStream(inputStream: InputStream) : YamlReader = {
     val snakeYaml = new Yaml()
-    val data: Iterable[AnyRef] = snakeYaml.loadAll(inputStream);
-
+    val data: Iterable[AnyRef] = snakeYaml.loadAll(inputStream)
     new YamlReader(data)
   }
 }

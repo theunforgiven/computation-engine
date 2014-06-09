@@ -13,6 +13,14 @@ object CsvDataReader {
                           config: CsvReaderConfig = CsvReaderConfig()) : Reader = {
     val nodeInputStream: InputStream = getClass.getResourceAsStream(nodeFileResourcePath)
     val edgeInputStream: InputStream = getClass.getResourceAsStream(edgeFileResourcePath)
+    fromInputStream(nodeInputStream, edgeInputStream, library, version, config)
+  }
+
+  def fromInputStream(nodeInputStream: InputStream,
+                      edgeInputStream: InputStream,
+                      library: String,
+                      version: String,
+                      config: CsvReaderConfig = CsvReaderConfig()): Reader = {
     fromJavaIoReader(new InputStreamReader(nodeInputStream), new InputStreamReader(edgeInputStream), library, version, config)
   }
 
