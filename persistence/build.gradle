@@ -58,6 +58,13 @@ def pomConfig = {
                 role 'Project Founder'
             }
         }
+        developer {
+            id 'theunforgiven'
+            name 'Nicholas Goodwin'
+            roles {
+                role 'Developer'
+            }
+        }
    }
 }
 
